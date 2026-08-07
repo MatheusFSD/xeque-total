@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Xeque Total — Xadrez × Futebol</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ TELA DE ABERTURA ============ -->
+  <div id="start-screen" class="overlay-screen">
+    <div class="stars"></div>
+    <div class="start-card">
+      <p class="kicker">XADREZ TÁTICO DE FUTEBOL</p>
+      <h1 class="logo">XEQUE <span>TOTAL</span></h1>
+      <p class="tagline">Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
+
+      <div class="team-pick" id="team-pick">
+        <button class="team-pick-card" data-team="A" id="pick-a">
+          <span class="team-pick-badge teco-badge">🛡️</span>
+          <span class="team-pick-name">Tecos</span>
+          <span class="team-pick-sub">Adidas · Branco · Precisão</span>
+        </button>
+        <div class="team-pick-vs">VS</div>
+        <button class="team-pick-card" data-team="B" id="pick-b">
+          <span class="team-pick-badge raptor-badge">🦖</span>
+          <span class="team-pick-name">Raptors</span>
+          <span class="team-pick-sub">Nike · Roxo & Verde · Instinto</span>
+        </button>
+      </div>
+
+      <div class="match-settings">
+        <label class="turn-limit-row" for="turn-limit-input">
+          <span>Turnos por tempo (1º + 2º tempo)</span>
+          <input type="number" id="turn-limit-input" min="4" max="200" step="2" value="40">
+        </label>
+        <label class="no-turn-limit-row" for="no-turn-limit-checkbox">
+          <input type="checkbox" id="no-turn-limit-checkbox">
+          <span>Sem limite de turnos — a partida termina só com 3 gols de vantagem</span>
+        </label>
+      </div>
+
+      <button id="start-btn" class="btn btn-primary btn-start">⚽ Iniciar Partida</button>
+
+      <button id="how-to-play-btn" class="link-btn">Como jogar?</button>
+
+      <div id="how-to-play" class="how-to-play hidden">
+        <ul>
+          <li><strong>Movimento:</strong> não é a posição que define o passo — é a <strong>personalidade</strong>. Rápido = Bispo, Bruto = Torre, Cerebral = Dama curta, Oportunista = Cavalo. O Goleiro é sempre Rei (1 casa).</li>
+          <li><strong>Bola:</strong> pare em cima dela para dominá-la.</li>
+          <li><strong>Passe:</strong> com a bola, envie para um companheiro dentro do seu raio de movimento (destaque azul). O Goleiro é exceção: pode lançar em qualquer casa até a linha de meio-campo.</li>
+          <li><strong>Chute:</strong> depois de cruzar o meio-campo, chute de onde estiver — quanto mais longe do gol, mais difícil.</li>
+          <li><strong>Duelo:</strong> ao mover para cima de um adversário, escolha uma Ação básica (grátis) ou um Poder especial (consome Mana, mais forte).</li>
+          <li>Quem tiver mais gols quando o tempo acabar, vence!</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ JOGO PRINCIPAL ============ -->
+  <div id="game-root" class="hidden">
+
+    <main id="main-grid">
+      <aside class="roster-panel roster-left" id="roster-left">
+        <div class="score-team score-team-a" id="score-team-a">
+          <span class="score-team-badge teco-badge">🛡️</span>
+          <div class="score-team-info">
+            <span class="score-team-name" id="name-team-a">Tecos</span>
+            <span class="score-team-tag" id="tag-team-a">Time A</span>
+          </div>
+          <span class="score-value" id="score-a">0</span>
+        </div>
+        <div class="roster-list" id="roster-list-a"></div>
+      </aside>
+
+      <section id="board-wrap">
+        <div id="stadium">
+          <div class="stand stand-top">
+            <div class="crowd"></div><div class="adboard"></div>
+            <div class="stadium-hud">
+              <div class="score-center">
+                <div class="score-clock" id="score-clock">1ºT 0'</div>
+                <div class="score-turn" id="score-turn">Sua vez</div>
+              </div>
+              <button id="menu-btn" class="icon-btn" title="Menu">☰</button>
+            </div>
+          </div>
+          <div class="floodlight floodlight-tl"></div>
+          <div class="floodlight floodlight-tr"></div>
+          <div id="pitch">
+            <div class="pitch-goal pitch-goal-left"><div class="pitch-net"></div></div>
+            <div class="pitch-goal pitch-goal-right"><div class="pitch-net"></div></div>
+            <div class="pitch-circle"></div>
+            <div class="pitch-midline"></div>
+            <div class="pitch-spot pitch-spot-left"></div>
+            <div class="pitch-spot pitch-spot-right"></div>
+            <div class="pitch-arc pitch-arc-left"></div>
+            <div class="pitch-arc pitch-arc-right"></div>
+            <div class="pitch-box pitch-box-left"></div>
+            <div class="pitch-box pitch-box-right"></div>
+            <div class="pitch-corner pitch-corner-tl"></div>
+            <div class="pitch-corner pitch-corner-bl"></div>
+            <div class="pitch-corner pitch-corner-tr"></div>
+            <div class="pitch-corner pitch-corner-br"></div>
+            <div id="board" class="board-grid"></div>
+          </div>
+          <div class="floodlight floodlight-bl"></div>
+          <div class="floodlight floodlight-br"></div>
+          <div class="stand stand-bottom"><div class="crowd"></div><div class="adboard"></div></div>
+        </div>
+      </section>
+
+      <aside class="roster-panel roster-right" id="roster-right">
+        <div class="score-team score-team-b" id="score-team-b">
+          <span class="score-value" id="score-b">0</span>
+          <div class="score-team-info">
+            <span class="score-team-name" id="name-team-b">Raptors</span>
+            <span class="score-team-tag" id="tag-team-b">Time B</span>
+          </div>
+          <span class="score-team-badge raptor-badge">🦖</span>
+        </div>
+        <div class="roster-list" id="roster-list-b"></div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ============ ESTATÍSTICAS DO JOGADOR (duplo-clique) ============ -->
+  <div id="player-stats-modal" class="overlay-screen hidden">
+    <div class="player-stats-card">
+      <button id="player-stats-close" class="icon-btn player-stats-close" title="Fechar">✕</button>
+      <div id="player-stats-body" class="detail-card"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL DE DUELO ============ -->
+  <div id="duel-modal" class="overlay-screen hidden">
+    <div class="duel-card">
+      <p class="duel-title" id="duel-title">DUELO!</p>
+      <div class="duel-arena">
+        <div class="duel-side duel-side-left" id="duel-left">
+          <div class="duel-avatar" id="duel-left-avatar"></div>
+          <p class="duel-name" id="duel-left-name">—</p>
+          <p class="duel-role" id="duel-left-role">—</p>
+          <div class="duel-score" id="duel-left-score">—</div>
+          <div class="duel-actions" id="duel-left-actions"></div>
+        </div>
+
+        <div class="duel-vs">
+          <span>VS</span>
+        </div>
+
+        <div class="duel-side duel-side-right" id="duel-right">
+          <div class="duel-avatar" id="duel-right-avatar"></div>
+          <p class="duel-name" id="duel-right-name">—</p>
+          <p class="duel-role" id="duel-right-role">—</p>
+          <div class="duel-score" id="duel-right-score">—</div>
+          <div class="duel-actions" id="duel-right-actions"></div>
+        </div>
+      </div>
+      <p class="duel-result" id="duel-result"></p>
+      <button id="duel-continue-btn" class="btn btn-primary hidden">Continuar</button>
+    </div>
+  </div>
+
+  <!-- ============ BANNER DE GOL ============ -->
+  <div id="goal-banner" class="hidden">
+    <div class="goal-banner-inner">
+      <p class="goal-word">GOOOOL!</p>
+      <p class="goal-scorer" id="goal-scorer"></p>
+    </div>
+  </div>
+
+  <!-- ============ INTERVALO (2º TEMPO) ============ -->
+  <div id="halftime-banner" class="hidden">
+    <div class="halftime-banner-inner">
+      <p class="halftime-word">FIM DO 1º TEMPO</p>
+      <p class="halftime-sub">Os times trocam de lado...</p>
+    </div>
+  </div>
+
+  <!-- ============ FIM DE JOGO ============ -->
+  <div id="gameover-modal" class="overlay-screen hidden">
+    <div class="start-card">
+      <p class="kicker" id="gameover-kicker">FIM DE JOGO</p>
+      <h1 class="logo" id="gameover-title">VITÓRIA</h1>
+      <div class="gameover-score" id="gameover-score">0 — 0</div>
+      <p class="gameover-sub" id="gameover-sub"></p>
+      <button id="rematch-btn" class="btn btn-primary btn-start">🔄 Jogar Novamente</button>
+    </div>
+  </div>
+
+  <!-- ============ PERGUNTA DE ESCALAÇÃO ============ -->
+  <div id="lineup-ask-modal" class="overlay-screen hidden">
+    <div class="start-card">
+      <p class="kicker">ANTES DE COMEÇAR</p>
+      <h1 class="logo lineup-title">ESCALAÇÃO</h1>
+      <p class="tagline" id="lineup-ask-text">Quer ajustar as posições iniciais do seu time em campo?</p>
+      <div class="lineup-ask-actions">
+        <button id="lineup-ask-yes" class="btn btn-primary">📋 Sim, editar escalação</button>
+        <button id="lineup-ask-no" class="btn btn-ghost">Não, começar direto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EDITOR DE ESCALAÇÃO ============ -->
+  <div id="lineup-editor-modal" class="overlay-screen hidden">
+    <div class="lineup-editor-card">
+      <p class="kicker">ESCALAÇÃO</p>
+      <h2 class="lineup-editor-title" id="lineup-editor-title">Monte seu time</h2>
+      <p class="lineup-editor-hint">Toque num jogador e depois numa casa do seu campo para reposicioná-lo — ou em outro jogador para trocar de lugar.</p>
+      <div class="lineup-editor-body">
+        <div id="lineup-grid" class="lineup-grid"></div>
+        <div id="lineup-detail" class="lineup-detail">
+          <p class="detail-empty">Toque num jogador para ver os detalhes.</p>
+        </div>
+      </div>
+      <div class="lineup-editor-actions">
+        <button id="lineup-reset-btn" class="btn btn-ghost">↺ Restaurar Padrão</button>
+        <button id="lineup-confirm-btn" class="btn btn-primary">✅ Confirmar Escalação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CARA OU COROA ============ -->
+  <div id="coinflip-modal" class="overlay-screen hidden">
+    <div class="start-card">
+      <p class="kicker">SORTEIO</p>
+      <h1 class="logo lineup-title">CARA OU COROA</h1>
+      <div class="coin-wrap">
+        <div id="coin" class="coin">
+          <div class="coin-face coin-front">🛡️</div>
+          <div class="coin-face coin-back">🦖</div>
+        </div>
+      </div>
+      <p class="coinflip-result" id="coinflip-result">Girando a moeda...</p>
+      <button id="coinflip-continue-btn" class="btn btn-primary btn-start hidden">⚽ Começar Partida</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/board.js"></script>
+<script src="js/duel.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
