@@ -35,7 +35,7 @@ var DUEL = (function () {
       challenger.mana -= challenger.power.manaCost;
       challengerUsedPower = true;
     }
-    if (params.holderChoice === "poder" && canUsePower(holder)) {
+    if (!holder.stunned && params.holderChoice === "poder" && canUsePower(holder)) {
       holder.mana -= holder.power.manaCost;
       holderUsedPower = true;
     }
@@ -45,9 +45,10 @@ var DUEL = (function () {
 
     var challengerScore = rollScore(cBase, challenger.stats.espirito, challengerUsedPower, challenger.power.bonus);
     if (isShoot && params.distancePenalty) challengerScore -= params.distancePenalty;
-    var holderScore = rollScore(hBase, holder.stats.espirito, holderUsedPower, holder.power.bonus);
+    var holderScore = holder.stunned ? -1 : rollScore(hBase, holder.stats.espirito, holderUsedPower, holder.power.bonus);
 
-    var winnerSide = challengerScore > holderScore ? "challenger" : "holder";
+    // atordoado não consegue reagir — perde o duelo automaticamente, não importa a pontuação
+    var winnerSide = holder.stunned ? "challenger" : (challengerScore > holderScore ? "challenger" : "holder");
 
     return {
       winnerSide: winnerSide,

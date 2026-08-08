@@ -47,7 +47,7 @@ var GAME = (function () {
     return {
       phase: "playing", humanTeamId: humanTeamId,
       teams: teamsMeta, pieces: pieces,
-      ball: { row: Math.floor(BOARD.ROWS / 2), col: BOARD.MID_COL, carrierId: null },
+      ball: { row: Math.floor(BOARD.ROWS / 2), col: BOARD.MID_COL, carrierId: null, gkHoldTurns: 0 },
       currentTeamId: "A", turnCount: 0, maxTurns: maxTurns || 40, noTurnLimit: !!noTurnLimit, half: 1,
       score: { A: 0, B: 0 }, selectedPieceId: null,
       legalMoves: [], passTargets: [], canShoot: false, shootInfo: null,
@@ -74,9 +74,9 @@ var GAME = (function () {
     }
     if (striker) {
       striker.row = centerRow; striker.col = centerCol;
-      state.ball = { row: centerRow, col: centerCol, carrierId: striker.id };
+      state.ball = { row: centerRow, col: centerCol, carrierId: striker.id, gkHoldTurns: 0 };
     } else {
-      state.ball = { row: centerRow, col: centerCol, carrierId: null };
+      state.ball = { row: centerRow, col: centerCol, carrierId: null, gkHoldTurns: 0 };
     }
     state.currentTeamId = kickoffTeamId;
   }
@@ -249,6 +249,11 @@ var GAME = (function () {
       scoreGoal(shooter.team, shooter);
       return;
     }
+    if (gk.stunned) {
+      addLog("GOL DE PLACA! " + gk.name + " está atordoado e não consegue reagir ao chute de " + shooter.name + "!", "ev-goal");
+      scoreGoal(shooter.team, shooter);
+      return;
+    }
     beginDuel(shooter, gk, true, info.penalty, false, info.blockerCount);
   }
 
@@ -269,7 +274,9 @@ var GAME = (function () {
     if (challengerCtrl === "cpu") {
       ctx.challengerChoice = AI.chooseDuelChoice(challenger, { isShoot: isShoot, critical: isShoot });
     }
-    if (holderCtrl === "cpu") {
+    if (holder.stunned) {
+      ctx.holderChoice = "acao"; // atordoado não consegue reagir — perde automaticamente, não precisa escolher
+    } else if (holderCtrl === "cpu") {
       var criticalHold = isShoot || BOARD.isInOwnGoalBox(holder.row, holder.col, state.teams[holder.team]);
       ctx.holderChoice = AI.chooseDuelChoice(holder, { isShoot: isShoot, critical: criticalHold });
     }
@@ -381,8 +388,8 @@ var GAME = (function () {
     state.score[teamId]++;
     addLog("⚽ GOL de " + scorerPiece.name + "! Placar: " + state.score.A + " x " + state.score.B, "ev-goal");
     state.phase = "goal-pause";
-    var routed = state.noTurnLimit && Math.abs(state.score.A - state.score.B) >= 3;
-    if (routed) addLog("🏁 Vantagem de 3 gols! A partida termina aqui.", "ev-goal");
+    var routed = state.noTurnLimit && state.score[teamId] >= 3;
+    if (routed) addLog("🏁 " + state.teams[teamId].name + " fez 3 gols! A partida termina aqui.", "ev-goal");
     render();
     UI.showGoalBanner(scorerPiece, teamId);
     setTimeout(function () {
@@ -422,10 +429,27 @@ var GAME = (function () {
     state.currentTeamId = teamId;
     regenMana(teamId);
     processStunForTurn(teamId);
+    checkGoalkeeperHoldLimit(teamId);
     clearActionOptions();
     state.phase = "playing";
     render();
     if (state.currentTeamId !== state.humanTeamId) setTimeout(runAITurn, 800);
+  }
+
+  // o goleiro só pode segurar a bola por 2 turnos do próprio time — no 3º, ela escapa sozinha
+  function checkGoalkeeperHoldLimit(teamId) {
+    var carrier = state.ball.carrierId ? findPieceById(state.ball.carrierId) : null;
+    if (!carrier || carrier.position !== "GK") {
+      state.ball.gkHoldTurns = 0;
+      return;
+    }
+    if (carrier.team !== teamId) return; // conta só nas voltas do turno do próprio time do goleiro
+    state.ball.gkHoldTurns = (state.ball.gkHoldTurns || 0) + 1;
+    if (state.ball.gkHoldTurns >= 2) {
+      state.ball.carrierId = null;
+      state.ball.gkHoldTurns = 0;
+      addLog("⏱️ " + carrier.name + " segurou a bola por turnos demais e ela escapou!", "ev-info");
+    }
   }
 
   function endTurn() {
@@ -434,7 +458,7 @@ var GAME = (function () {
 
   function regenMana(teamId) {
     state.pieces.forEach(function (p) {
-      if (p.team === teamId) p.mana = Math.min(p.maxMana, p.mana + 12);
+      if (p.team === teamId) p.mana = Math.min(p.maxMana, p.mana + 8);
     });
   }
 

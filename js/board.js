@@ -87,6 +87,7 @@ var BOARD = (function () {
         if (!occ) { moves.push({ row: r, col: c, capture: false, targetId: null, dribble: false }); continue; }
         var res = classify(r, c, occ);
         if (res) moves.push(res);
+        if (!res && occ.team !== piece.team && occ.stunned) continue; // atordoado não bloqueia — dá pra passar por cima
         break; // qualquer peça na casa bloqueia o resto da linha (menos o Cavalo, que nem passa por aqui)
       }
     });
