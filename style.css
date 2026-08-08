@@ -374,11 +374,12 @@ button{ font-family: inherit; }
 .stand-top{ height: 54px; }
 .stand-bottom{ margin: 4px -6px 0; }
 .stand .crowd{
-  position: absolute; inset: 0;
+  position: absolute; top: 0; bottom: 0; left: -140px; right: -140px;
   background-image: radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1.4px);
   background-size: 7px 7px;
   background-color: #1b2333;
   animation: crowdShift 6s linear infinite;
+  will-change: transform;
   opacity: 0.8;
 }
 .stand .adboard{
@@ -514,11 +515,13 @@ button{ font-family: inherit; }
 
 .piece-token{
   position: absolute;
+  left: 0; top: 0;
   width: calc(100% / 13); height: calc(100% / 9);
   display: flex; align-items: center; justify-content: center;
   pointer-events: auto;
   cursor: pointer;
-  transition: left 0.4s cubic-bezier(.3,.8,.3,1), top 0.4s cubic-bezier(.3,.8,.3,1);
+  transition: transform 0.4s cubic-bezier(.3,.8,.3,1);
+  will-change: transform;
   z-index: 1;
 }
 .piece-token.selected{ z-index: 3; }
@@ -571,12 +574,14 @@ button{ font-family: inherit; }
 
 #ball-el{
   position: absolute;
+  left: 0; top: 0;
   width: calc(100% / 13); height: calc(100% / 9);
   display: flex; align-items: flex-end; justify-content: center;
   font-size: clamp(1rem, 2.6vw, 1.3rem);
   pointer-events: none;
   z-index: 11;
-  transition: left 0.55s cubic-bezier(.35,.7,.3,1), top 0.55s cubic-bezier(.35,.7,.3,1);
+  transition: transform 0.55s cubic-bezier(.35,.7,.3,1);
+  will-change: transform;
   filter: drop-shadow(0 3px 4px rgba(0,0,0,0.65));
 }
 #ball-el span{ display: inline-block; margin-bottom: 2px; animation: ballBobSelf 1.4s ease-in-out infinite; }
@@ -850,7 +855,7 @@ button{ font-family: inherit; }
 @keyframes stunBlink{ 0%,100%{ opacity: 1; } 50%{ opacity: 0.35; } }
 @keyframes carrierPulse{ 0%,100%{ box-shadow: 0 0 0 3px rgba(255,255,255,0.5), 0 0 10px rgba(255,255,255,0.4); } 50%{ box-shadow: 0 0 0 3px rgba(255,255,255,0.85), 0 0 18px rgba(255,255,255,0.7); } }
 @keyframes pulseText{ 0%,100%{ opacity: 0.6; } 50%{ opacity: 1; } }
-@keyframes crowdShift{ from{ background-position: 0 0; } to{ background-position: -140px 0; } }
+@keyframes crowdShift{ from{ transform: translateX(0); } to{ transform: translateX(-140px); } }
 @keyframes trailFade{ 0%{ opacity: 0.75; transform: scale(1); } 100%{ opacity: 0; transform: scale(0.55); } }
 @keyframes goalPop{
   0%{ opacity: 0; transform: scale(0.6) rotate(-4deg); }

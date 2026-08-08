@@ -247,8 +247,7 @@ var UI = (function () {
       var carrier = GAME.findPieceById(state.ball.carrierId);
       if (carrier) { row = carrier.row; col = carrier.col; }
     }
-    els.ballEl.style.left = (col / BOARD.COLS * 100) + "%";
-    els.ballEl.style.top = (row / BOARD.ROWS * 100) + "%";
+    els.ballEl.style.transform = "translate(" + (col * 100) + "%, " + (row * 100) + "%)";
   }
 
   /* ---------------- eventos de clique ---------------- */
@@ -448,8 +447,7 @@ var UI = (function () {
     }
     lastPositions[piece.id] = { row: piece.row, col: piece.col };
 
-    token.style.left = (piece.col / BOARD.COLS * 100) + "%";
-    token.style.top = (piece.row / BOARD.ROWS * 100) + "%";
+    token.style.transform = "translate(" + (piece.col * 100) + "%, " + (piece.row * 100) + "%)";
     token.classList.toggle("selected", state.selectedPieceId === piece.id);
     token.classList.toggle("has-ball", state.ball.carrierId === piece.id);
     token.classList.toggle("low-mana", piece.mana < piece.power.manaCost);
