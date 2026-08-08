@@ -1019,12 +1019,16 @@ button{ font-family: inherit; }
   .score-team-name{ font-size: 0.78rem; }
   .duel-arena{ flex-direction: column; align-items: center; }
   .duel-vs{ padding-top: 0; }
-  #stadium{ padding: 6px 16px; }
   .stand{ height: 16px; }
   .stand-top{ height: 40px; }
   .floodlight{ width: 22px; height: 22px; }
   #main-grid{ padding: 8px; gap: 8px; }
   .roster-panel{ padding: 8px; gap: 6px; }
+
+  /* campo com tamanho de célula legível e fixo — em vez de encolher até ficar
+     ilegível, ele rola de lado (como um mapa) pra caber os ícones dos jogadores */
+  #board-wrap{ overflow-x: auto; justify-content: flex-start; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+  #stadium{ width: 580px; min-width: 580px; max-width: none; padding: 6px 16px; flex-shrink: 0; }
 
   /* cards de jogador minimizados — só avatar + nome, o resto fica no duplo-toque */
   .roster-card{ width: 96px; min-width: 96px; padding: 5px 6px; gap: 6px; }
