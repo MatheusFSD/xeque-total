@@ -358,10 +358,11 @@ button{ font-family: inherit; }
    ESTÁDIO E CAMPO (horizontal)
 ========================================================= */
 
-#board-wrap{ display: flex; align-items: center; justify-content: center; width: 100%; }
+#board-wrap{ display: flex; align-items: center; justify-content: center; width: 100%; min-width: 0; }
 
 #stadium{
   width: 100%; max-width: min(980px, calc((100vh - 148px) * 13 / 9));
+  min-width: 0;
   display: flex; flex-direction: column; align-items: stretch; gap: 0;
   position: relative;
   background: radial-gradient(900px 260px at 50% 50%, rgba(20,30,20,0.4), transparent 70%);
@@ -995,11 +996,11 @@ button{ font-family: inherit; }
 ========================================================= */
 
 @media (max-width: 1180px){
-  #main-grid{ grid-template-columns: 1fr; }
-  .roster-panel{ max-height: none; }
-  .roster-list{ flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
-  .roster-card{ min-width: 150px; }
-  #board-wrap{ order: -1; }
+  #main-grid{ grid-template-columns: minmax(0,1fr); }
+  .roster-panel{ max-height: none; min-width: 0; }
+  .roster-list{ flex: 0 0 auto; flex-direction: row; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; }
+  .roster-card{ min-width: 150px; flex-shrink: 0; }
+  #board-wrap{ order: -1; min-width: 0; }
   .detail-body{ grid-template-columns: 1fr; }
   #stadium{ padding: 8px 34px; }
 }
@@ -1018,8 +1019,18 @@ button{ font-family: inherit; }
   .score-team-name{ font-size: 0.78rem; }
   .duel-arena{ flex-direction: column; align-items: center; }
   .duel-vs{ padding-top: 0; }
-  #stadium{ padding: 6px 20px; }
+  #stadium{ padding: 6px 16px; }
   .stand{ height: 16px; }
   .stand-top{ height: 40px; }
   .floodlight{ width: 22px; height: 22px; }
+  #main-grid{ padding: 8px; gap: 8px; }
+  .roster-panel{ padding: 8px; gap: 6px; }
+
+  /* cards de jogador minimizados — só avatar + nome, o resto fica no duplo-toque */
+  .roster-card{ width: 96px; min-width: 96px; padding: 5px 6px; gap: 6px; }
+  .roster-card .avatar-box{ width: 26px; height: 26px; }
+  .roster-card .roster-pos{ display: none; }
+  .roster-card .mini-mana{ display: none; }
+  .roster-card .roster-name{ font-size: 0.7rem; }
+  .roster-card .roster-ball-icon{ font-size: 0.65rem; }
 }
