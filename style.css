@@ -30,13 +30,36 @@
   --radius-sm: 9px;
   --radius-token: 22%;
 
-  --font-display: 'Orbitron', 'Segoe UI', sans-serif;
+  --font-display: 'Anton', 'Segoe UI', sans-serif;
   --font-body: 'Rajdhani', 'Segoe UI', Tahoma, sans-serif;
+  --font-brutal: 'Anton', 'Segoe UI', sans-serif;
+  --font-clock: 'Digital Numbers', 'Anton', monospace;
+
+  --chrome-gradient: linear-gradient(180deg, #ffffff 0%, #d7dee7 22%, #8b95a3 50%, #d7dee7 78%, #ffffff 100%);
 
   --shadow-deep: 0 20px 60px rgba(0,0,0,0.55);
 }
 
 *{ box-sizing: border-box; }
+
+/* textura de impressão sutil, usada em painéis/cards */
+.print-texture{ position: relative; }
+.print-texture::before{
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* acento cromado pontual — texto com brilho metálico */
+.chrome-accent{
+  background: var(--chrome-gradient);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+}
 
 html, body{
   margin: 0;
@@ -257,41 +280,61 @@ button{ font-family: inherit; }
 .how-to-play strong{ color: var(--ink); }
 
 /* =========================================================
-   PLACAR (agora dentro dos painéis laterais)
+   PLACAR — card por time no topo de cada coluna lateral,
+   relógio sobreposto na arquibancada
 ========================================================= */
 
-.score-team{
+/* card do time — tile próprio (bento), separado do painel de escalação/ficha.
+   o número fica em fluxo normal (não sobreposto/absoluto), então nunca é cortado */
+.side-score-card{
+  position: relative;
   display: flex; align-items: center; gap: 10px;
-  background: var(--panel-soft);
+  background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-deep);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.score-team-b{ flex-direction: row-reverse; text-align: right; }
+.side-score-card::after{
+  content: ''; position: absolute; left: 16px; right: 16px; bottom: 0; height: 2px;
+  background: var(--chrome-gradient); opacity: 0; transition: opacity 0.2s ease;
+}
+.side-score-card.active-turn::after{ opacity: 0.8; }
+.side-score-card.active-turn{ border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,209,102,0.3); }
 
-.score-team-badge{ width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0; }
+.score-team-badge{ width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
 .score-team-info{ flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
-.score-team-name{ font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.score-team-tag{ font-size: 0.68rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; }
-.score-value{ font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; color: var(--gold); min-width: 28px; text-align: center; flex-shrink: 0; }
+.score-team-name{ font-family: var(--font-brutal); font-weight: 400; letter-spacing: 0.02em; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.score-team-tag{ font-size: 0.62rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.score-team.active-turn{ border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,209,102,0.3); }
+.side-score-value{
+  font-family: var(--font-display); font-weight: 900; font-style: italic;
+  font-size: 1.7rem; line-height: 1; letter-spacing: 0.02em;
+  color: var(--gold);
+  margin-left: auto; padding-left: 6px; flex-shrink: 0;
+}
 
-/* HUD (relógio / vez / menu) embutido na arquibancada superior, dividindo-a ao meio */
-.stadium-hud{
-  position: absolute; inset: 0; z-index: 4;
-  display: flex; align-items: center; justify-content: center; gap: 12px;
+/* relógio — sobreposto na faixa de arquibancada de cima, como um placar de estádio */
+.stadium-clock{
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  background: rgba(5,7,13,0.9);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 3px 16px 4px;
+  z-index: 3;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+  white-space: nowrap;
 }
-.score-center{
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
-  background: rgba(5,7,13,0.55);
-  border-radius: 8px;
-  padding: 3px 14px;
-  backdrop-filter: blur(2px);
+.stadium-clock .score-clock{ font-family: var(--font-clock); font-size: 0.9rem; font-weight: 400; letter-spacing: 0.04em; color: var(--ink); }
+.stadium-clock .score-turn{ font-size: 0.48rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.menu-btn-floating{
+  position: fixed; top: 12px; right: 12px; z-index: 50;
+  background: rgba(15,20,34,0.86);
 }
-.score-clock{ font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; letter-spacing: 0.05em; }
-.score-turn{ font-size: 0.6rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em; }
-.stadium-hud .icon-btn{ width: 26px; height: 26px; font-size: 0.85rem; background: rgba(5,7,13,0.55); }
 
 /* =========================================================
    LAYOUT PRINCIPAL
@@ -299,12 +342,19 @@ button{ font-family: inherit; }
 
 #main-grid{
   display: grid;
-  grid-template-columns: 240px minmax(0,1fr) 240px;
-  gap: 16px;
-  padding: 16px;
+  grid-template-columns: 230px minmax(0,1fr) 230px;
+  gap: 10px;
+  padding: 10px;
   align-items: stretch;
   flex: 1;
   min-height: 0;
+}
+
+/* coluna lateral — dois "tiles" separados (bento): o card do placar
+   e o painel de escalação/ficha, cada um com sua própria caixa */
+.side-column{
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 0; min-width: 0;
 }
 
 .roster-panel{
@@ -313,10 +363,49 @@ button{ font-family: inherit; }
   border-radius: var(--radius-lg);
   padding: 14px;
   display: flex; flex-direction: column; gap: 10px;
+  flex: 1;
   min-height: 0;
+  overflow: hidden;
+}
+
+.roster-title{
+  position: relative;
+  font-family: var(--font-brutal); font-weight: 400; font-size: 0.8rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim);
+  padding-bottom: 8px; margin-bottom: 2px;
+}
+.roster-title::after{
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: var(--chrome-gradient); opacity: 0.7;
 }
 
 .roster-list{ flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; }
+
+/* ---- card de detalhes do jogador selecionado (lado direito, sempre visível) ---- */
+.player-detail-panel{
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column; gap: 12px;
+  padding-right: 10px; padding-top: 15px;
+}
+.player-detail-panel .detail-empty{ margin: auto; }
+/* fica um pouco mais estreito que o painel pra sobrar espaço à direita —
+   é ali que o número do camisa "vaza" pra fora sem ser cortado pelo
+   overflow-x:hidden do painel (que existe pra travar a barra de rolagem) */
+.player-detail-panel .detail-hero-wrap{ width: calc(100% - 16px); flex: none; }
+.player-detail-panel .detail-body{ grid-template-columns: 1fr; gap: 12px; }
+
+/* número grande no canto do retrato — fica FORA do .detail-hero (que tem
+   overflow:hidden pro recorte do retrato), num wrapper sem overflow, pra
+   poder "vazar" pra fora da moldura sem ser cortado */
+.detail-jersey-number{
+  position: absolute; top: -8px; right: -8px; z-index: 2;
+  font-family: var(--font-brutal); font-weight: 400;
+  font-size: 3rem; line-height: 1; color: #fff; font-style: italic;
+  text-shadow: 0 0 6px rgba(0,0,0,0.9), 0 0 14px rgba(0,0,0,0.7), 2px 2px 0 rgba(0,0,0,0.6);
+}
+
+/* bandeira como imagem real (emoji de bandeira não renderiza no Windows) */
+.detail-flag-img{ width: 20px; height: auto; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255,255,255,0.3); vertical-align: middle; }
 
 .roster-card{
   display: flex; align-items: center; gap: 10px;
@@ -361,48 +450,29 @@ button{ font-family: inherit; }
 #board-wrap{ display: flex; align-items: center; justify-content: center; width: 100%; min-width: 0; }
 
 #stadium{
-  width: 100%; max-width: min(980px, calc((100vh - 148px) * 13 / 9));
+  width: 100%; max-width: min(1180px, calc((100vh - 100px) * 13 / 9));
   min-width: 0;
-  display: flex; flex-direction: column; align-items: stretch; gap: 0;
+  display: flex; flex-direction: column; align-items: center;
   position: relative;
-  background: radial-gradient(900px 260px at 50% 50%, rgba(20,30,20,0.4), transparent 70%);
-  border-radius: var(--radius-lg);
-  padding: 10px 54px;
+  padding: 4px 0 10px;
 }
 
-.stand{ height: 26px; position: relative; overflow: hidden; border-radius: 6px; margin: 0 -6px 4px; }
-.stand-top{ height: 54px; }
-.stand-bottom{ margin: 4px -6px 0; }
-.stand .crowd{
-  position: absolute; top: 0; bottom: 0; left: -140px; right: -140px;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1.4px);
-  background-size: 7px 7px;
-  background-color: #1b2333;
-  animation: crowdShift 6s linear infinite;
-  will-change: transform;
-  opacity: 0.8;
+/* arquibancada — faixa fina de "cabeças" repetidas em duas fileiras,
+   estilo ícone simples, acima e abaixo do campo */
+.stadium-audience{
+  position: relative; z-index: 2;
+  width: 100%; height: 22px; flex-shrink: 0;
+  border-radius: 5px;
+  background-color: #1b2233;
+  background-image:
+    radial-gradient(circle at 5px 6px, rgba(255,209,102,0.28) 2.1px, transparent 2.5px),
+    radial-gradient(circle at 15px 14px, rgba(255,255,255,0.30) 2.1px, transparent 2.5px),
+    radial-gradient(circle at 25px 7px, rgba(255,255,255,0.20) 2.1px, transparent 2.5px);
+  background-size: 30px 20px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.06);
 }
-.stand .adboard{
-  position: absolute; left: 0; right: 0; bottom: 0; height: 40%;
-  background: repeating-linear-gradient(90deg, var(--raptor) 0 60px, var(--teco) 60px 120px, var(--raptor-accent) 120px 180px);
-  opacity: 0.85;
-}
-
-.floodlight{
-  position: absolute; width: 34px; height: 34px; z-index: 3;
-  background:
-    radial-gradient(circle at 50% 30%, rgba(255,255,255,0.95), rgba(255,244,200,0.2) 60%, transparent 70%);
-  filter: drop-shadow(0 0 12px rgba(255, 244, 200, 0.8));
-  border-radius: 50%;
-}
-.floodlight::after{
-  content: ''; position: absolute; left: 50%; top: 100%; width: 4px; height: 22px;
-  background: #333; transform: translateX(-50%);
-}
-.floodlight-tl{ top: -6px; left: 6px; }
-.floodlight-tr{ top: -6px; right: 6px; }
-.floodlight-bl{ bottom: -6px; left: 6px; }
-.floodlight-br{ bottom: -6px; right: 6px; }
+.stadium-audience-top{ margin-bottom: 5px; }
+.stadium-audience-bottom{ margin-top: 5px; }
 
 #pitch{
   position: relative;
@@ -414,6 +484,8 @@ button{ font-family: inherit; }
     repeating-linear-gradient(90deg, #1a7a3e 0, #1a7a3e 7.69%, #1c8544 7.69%, #1c8544 15.38%);
   box-shadow: var(--shadow-deep), inset 0 0 0 3px rgba(255,255,255,0.65), inset 0 0 60px rgba(0,0,0,0.35);
   border: 1px solid rgba(255,255,255,0.15);
+  transform: perspective(900px) rotateX(14deg);
+  transform-style: preserve-3d;
 }
 
 .pitch-midline{ position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: rgba(255,255,255,0.65); transform: translateX(-1px); }
@@ -434,14 +506,28 @@ button{ font-family: inherit; }
 .pitch-arc-left{ left: 8.5%; clip-path: inset(0 0 0 50%); }
 .pitch-arc-right{ left: auto; right: 8.5%; clip-path: inset(0 50% 0 0); }
 
-.pitch-goal{ position: absolute; top: 50%; height: 22%; width: 2%; transform: translateY(-50%); border: 2px solid rgba(255,255,255,0.85); background: rgba(0,0,0,0.25); }
-.pitch-goal-left{ left: -1%; }
-.pitch-goal-right{ right: -1%; }
+.pitch-goal{
+  position: absolute; top: 50%; height: 22%; width: 3%; transform: translateY(-50%);
+  border: 2px solid rgba(255,255,255,0.9);
+  background: linear-gradient(90deg, rgba(0,0,0,0.15), rgba(0,0,0,0.5));
+  box-shadow: 0 0 10px rgba(0,0,0,0.35), inset 0 0 14px rgba(0,0,0,0.45);
+}
+.pitch-goal-left{ left: -1.5%; border-right: none; }
+.pitch-goal-right{ right: -1.5%; border-left: none; }
 .pitch-net{
   position: absolute; inset: 0;
   background-image: linear-gradient(90deg, rgba(255,255,255,0.25) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.25) 1px, transparent 1px);
   background-size: 6px 6px;
 }
+/* fundo do gol recuado — dá impressão de profundidade (2.5D) */
+.pitch-post-back{
+  position: absolute; top: 8%; bottom: 8%; width: 55%;
+  background: rgba(0,0,0,0.4);
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.55);
+}
+.pitch-goal-left .pitch-post-back{ right: 4%; border-right: none; }
+.pitch-goal-right .pitch-post-back{ left: 4%; border-left: none; }
 
 .pitch-corner{ position: absolute; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.65); border-radius: 50%; }
 .pitch-corner-tl{ top: -8px; left: -8px; clip-path: inset(50% 0 0 50%); }
@@ -466,14 +552,17 @@ button{ font-family: inherit; }
 .cell.goal-zone-a{ background: rgba(238,241,246,0.07); }
 .cell.goal-zone-b{ background: rgba(139,47,214,0.09); }
 
-.cell.legal-move::after{
-  content: '';
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
-  width: 26%; height: 26%; border-radius: 50%;
-  background: rgba(255,255,255,0.55);
-  box-shadow: 0 0 10px rgba(255,255,255,0.5);
-  animation: dotPulse 1.4s ease-in-out infinite;
-  pointer-events: none;
+/* casas de movimento — acendem em glow azul claro que preenche o quadrado
+   inteiro; a ordem/atraso de cada casa é definido via --stagger inline
+   (ver renderBoard em ui.js), criando um efeito de "acender em sequência" */
+.cell.legal-move{
+  animation: legalCellIn 0.5s ease both;
+  animation-delay: calc(var(--stagger, 0) * 45ms);
+}
+@keyframes legalCellIn{
+  0%{ background: rgba(56,214,255,0); box-shadow: inset 0 0 0 0 rgba(56,214,255,0); }
+  55%{ background: rgba(56,214,255,0.42); box-shadow: inset 0 0 16px rgba(56,214,255,0.7); }
+  100%{ background: rgba(56,214,255,0.18); box-shadow: inset 0 0 10px rgba(56,214,255,0.4); }
 }
 .cell.legal-capture{
   box-shadow: inset 0 0 0 3px rgba(255,77,106,0.85);
@@ -530,7 +619,13 @@ button{ font-family: inherit; }
   position: relative;
   width: 88%; height: 88%;
   border-radius: var(--radius-token);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  /* pseudo-3D "keycap": borda solida embaixo simula espessura, sombra de
+     contato separada dá profundidade, e os insets simulam luz vindo de cima */
+  box-shadow:
+    0 3px 0 rgba(0,0,0,0.6),
+    0 8px 14px rgba(0,0,0,0.5),
+    inset 0 2px 2px rgba(255,255,255,0.28),
+    inset 0 -4px 5px rgba(0,0,0,0.4);
   border: 3px solid rgba(255,255,255,0.55);
   background: #222;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -601,11 +696,11 @@ button{ font-family: inherit; }
   padding: 0;
   cursor: pointer;
   z-index: 13;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotateX(-14deg);
   transition: left 0.4s cubic-bezier(.3,.8,.3,1), top 0.4s cubic-bezier(.3,.8,.3,1), transform 0.15s ease, box-shadow 0.15s ease;
   animation: shootFabPulse 1.3s ease-in-out infinite;
 }
-#shoot-fab:hover{ transform: translate(-50%, -50%) scale(1.14); box-shadow: 0 8px 20px rgba(255,77,106,0.75), 0 0 0 5px rgba(255,77,106,0.32); }
+#shoot-fab:hover{ transform: translate(-50%, -50%) rotateX(-14deg) scale(1.14); box-shadow: 0 8px 20px rgba(255,77,106,0.75), 0 0 0 5px rgba(255,77,106,0.32); }
 #shoot-fab.hidden{ display: none; }
 @keyframes shootFabPulse{
   0%, 100%{ box-shadow: 0 6px 16px rgba(255,77,106,0.55), 0 0 0 3px rgba(255,77,106,0.22); }
@@ -651,9 +746,10 @@ button{ font-family: inherit; }
 }
 .detail-empty{ color: var(--ink-faint); font-size: 0.95rem; margin: 30px; text-align: center; }
 
+.detail-hero-wrap{ position: relative; flex: 0 0 190px; width: 190px; aspect-ratio: 1; }
 .detail-hero{
   position: relative;
-  flex: 0 0 190px; width: 190px; aspect-ratio: 1;
+  width: 100%; height: 100%;
   border-radius: var(--radius-md);
   overflow: hidden;
   background-size: cover; background-position: center;
@@ -764,9 +860,10 @@ button{ font-family: inherit; }
 .duel-score.loser{ color: var(--danger); }
 
 .duel-vs{
-  font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; color: var(--ink-faint);
+  font-family: var(--font-brutal); font-weight: 400; font-size: 1.5rem;
   padding-top: 24px; flex-shrink: 0;
 }
+.duel-vs span{ background: var(--chrome-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
 
 .duel-actions{ display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 190px; margin-top: 8px; }
 .duel-btn{
@@ -848,15 +945,59 @@ button{ font-family: inherit; }
 @keyframes popIn{ from{ opacity: 0; transform: scale(0.88) translateY(10px); } to{ opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes floatIn{ from{ opacity: 0; transform: translateY(-6px); } to{ opacity: 1; transform: translateY(0); } }
 @keyframes twinkle{ from{ opacity: 0.5; } to{ opacity: 0.9; } }
-@keyframes dotPulse{ 0%,100%{ opacity: 0.5; transform: translate(-50%,-50%) scale(0.9); } 50%{ opacity: 1; transform: translate(-50%,-50%) scale(1.15); } }
 @keyframes capturePulse{ 0%,100%{ box-shadow: inset 0 0 0 3px rgba(255,77,106,0.55); } 50%{ box-shadow: inset 0 0 0 3px rgba(255,77,106,1); } }
 @keyframes passPulse{ 0%,100%{ box-shadow: inset 0 0 0 3px rgba(56,214,255,0.5); } 50%{ box-shadow: inset 0 0 0 3px rgba(56,214,255,1); } }
 @keyframes ballBobSelf{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-3px); } }
 @keyframes stunBlink{ 0%,100%{ opacity: 1; } 50%{ opacity: 0.35; } }
 @keyframes carrierPulse{ 0%,100%{ box-shadow: 0 0 0 3px rgba(255,255,255,0.5), 0 0 10px rgba(255,255,255,0.4); } 50%{ box-shadow: 0 0 0 3px rgba(255,255,255,0.85), 0 0 18px rgba(255,255,255,0.7); } }
 @keyframes pulseText{ 0%,100%{ opacity: 0.6; } 50%{ opacity: 1; } }
-@keyframes crowdShift{ from{ transform: translateX(0); } to{ transform: translateX(-140px); } }
 @keyframes trailFade{ 0%{ opacity: 0.75; transform: scale(1); } 100%{ opacity: 0; transform: scale(0.55); } }
+
+/* reações de jogador — aplicadas no .token-visual (nunca no .piece-token,
+   que carrega o transform de posição/tabuleiro) pra não conflitar com o
+   posicionamento/inclinação 3D controlados via JS. Além do movimento, cada
+   uma pisca um brilho colorido — sozinho o tremor é sutil demais pra notar
+   no calor do jogo, ao lado da bola animando por cima do tabuleiro. */
+/* tremor leve de recepção — balanço lateral curto, com um pulso de brilho
+   discreto; leve o bastante pra não parecer erro de passe */
+@keyframes fxShakeSmall{
+  0%,100%{ transform: translateX(0); box-shadow: 0 0 0 0 rgba(56,214,255,0); }
+  20%{ transform: translateX(-6%); box-shadow: 0 0 12px 3px rgba(56,214,255,0.55); }
+  40%{ transform: translateX(5%); }
+  60%{ transform: translateX(-3%); box-shadow: 0 0 6px 1px rgba(56,214,255,0.25); }
+  80%{ transform: translateX(1.5%); }
+}
+/* !important necessário: quando a peça recebe a bola ela também ganha
+   .has-ball no mesmo render, e .piece-token.has-ball .token-visual (3
+   classes) tem mais especificidade que esta regra (2 classes) e vencia,
+   silenciando a animação mesmo com a classe aplicada corretamente */
+.token-visual.fx-shake-small{ animation: fxShakeSmall 0.45s ease !important; z-index: 4; }
+
+@keyframes fxShakeBig{
+  0%,100%{ transform: translate(0,0) rotate(0deg) scale(1); box-shadow: 0 0 0 0 rgba(255,77,106,0); }
+  8%{ transform: translate(-17%,3%) rotate(-12deg) scale(1.1); box-shadow: 0 0 26px 8px rgba(255,77,106,0.9); }
+  18%{ transform: translate(15%,-3%) rotate(11deg) scale(1.08); }
+  28%{ transform: translate(-14%,2%) rotate(-9deg) scale(1.06); }
+  38%{ transform: translate(12%,-2%) rotate(8deg) scale(1.04); }
+  48%{ transform: translate(-10%,1%) rotate(-6deg) scale(1.02); }
+  58%{ transform: translate(8%,0) rotate(4deg) scale(1); }
+  68%{ transform: translate(-6%,0) rotate(-3deg) scale(1); }
+  78%{ transform: translate(4%,0) rotate(2deg) scale(1); }
+  88%{ transform: translate(-2%,0) rotate(-1deg) scale(1); }
+}
+/* mesmo motivo do fx-shake-small: o perdedor do duelo sempre fica
+   .stunned no mesmo momento, e essa especificidade maior calaria a animação */
+.token-visual.fx-shake-big{ animation: fxShakeBig 0.8s ease !important; z-index: 4; }
+
+@keyframes fxSpin{
+  0%{ transform: rotate(0deg) scale(1); box-shadow: 0 0 0 0 rgba(255,209,102,0); }
+  15%{ box-shadow: 0 0 22px 7px rgba(255,209,102,0.85); }
+  50%{ transform: rotate(180deg) scale(0.8); box-shadow: 0 0 22px 7px rgba(255,209,102,0.6); }
+  85%{ box-shadow: 0 0 12px 3px rgba(255,209,102,0.3); }
+  100%{ transform: rotate(360deg) scale(1); box-shadow: 0 0 0 0 rgba(255,209,102,0); }
+}
+/* mesmo motivo: o driblado também fica .stunned no mesmo momento */
+.token-visual.fx-spin{ animation: fxSpin 0.85s cubic-bezier(.3,.6,.3,1) !important; z-index: 4; }
 @keyframes goalPop{
   0%{ opacity: 0; transform: scale(0.6) rotate(-4deg); }
   12%{ opacity: 1; transform: scale(1.08) rotate(1deg); }
@@ -1002,17 +1143,16 @@ button{ font-family: inherit; }
 
 @media (max-width: 1180px){
   #main-grid{ grid-template-columns: minmax(0,1fr); }
-  .roster-panel{ max-height: none; min-width: 0; }
+  .roster-panel{ max-height: 40vh; min-width: 0; }
   .roster-list{ flex: 0 0 auto; flex-direction: row; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; }
   .roster-card{ min-width: 150px; flex-shrink: 0; }
   #board-wrap{ order: -1; min-width: 0; }
   .detail-body{ grid-template-columns: 1fr; }
-  #stadium{ padding: 8px 34px; }
 }
 
 @media (max-width: 720px){
   .detail-card{ flex-direction: column; }
-  .detail-hero{ width: 100%; max-width: 220px; margin: 0 auto; }
+  .detail-hero-wrap{ width: 100%; max-width: 220px; margin: 0 auto; }
   .lineup-editor-body{ grid-template-columns: 1fr; }
   .lineup-grid{ max-width: 320px; margin: 0 auto; }
 }
@@ -1020,13 +1160,17 @@ button{ font-family: inherit; }
 @media (max-width: 620px){
   .logo{ font-size: 2.3rem; }
   .team-pick-card{ padding: 14px 8px; }
-  .score-team{ padding: 6px 10px; }
-  .score-team-name{ font-size: 0.78rem; }
+  .side-score-card{ padding: 8px 12px; gap: 6px; }
+  .score-team-badge{ width: 26px; height: 26px; font-size: 0.8rem; }
+  .score-team-name{ font-size: 0.75rem; }
+  .score-team-tag{ font-size: 0.56rem; }
+  .side-score-value{ font-size: 1.3rem; }
+  .stadium-clock{ padding: 2px 10px 3px; }
+  .stadium-clock .score-clock{ font-size: 0.7rem; }
+  .stadium-clock .score-turn{ display: none; }
+  .menu-btn-floating{ top: 8px; right: 8px; width: 30px; height: 30px; font-size: 0.85rem; }
   .duel-arena{ flex-direction: column; align-items: center; }
   .duel-vs{ padding-top: 0; }
-  .stand{ height: 16px; }
-  .stand-top{ height: 40px; }
-  .floodlight{ width: 22px; height: 22px; }
   #main-grid{ padding: 8px; gap: 8px; }
   .roster-panel{ padding: 8px; gap: 6px; }
 
@@ -1034,6 +1178,8 @@ button{ font-family: inherit; }
      ilegível, ele rola de lado (como um mapa) pra caber os ícones dos jogadores */
   #board-wrap{ overflow-x: auto; justify-content: flex-start; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
   #stadium{ width: 580px; min-width: 580px; max-width: none; padding: 6px 16px; flex-shrink: 0; }
+  .stadium-audience-bottom{ display: none; }
+  .stadium-audience-top{ height: 20px; }
 
   /* cards de jogador minimizados — só avatar + nome, o resto fica no duplo-toque */
   .roster-card{ width: 96px; min-width: 96px; padding: 5px 6px; gap: 6px; }

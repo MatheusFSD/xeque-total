@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Digital+Numbers&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -67,36 +67,35 @@
   <!-- ============ JOGO PRINCIPAL ============ -->
   <div id="game-root" class="hidden">
 
+    <button id="menu-btn" class="icon-btn menu-btn-floating" title="Menu">☰</button>
+
     <main id="main-grid">
-      <aside class="roster-panel roster-left" id="roster-left">
-        <div class="score-team score-team-a" id="score-team-a">
+      <div class="side-column">
+        <div class="side-score-card print-texture side-score-a" id="score-team-a">
           <span class="score-team-badge teco-badge">🛡️</span>
           <div class="score-team-info">
             <span class="score-team-name" id="name-team-a">Tecos</span>
-            <span class="score-team-tag" id="tag-team-a">Time A</span>
+            <span class="score-team-tag" id="tag-team-a">Você</span>
           </div>
-          <span class="score-value" id="score-a">0</span>
+          <span class="side-score-value" id="score-a">0</span>
         </div>
-        <div class="roster-list" id="roster-list-a"></div>
-      </aside>
+        <aside class="roster-panel print-texture" id="roster-left">
+          <h2 class="roster-title" id="roster-title-own">Escalação</h2>
+          <div class="roster-list" id="roster-list"></div>
+        </aside>
+      </div>
 
       <section id="board-wrap">
         <div id="stadium">
-          <div class="stand stand-top">
-            <div class="crowd"></div><div class="adboard"></div>
-            <div class="stadium-hud">
-              <div class="score-center">
-                <div class="score-clock" id="score-clock">1ºT 0'</div>
-                <div class="score-turn" id="score-turn">Sua vez</div>
-              </div>
-              <button id="menu-btn" class="icon-btn" title="Menu">☰</button>
+          <div class="stadium-audience stadium-audience-top">
+            <div class="stadium-clock">
+              <span class="score-clock" id="score-clock">1ºT 0'</span>
+              <span class="score-turn" id="score-turn">Sua vez</span>
             </div>
           </div>
-          <div class="floodlight floodlight-tl"></div>
-          <div class="floodlight floodlight-tr"></div>
           <div id="pitch">
-            <div class="pitch-goal pitch-goal-left"><div class="pitch-net"></div></div>
-            <div class="pitch-goal pitch-goal-right"><div class="pitch-net"></div></div>
+            <div class="pitch-goal pitch-goal-left"><div class="pitch-net"></div><div class="pitch-post-back"></div></div>
+            <div class="pitch-goal pitch-goal-right"><div class="pitch-net"></div><div class="pitch-post-back"></div></div>
             <div class="pitch-circle"></div>
             <div class="pitch-midline"></div>
             <div class="pitch-spot pitch-spot-left"></div>
@@ -111,23 +110,26 @@
             <div class="pitch-corner pitch-corner-br"></div>
             <div id="board" class="board-grid"></div>
           </div>
-          <div class="floodlight floodlight-bl"></div>
-          <div class="floodlight floodlight-br"></div>
-          <div class="stand stand-bottom"><div class="crowd"></div><div class="adboard"></div></div>
+          <div class="stadium-audience stadium-audience-bottom"></div>
         </div>
       </section>
 
-      <aside class="roster-panel roster-right" id="roster-right">
-        <div class="score-team score-team-b" id="score-team-b">
-          <span class="score-value" id="score-b">0</span>
+      <div class="side-column">
+        <div class="side-score-card print-texture side-score-b" id="score-team-b">
+          <span class="side-score-value" id="score-b">0</span>
           <div class="score-team-info">
             <span class="score-team-name" id="name-team-b">Raptors</span>
-            <span class="score-team-tag" id="tag-team-b">Time B</span>
+            <span class="score-team-tag" id="tag-team-b">CPU</span>
           </div>
           <span class="score-team-badge raptor-badge">🦖</span>
         </div>
-        <div class="roster-list" id="roster-list-b"></div>
-      </aside>
+        <aside class="roster-panel print-texture" id="roster-right">
+          <h2 class="roster-title">Ficha do Jogador</h2>
+          <div id="player-detail-panel" class="player-detail-panel">
+            <p class="detail-empty">Selecione um jogador no time ou no campo pra ver a ficha completa.</p>
+          </div>
+        </aside>
+      </div>
     </main>
   </div>
 

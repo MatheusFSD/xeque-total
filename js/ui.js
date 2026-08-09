@@ -13,6 +13,8 @@ var UI = (function () {
   var tokenEls = {};
   var lastPositions = {};
   var hoverArrowEl = null;
+  var PITCH_TILT_DEG = 14; // precisa bater com o rotateX de #pitch no style.css
+  var PITCH_UPRIGHT = " rotateX(-" + PITCH_TILT_DEG + "deg)"; // "de-tilta" peças/bola pra ficarem em pé
 
   var lineupWorking = null;
   var lineupSelectedId = null;
@@ -28,7 +30,7 @@ var UI = (function () {
       "start-screen", "pick-a", "pick-b", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "game-root", "score-team-a", "name-team-a", "tag-team-a", "score-a",
       "score-team-b", "name-team-b", "tag-team-b", "score-b", "score-clock", "score-turn", "menu-btn",
-      "roster-list-a", "roster-list-b",
+      "roster-list", "player-detail-panel",
       "board", "pitch",
       "player-stats-modal", "player-stats-body", "player-stats-close",
       "duel-modal", "duel-title", "duel-left-avatar", "duel-left-name", "duel-left-role", "duel-left-score", "duel-left-actions",
@@ -247,7 +249,7 @@ var UI = (function () {
       var carrier = GAME.findPieceById(state.ball.carrierId);
       if (carrier) { row = carrier.row; col = carrier.col; }
     }
-    els.ballEl.style.transform = "translate(" + (col * 100) + "%, " + (row * 100) + "%)";
+    els.ballEl.style.transform = "translate(" + (col * 100) + "%, " + (row * 100) + "%)" + PITCH_UPRIGHT;
   }
 
   /* ---------------- eventos de clique ---------------- */
@@ -308,14 +310,15 @@ var UI = (function () {
     renderBoard(state);
     renderShootFab(state);
     renderRosters(state);
+    renderPlayerDetailPanel(state);
     renderDuelModal(state);
   }
 
   function renderScoreboard(state) {
     els.nameTeamA.textContent = state.teams.A.name;
     els.nameTeamB.textContent = state.teams.B.name;
-    els.tagTeamA.textContent = state.humanTeamId === "A" ? "Você" : "CPU";
-    els.tagTeamB.textContent = state.humanTeamId === "B" ? "Você" : "CPU";
+    els.tagTeamA.textContent = (state.humanTeamId === "A" ? "Você" : "CPU") + " · Precisão";
+    els.tagTeamB.textContent = (state.humanTeamId === "B" ? "Você" : "CPU") + " · Instinto";
     els.scoreA.textContent = state.score.A;
     els.scoreB.textContent = state.score.B;
     els.scoreTeamA.classList.toggle("active-turn", state.currentTeamId === "A" && state.phase !== "gameover");
@@ -371,7 +374,14 @@ var UI = (function () {
         cell.classList.add("pass-target");
       } else {
         var mv = legalMap[r + "," + c];
-        if (mv) cell.classList.add(mv.capture ? "legal-capture" : "legal-move");
+        if (mv) {
+          cell.classList.add(mv.capture ? "legal-capture" : "legal-move");
+          if (!mv.capture && selPiece) {
+            // acende em sequência a partir da peça selecionada (distância de Chebyshev)
+            var dist = Math.max(Math.abs(r - selPiece.row), Math.abs(c - selPiece.col));
+            cell.style.setProperty("--stagger", dist);
+          }
+        }
       }
     }
 
@@ -447,11 +457,25 @@ var UI = (function () {
     }
     lastPositions[piece.id] = { row: piece.row, col: piece.col };
 
-    token.style.transform = "translate(" + (piece.col * 100) + "%, " + (piece.row * 100) + "%)";
+    token.style.transform = "translate(" + (piece.col * 100) + "%, " + (piece.row * 100) + "%)" + PITCH_UPRIGHT;
     token.classList.toggle("selected", state.selectedPieceId === piece.id);
     token.classList.toggle("has-ball", state.ball.carrierId === piece.id);
     token.classList.toggle("low-mana", piece.mana < piece.power.manaCost);
     token.classList.toggle("stunned", !!piece.stunned);
+  }
+
+  /* dispara uma animação passageira (tremor/giro) na peça, sem mexer no
+     transform de posição — aplicada no .token-visual (filho), nunca no
+     .piece-token (pai), que carrega o translate/rotateX de posicionamento */
+  function flashPiece(pieceId, fxClass, duration) {
+    var token = tokenEls[pieceId];
+    if (!token) return;
+    var visual = token.querySelector(".token-visual");
+    if (!visual) return;
+    visual.classList.remove(fxClass);
+    void visual.offsetWidth;
+    visual.classList.add(fxClass);
+    setTimeout(function () { visual.classList.remove(fxClass); }, duration || 700);
   }
 
   function renderPieces(state) {
@@ -512,13 +536,29 @@ var UI = (function () {
   }
 
   function renderRosters(state) {
-    els.rosterListA.innerHTML = "";
-    els.rosterListB.innerHTML = "";
+    els.rosterList.innerHTML = "";
     state.pieces.forEach(function (p) {
-      var card = buildRosterCard(p, state);
-      if (p.team === "A") els.rosterListA.appendChild(card);
-      else els.rosterListB.appendChild(card);
+      if (p.team !== state.humanTeamId) return;
+      els.rosterList.appendChild(buildRosterCard(p, state));
     });
+  }
+
+  // flag emoji -> código ISO2, pra buscar uma imagem de bandeira de verdade
+  // (o emoji de bandeira não renderiza no Windows, aparece como duas letras soltas)
+  function flagToIso2(flagEmoji) {
+    if (!flagEmoji) return null;
+    var chars = Array.from(flagEmoji);
+    if (chars.length < 2) return null;
+    var a = chars[0].codePointAt(0) - 0x1F1E6, b = chars[1].codePointAt(0) - 0x1F1E6;
+    if (a < 0 || a > 25 || b < 0 || b > 25) return null;
+    return String.fromCharCode(97 + a) + String.fromCharCode(97 + b);
+  }
+
+  function flagHtml(piece) {
+    var iso2 = flagToIso2(piece.flag);
+    if (!iso2) return '<span class="detail-flag">' + piece.flag + '</span>';
+    return '<img class="detail-flag-img" src="https://flagcdn.com/w40/' + iso2 + '.png" alt="' + piece.nationality +
+      '" onerror="this.outerHTML=\'<span class=&quot;detail-flag&quot;>' + piece.flag + '</span>\'">';
   }
 
   function buildPlayerStatsHtml(piece) {
@@ -537,11 +577,14 @@ var UI = (function () {
     }).join("");
     var manaPct = Math.round((piece.mana / piece.maxMana) * 100);
 
-    return '<div class="detail-hero" id="detail-hero-bg" style="background-image:' + grad + '">' +
+    return '<div class="detail-hero-wrap">' +
+      '<div class="detail-hero" id="detail-hero-bg" style="background-image:' + grad + '">' +
       '<div class="avatar-box" id="detail-hero-avatar"></div>' +
       '</div>' +
+      '<span class="detail-jersey-number">' + piece.number + '</span>' +
+      '</div>' +
       '<div class="detail-main">' +
-      '<div class="detail-name-row"><span class="detail-name">' + piece.name + '</span><span class="detail-flag">' + piece.flag + '</span></div>' +
+      '<div class="detail-name-row"><span class="detail-name">' + piece.name + '</span>' + flagHtml(piece) + '</div>' +
       '<div class="detail-meta">' +
       '<span class="tag tag-pos" style="background:' + grad + '">' + pos.label + '</span>' +
       '<span class="tag">' + piece.temperament + '</span>' +
@@ -561,24 +604,37 @@ var UI = (function () {
       '</div>';
   }
 
-  function openPlayerStatsModal(pieceId) {
-    var piece = GAME.findPieceById(pieceId);
-    if (!piece) return;
-    inspectedId = pieceId;
-    els.playerStatsBody.innerHTML = buildPlayerStatsHtml(piece);
+  function fillPlayerStatsInto(container, piece) {
+    container.innerHTML = buildPlayerStatsHtml(piece);
 
-    var heroAvatarEl = els.playerStatsBody.querySelector("#detail-hero-avatar");
+    var heroAvatarEl = container.querySelector("#detail-hero-avatar");
     if (heroAvatarEl) fillAvatarEl(heroAvatarEl, piece, "icones");
 
-    var heroBgEl = els.playerStatsBody.querySelector("#detail-hero-bg");
+    var heroBgEl = container.querySelector("#detail-hero-bg");
     if (heroBgEl) {
       var url = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".png";
       var testImg = new Image();
       testImg.onload = function () { heroBgEl.style.backgroundImage = "url('" + url + "')"; };
       testImg.src = url;
     }
+  }
 
+  function openPlayerStatsModal(pieceId) {
+    var piece = GAME.findPieceById(pieceId);
+    if (!piece) return;
+    inspectedId = pieceId;
+    fillPlayerStatsInto(els.playerStatsBody, piece);
     els.playerStatsModal.classList.remove("hidden");
+  }
+
+  function renderPlayerDetailPanel(state) {
+    var id = state.selectedPieceId || inspectedId;
+    var piece = id ? GAME.findPieceById(id) : null;
+    if (!piece) {
+      els.playerDetailPanel.innerHTML = '<p class="detail-empty">Selecione um jogador no time ou no campo pra ver a ficha completa.</p>';
+      return;
+    }
+    fillPlayerStatsInto(els.playerDetailPanel, piece);
   }
 
   function closePlayerStatsModal() {
@@ -1033,7 +1089,8 @@ var UI = (function () {
     render: render,
     showGoalBanner: showGoalBanner,
     showHalftimeBanner: showHalftimeBanner,
-    showGameOver: showGameOver
+    showGameOver: showGameOver,
+    flashPiece: flashPiece
   };
 
 })();

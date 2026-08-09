@@ -194,6 +194,8 @@ var GAME = (function () {
     return null;
   }
 
+  var BALL_FLIGHT_MS = 550; // precisa bater com a duração da transition de #ball-el no CSS
+
   function resolvePassExecution(passer, teammateId, blockers) {
     var receiver = findPieceById(teammateId);
     var interceptor = rollInterception(blockers);
@@ -201,13 +203,18 @@ var GAME = (function () {
       state.ball.carrierId = interceptor.id;
       state.ball.row = interceptor.row; state.ball.col = interceptor.col;
       addLog("⚠️ " + interceptor.name + " INTERCEPTA o passe de " + passer.name + "!", "ev-" + interceptor.team.toLowerCase());
+      clearActionOptions();
+      render();
+      // treme só quando a bola chega de fato (fim da animação de voo), não quando sai do pé
+      setTimeout(function () { UI.flashPiece(interceptor.id, "fx-shake-small", 450); }, BALL_FLIGHT_MS);
     } else {
       state.ball.carrierId = receiver.id;
       state.ball.row = receiver.row; state.ball.col = receiver.col;
       addLog(passer.name + " lança para " + receiver.name + "!", "ev-" + passer.team.toLowerCase());
+      clearActionOptions();
+      render();
+      setTimeout(function () { UI.flashPiece(receiver.id, "fx-shake-small", 450); }, BALL_FLIGHT_MS);
     }
-    clearActionOptions();
-    render();
     endTurn();
   }
 
@@ -356,20 +363,24 @@ var GAME = (function () {
     }
 
     var winnerSide = ctx.result.winnerSide;
+    var fxTargetId = null, fxClass = null;
     if (ctx.isDribble) {
       if (winnerSide === "challenger") {
         var cr = ctx.challenger.row, cc = ctx.challenger.col;
         ctx.challenger.row = ctx.holder.row; ctx.challenger.col = ctx.holder.col;
         ctx.holder.row = cr; ctx.holder.col = cc;
         state.ball.row = ctx.challenger.row; state.ball.col = ctx.challenger.col;
+        fxTargetId = ctx.holder.id; fxClass = "fx-spin"; // driblado — gira
       } else {
         state.ball.carrierId = ctx.holder.id;
         state.ball.row = ctx.holder.row; state.ball.col = ctx.holder.col;
+        fxTargetId = ctx.challenger.id; fxClass = "fx-shake-big"; // falhou no drible
       }
     } else {
       if (winnerSide === "challenger") {
         state.ball.carrierId = ctx.challenger.id;
         state.ball.row = ctx.challenger.row; state.ball.col = ctx.challenger.col;
+        fxTargetId = ctx.holder.id; fxClass = "fx-shake-big"; // teve a bola roubada
       }
     }
 
@@ -381,6 +392,7 @@ var GAME = (function () {
     state.duelContext = null;
     state.phase = "playing";
     render();
+    if (fxTargetId) UI.flashPiece(fxTargetId, fxClass, fxClass === "fx-spin" ? 850 : 800);
     endTurn();
   }
 
