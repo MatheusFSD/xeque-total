@@ -180,6 +180,13 @@ button{ font-family: inherit; }
   animation: fadeIn 0.25s ease;
 }
 
+#start-screen{
+  background:
+    radial-gradient(900px 650px at 50% 18%, rgba(15,20,38,0.4), rgba(2,4,10,0.94)),
+    url('img/menu-bg.jpg') center 28% / cover no-repeat;
+  background-color: var(--bg-0);
+}
+
 .stars{
   position: absolute; inset: 0; z-index: -1; overflow: hidden;
   background-image:
@@ -194,14 +201,16 @@ button{ font-family: inherit; }
 
 .start-card{
   position: relative;
-  max-width: 620px; width: 100%;
+  max-width: 680px; width: 100%;
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-lg);
-  padding: 44px 40px 36px;
+  padding: 40px 40px 36px;
   text-align: center;
   box-shadow: var(--shadow-deep);
   animation: popIn 0.35s cubic-bezier(.2,.9,.25,1.2);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
 
 .kicker{
@@ -227,7 +236,7 @@ button{ font-family: inherit; }
 }
 .logo span{ color: var(--raptor); -webkit-text-fill-color: var(--raptor-2); }
 
-.tagline{ color: var(--ink-dim); font-size: 1.05rem; margin: 0 auto 28px; max-width: 460px; line-height: 1.5; }
+.tagline{ color: var(--ink-dim); font-size: 1.05rem; margin: 0 auto 24px; max-width: 460px; line-height: 1.5; }
 
 .squad-pick-group{ margin-bottom: 22px; }
 .squad-pick-heading{
