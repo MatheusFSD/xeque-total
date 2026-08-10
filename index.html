@@ -22,18 +22,9 @@
       <h1 class="logo">XEQUE <span>TOTAL</span></h1>
       <p class="tagline">Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
 
-      <div class="team-pick" id="team-pick">
-        <button class="team-pick-card" data-team="A" id="pick-a">
-          <span class="team-pick-badge teco-badge">🛡️</span>
-          <span class="team-pick-name">Tecos</span>
-          <span class="team-pick-sub">Adidas · Branco · Precisão</span>
-        </button>
-        <div class="team-pick-vs">VS</div>
-        <button class="team-pick-card" data-team="B" id="pick-b">
-          <span class="team-pick-badge raptor-badge">🦖</span>
-          <span class="team-pick-name">Raptors</span>
-          <span class="team-pick-sub">Nike · Roxo & Verde · Instinto</span>
-        </button>
+      <div class="squad-pick-group">
+        <p class="squad-pick-heading" id="squad-pick-hint">Toque num time pra ser o seu</p>
+        <div class="squad-pick-grid" id="squad-pick-list"></div>
       </div>
 
       <div class="match-settings">
@@ -53,7 +44,7 @@
 
       <div id="how-to-play" class="how-to-play hidden">
         <ul>
-          <li><strong>Movimento:</strong> não é a posição que define o passo — é a <strong>personalidade</strong>. Rápido = Bispo, Bruto = Torre, Cerebral = Dama curta, Oportunista = Cavalo. O Goleiro é sempre Rei (1 casa).</li>
+          <li><strong>Movimento:</strong> não é a posição que define o passo — é a <strong>personalidade</strong>. Rápido = Bispo, Bruto = Torre, Cerebral = Dama curta, Oportunista = Cavalo. O Goleiro é sempre Rei-de-xadrez (1 casa). Só o Dadá Majestade tem a personalidade <strong>Rei</strong>: Dama sem limite de alcance.</li>
           <li><strong>Bola:</strong> pare em cima dela para dominá-la.</li>
           <li><strong>Passe:</strong> com a bola, envie para um companheiro dentro do seu raio de movimento (destaque azul). O Goleiro é exceção: pode lançar em qualquer casa até a linha de meio-campo.</li>
           <li><strong>Chute:</strong> depois de cruzar o meio-campo, chute de onde estiver — quanto mais longe do gol, mais difícil.</li>
@@ -72,7 +63,7 @@
     <main id="main-grid">
       <div class="side-column">
         <div class="side-score-card print-texture side-score-a" id="score-team-a">
-          <span class="score-team-badge teco-badge">🛡️</span>
+          <span class="score-team-badge" id="badge-team-a">🛡️</span>
           <div class="score-team-info">
             <span class="score-team-name" id="name-team-a">Tecos</span>
             <span class="score-team-tag" id="tag-team-a">Você</span>
@@ -121,7 +112,7 @@
             <span class="score-team-name" id="name-team-b">Raptors</span>
             <span class="score-team-tag" id="tag-team-b">CPU</span>
           </div>
-          <span class="score-team-badge raptor-badge">🦖</span>
+          <span class="score-team-badge" id="badge-team-b">🦖</span>
         </div>
         <aside class="roster-panel print-texture" id="roster-right">
           <h2 class="roster-title">Ficha do Jogador</h2>
@@ -237,8 +228,8 @@
       <h1 class="logo lineup-title">CARA OU COROA</h1>
       <div class="coin-wrap">
         <div id="coin" class="coin">
-          <div class="coin-face coin-front">🛡️</div>
-          <div class="coin-face coin-back">🦖</div>
+          <div class="coin-face coin-front" id="coin-face-a">🛡️</div>
+          <div class="coin-face coin-back" id="coin-face-b">🦖</div>
         </div>
       </div>
       <p class="coinflip-result" id="coinflip-result">Girando a moeda...</p>

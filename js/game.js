@@ -7,8 +7,19 @@ var GAME = (function () {
   var state = null;
   var logId = 0;
 
+  // lado do campo é do SLOT (A/B), não do squad — qualquer squad do pool pode ocupar qualquer slot
+  var SLOT_META = {
+    A: { attackDir: 1, goalCol: 0, opponentGoalCol: 12 },
+    B: { attackDir: -1, goalCol: 12, opponentGoalCol: 0 }
+  };
+
   function cloneStats(s) {
     return { velocidade: s.velocidade, chute: s.chute, tecnica: s.tecnica, defesa: s.defesa, espirito: s.espirito };
+  }
+
+  function findSquad(squadId) {
+    for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === squadId) return GAME_DATA.TEAMS[i];
+    return GAME_DATA.TEAMS[0];
   }
 
   function findPieceById(id) {
@@ -23,29 +34,34 @@ var GAME = (function () {
     if (state.log.length > 60) state.log.shift();
   }
 
-  function buildInitialState(humanTeamId, maxTurns, noTurnLimit) {
+  // homeSquadId sempre ocupa o slot A (jogador humano), awaySquadId sempre o slot B (CPU).
+  // Squads guardam a formação em orientação canônica "esquerda" — no slot B a coluna é espelhada.
+  function buildInitialState(homeSquadId, awaySquadId, maxTurns, noTurnLimit) {
     var teamsMeta = {};
     var pieces = [];
-    GAME_DATA.TEAMS.forEach(function (t) {
-      teamsMeta[t.id] = {
-        id: t.id, name: t.name, shortName: t.shortName, badge: t.badge, kit: t.kit,
-        colorVar: t.colorVar, assetPrefix: t.assetPrefix,
-        attackDir: t.attackDir, goalCol: t.goalCol, opponentGoalCol: t.opponentGoalCol
+    [{ slot: "A", squadId: homeSquadId }, { slot: "B", squadId: awaySquadId }].forEach(function (s) {
+      var sq = findSquad(s.squadId);
+      var meta = SLOT_META[s.slot];
+      teamsMeta[s.slot] = {
+        id: s.slot, name: sq.name, shortName: sq.shortName, badge: sq.badge, kit: sq.kit,
+        colorVar: sq.colorVar, assetPrefix: sq.assetPrefix,
+        attackDir: meta.attackDir, goalCol: meta.goalCol, opponentGoalCol: meta.opponentGoalCol
       };
-      t.players.forEach(function (pd) {
+      sq.players.forEach(function (pd) {
+        var col = s.slot === "A" ? pd.start.col : (BOARD.COLS - 1 - pd.start.col);
         pieces.push({
-          id: pd.id, team: t.id, name: pd.name, number: pd.number,
+          id: pd.id, team: s.slot, name: pd.name, number: pd.number,
           nationality: pd.nationality, flag: pd.flag, temperament: pd.temperament,
           position: pd.position, stats: cloneStats(pd.stats), power: pd.power,
           maxMana: pd.maxMana, mana: pd.maxMana,
-          row: pd.start.row, col: pd.start.col, quote: pd.quote,
-          assetKey: pd.assetKey, assetPrefix: t.assetPrefix,
+          row: pd.start.row, col: col, quote: pd.quote,
+          assetKey: pd.assetKey, assetPrefix: sq.assetPrefix,
           stunned: false, stunTurns: 0
         });
       });
     });
     return {
-      phase: "playing", humanTeamId: humanTeamId,
+      phase: "playing", humanTeamId: "A",
       teams: teamsMeta, pieces: pieces,
       ball: { row: Math.floor(BOARD.ROWS / 2), col: BOARD.MID_COL, carrierId: null, gkHoldTurns: 0 },
       currentTeamId: "A", turnCount: 0, maxTurns: maxTurns || 40, noTurnLimit: !!noTurnLimit, half: 1,
@@ -98,8 +114,8 @@ var GAME = (function () {
     state.pieces.forEach(function (p) { p.homeCol = BOARD.COLS - 1 - p.homeCol; });
   }
 
-  function start(humanTeamId, formationOverrides, kickoffTeamId, maxTurns, noTurnLimit) {
-    state = buildInitialState(humanTeamId || "A", maxTurns, noTurnLimit);
+  function start(homeSquadId, awaySquadId, formationOverrides, kickoffTeamId, maxTurns, noTurnLimit) {
+    state = buildInitialState(homeSquadId || "TEC", awaySquadId || "RAP", maxTurns, noTurnLimit);
     applyFormationOverrides(formationOverrides);
     state.pieces.forEach(function (p) { p.homeRow = p.row; p.homeCol = p.col; });
     applyKickoff(kickoffTeamId || "A");
@@ -194,11 +210,10 @@ var GAME = (function () {
     return null;
   }
 
-  var BALL_FLIGHT_MS = 550; // precisa bater com a duração da transition de #ball-el no CSS
-
   function resolvePassExecution(passer, teammateId, blockers) {
     var receiver = findPieceById(teammateId);
     var interceptor = rollInterception(blockers);
+    var fromRow = passer.row, fromCol = passer.col;
     if (interceptor) {
       state.ball.carrierId = interceptor.id;
       state.ball.row = interceptor.row; state.ball.col = interceptor.col;
@@ -206,14 +221,16 @@ var GAME = (function () {
       clearActionOptions();
       render();
       // treme só quando a bola chega de fato (fim da animação de voo), não quando sai do pé
-      setTimeout(function () { UI.flashPiece(interceptor.id, "fx-shake-small", 450); }, BALL_FLIGHT_MS);
+      var flightMs1 = BOARD.ballFlightMs(fromRow, fromCol, interceptor.row, interceptor.col);
+      setTimeout(function () { UI.flashPiece(interceptor.id, "fx-shake-small", 450); }, flightMs1);
     } else {
       state.ball.carrierId = receiver.id;
       state.ball.row = receiver.row; state.ball.col = receiver.col;
       addLog(passer.name + " lança para " + receiver.name + "!", "ev-" + passer.team.toLowerCase());
       clearActionOptions();
       render();
-      setTimeout(function () { UI.flashPiece(receiver.id, "fx-shake-small", 450); }, BALL_FLIGHT_MS);
+      var flightMs2 = BOARD.ballFlightMs(fromRow, fromCol, receiver.row, receiver.col);
+      setTimeout(function () { UI.flashPiece(receiver.id, "fx-shake-small", 450); }, flightMs2);
     }
     endTurn();
   }

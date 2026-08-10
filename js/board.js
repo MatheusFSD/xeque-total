@@ -20,6 +20,12 @@ var BOARD = (function () {
   var SHOT_PENALTY_PER_BLOCKER = 6;
   var INTERCEPT_CHANCE = 0.16;
 
+  // velocidade de voo da bola: duração proporcional à distância (não fixa),
+  // pra passes curtos serem rápidos e passes longos não virarem instantâneos.
+  var BALL_MIN_FLIGHT_MS = 160;
+  var BALL_MAX_FLIGHT_MS = 650;
+  var BALL_MS_PER_CELL = 42;
+
   var DIR_STRAIGHT = [[-1, 0], [1, 0], [0, -1], [0, 1]];
   var DIR_DIAG = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
   var DIR_ALL = DIR_STRAIGHT.concat(DIR_DIAG);
@@ -79,8 +85,9 @@ var BOARD = (function () {
 
     var dirs = dirsForShape(spec.shape);
     var moves = [];
+    var limit = spec.maxDist == null ? (COLS + ROWS) : spec.maxDist; // null = sem limite (ex.: personalidade Rei)
     dirs.forEach(function (d) {
-      for (var dist = 1; dist <= spec.maxDist; dist++) {
+      for (var dist = 1; dist <= limit; dist++) {
         var r = piece.row + d[0] * dist, c = piece.col + d[1] * dist;
         if (!inBounds(r, c)) break;
         var occ = findPieceAt(allPieces, r, c);
@@ -223,6 +230,11 @@ var BOARD = (function () {
     return Math.max(Math.abs(r1 - r2), Math.abs(c1 - c2));
   }
 
+  function ballFlightMs(fromRow, fromCol, toRow, toCol) {
+    var dist = Math.hypot(toRow - fromRow, toCol - fromCol);
+    return Math.min(BALL_MAX_FLIGHT_MS, BALL_MIN_FLIGHT_MS + dist * BALL_MS_PER_CELL);
+  }
+
   return {
     COLS: COLS, ROWS: ROWS, GOAL_ROWS: GOAL_ROWS, MID_COL: MID_COL, INTERCEPT_CHANCE: INTERCEPT_CHANCE,
     inBounds: inBounds, findPieceAt: findPieceAt,
@@ -230,7 +242,7 @@ var BOARD = (function () {
     getLegalMoves: getLegalMoves, getPassTargets: getPassTargets,
     isInGoalBox: isInGoalBox, isInOwnGoalBox: isInOwnGoalBox, isInOpponentGoalBox: isInOpponentGoalBox,
     isPastMidfield: isPastMidfield, canShootFrom: canShootFrom, shootDistanceInfo: shootDistanceInfo,
-    chebyshev: chebyshev
+    chebyshev: chebyshev, ballFlightMs: ballFlightMs
   };
 
 })();

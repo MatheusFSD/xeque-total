@@ -6,12 +6,14 @@ var UI = (function () {
 
   var els = {};
   var inspectedId = null;
-  var chosenHumanTeam = "A";
+  var chosenHomeSquadId = null;
+  var chosenAwaySquadId = null;
   var chosenMaxTurns = 40;
   var chosenNoTurnLimit = false;
 
   var tokenEls = {};
   var lastPositions = {};
+  var lastBallPos = null;
   var hoverArrowEl = null;
   var PITCH_TILT_DEG = 14; // precisa bater com o rotateX de #pitch no style.css
   var PITCH_UPRIGHT = " rotateX(-" + PITCH_TILT_DEG + "deg)"; // "de-tilta" peças/bola pra ficarem em pé
@@ -27,9 +29,9 @@ var UI = (function () {
 
   function cacheEls() {
     var ids = [
-      "start-screen", "pick-a", "pick-b", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
-      "game-root", "score-team-a", "name-team-a", "tag-team-a", "score-a",
-      "score-team-b", "name-team-b", "tag-team-b", "score-b", "score-clock", "score-turn", "menu-btn",
+      "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
+      "game-root", "score-team-a", "name-team-a", "tag-team-a", "score-a", "badge-team-a",
+      "score-team-b", "name-team-b", "tag-team-b", "score-b", "badge-team-b", "score-clock", "score-turn", "menu-btn",
       "roster-list", "player-detail-panel",
       "board", "pitch",
       "player-stats-modal", "player-stats-body", "player-stats-close",
@@ -40,7 +42,7 @@ var UI = (function () {
       "gameover-modal", "gameover-kicker", "gameover-title", "gameover-score", "gameover-sub", "rematch-btn",
       "lineup-ask-modal", "lineup-ask-text", "lineup-ask-yes", "lineup-ask-no",
       "lineup-editor-modal", "lineup-editor-title", "lineup-grid", "lineup-detail", "lineup-reset-btn", "lineup-confirm-btn",
-      "coinflip-modal", "coin", "coinflip-result", "coinflip-continue-btn"
+      "coinflip-modal", "coin", "coin-face-a", "coin-face-b", "coinflip-result", "coinflip-continue-btn"
     ];
     ids.forEach(function (id) {
       var key = id.replace(/-([a-z])/g, function (m, c) { return c.toUpperCase(); });
@@ -56,9 +58,96 @@ var UI = (function () {
     return null;
   }
 
+  // slot "A"/"B" -> squad escolhido pro lado (funciona antes e durante a partida)
+  function squadForSlot(slot) {
+    var id = slot === "A" ? chosenHomeSquadId : chosenAwaySquadId;
+    for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === id) return GAME_DATA.TEAMS[i];
+    return GAME_DATA.TEAMS[0];
+  }
+
+  // escudo do squad: se for bandeira de país, renderiza como imagem (flagcdn) — no Windows
+  // o emoji de bandeira regional vira só o código de 2 letras (ex.: "BR"), então não dá pra confiar no emoji puro.
+  function fillSquadBadgeEl(el, sq) {
+    el.innerHTML = "";
+    var iso2 = flagToIso2(sq.badge);
+    if (iso2) {
+      var img = document.createElement("img");
+      img.className = "badge-flag-img";
+      img.src = "https://flagcdn.com/w80/" + iso2 + ".png";
+      img.alt = sq.name;
+      img.onerror = function () { el.textContent = sq.badge; };
+      el.appendChild(img);
+    } else {
+      el.textContent = sq.badge;
+    }
+  }
+
+  function applySlotColors() {
+    var home = squadForSlot("A"), away = squadForSlot("B");
+    var root = document.documentElement.style;
+    root.setProperty("--slot-a", "var(--" + home.colorVar + ")");
+    root.setProperty("--slot-a-2", "var(--" + home.colorVar + "-2)");
+    root.setProperty("--slot-b", "var(--" + away.colorVar + ")");
+    root.setProperty("--slot-b-2", "var(--" + away.colorVar + "-2)");
+  }
+
+  // lista única: 1º clique define seu time, 2º define o adversário (não repete time).
+  // com os dois já definidos, o próximo clique reinicia o ciclo a partir do time clicado.
+  function pickSquad(id) {
+    if (chosenHomeSquadId !== null && chosenAwaySquadId !== null) {
+      chosenHomeSquadId = id;
+      chosenAwaySquadId = null;
+    } else if (chosenHomeSquadId === null) {
+      chosenHomeSquadId = id;
+    } else if (id === chosenHomeSquadId) {
+      return; // não pode escolher o mesmo time duas vezes
+    } else {
+      chosenAwaySquadId = id;
+    }
+    renderSquadPickList();
+    applySlotColors();
+  }
+
+  function renderSquadPickList() {
+    if (els.squadPickHint) {
+      if (chosenHomeSquadId === null) els.squadPickHint.textContent = "Toque num time pra ser o seu";
+      else if (chosenAwaySquadId === null) els.squadPickHint.textContent = "Agora toque no time do adversário";
+      else els.squadPickHint.textContent = "Tudo pronto — toque em outro time pra trocar";
+    }
+    if (els.startBtn) els.startBtn.disabled = !(chosenHomeSquadId && chosenAwaySquadId);
+
+    if (!els.squadPickList) return;
+    els.squadPickList.innerHTML = "";
+    GAME_DATA.TEAMS.forEach(function (sq) {
+      var role = sq.id === chosenHomeSquadId ? "is-home" : (sq.id === chosenAwaySquadId ? "is-away" : "");
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "team-pick-card" + (role ? " " + role : "");
+      if (role) {
+        var tag = document.createElement("span");
+        tag.className = "team-pick-role-tag";
+        tag.textContent = role === "is-home" ? "SEU TIME" : "ADVERSÁRIO";
+        card.appendChild(tag);
+      }
+      var badge = document.createElement("span");
+      badge.className = "team-pick-badge " + sq.colorVar + "-badge";
+      fillSquadBadgeEl(badge, sq);
+      var name = document.createElement("span");
+      name.className = "team-pick-name";
+      name.textContent = sq.name;
+      var sub = document.createElement("span");
+      sub.className = "team-pick-sub";
+      sub.textContent = sq.kit;
+      card.appendChild(badge); card.appendChild(name); card.appendChild(sub);
+      card.addEventListener("click", function () { pickSquad(sq.id); });
+      els.squadPickList.appendChild(card);
+    });
+  }
+
   function teamColorVar(teamId) {
-    for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === teamId) return GAME_DATA.TEAMS[i].colorVar;
-    return "teco";
+    var state = GAME.getState();
+    if (state && state.teams[teamId]) return state.teams[teamId].colorVar;
+    return squadForSlot(teamId).colorVar;
   }
 
   function teamGradient(teamId) {
@@ -249,6 +338,11 @@ var UI = (function () {
       var carrier = GAME.findPieceById(state.ball.carrierId);
       if (carrier) { row = carrier.row; col = carrier.col; }
     }
+    if (lastBallPos && (lastBallPos.row !== row || lastBallPos.col !== col)) {
+      var flightMs = BOARD.ballFlightMs(lastBallPos.row, lastBallPos.col, row, col);
+      els.ballEl.style.transitionDuration = flightMs + "ms";
+    }
+    lastBallPos = { row: row, col: col };
     els.ballEl.style.transform = "translate(" + (col * 100) + "%, " + (row * 100) + "%)" + PITCH_UPRIGHT;
   }
 
@@ -319,6 +413,8 @@ var UI = (function () {
     els.nameTeamB.textContent = state.teams.B.name;
     els.tagTeamA.textContent = (state.humanTeamId === "A" ? "Você" : "CPU") + " · Precisão";
     els.tagTeamB.textContent = (state.humanTeamId === "B" ? "Você" : "CPU") + " · Instinto";
+    if (els.badgeTeamA) { els.badgeTeamA.className = "score-team-badge " + state.teams.A.colorVar + "-badge"; fillSquadBadgeEl(els.badgeTeamA, state.teams.A); }
+    if (els.badgeTeamB) { els.badgeTeamB.className = "score-team-badge " + state.teams.B.colorVar + "-badge"; fillSquadBadgeEl(els.badgeTeamB, state.teams.B); }
     els.scoreA.textContent = state.score.A;
     els.scoreB.textContent = state.score.B;
     els.scoreTeamA.classList.toggle("active-turn", state.currentTeamId === "A" && state.phase !== "gameover");
@@ -808,18 +904,6 @@ var UI = (function () {
   /* ---------------- eventos estáticos ---------------- */
 
   function wireStaticEvents() {
-    els.pickA.addEventListener("click", function () {
-      chosenHumanTeam = "A";
-      els.pickA.classList.add("active");
-      els.pickB.classList.remove("active");
-    });
-    els.pickB.addEventListener("click", function () {
-      chosenHumanTeam = "B";
-      els.pickB.classList.add("active");
-      els.pickA.classList.remove("active");
-    });
-    els.pickA.classList.add("active");
-
     els.howToPlayBtn.addEventListener("click", function () {
       els.howToPlay.classList.toggle("hidden");
     });
@@ -829,6 +913,7 @@ var UI = (function () {
     });
 
     els.startBtn.addEventListener("click", function () {
+      if (!chosenHomeSquadId || !chosenAwaySquadId) return;
       chosenNoTurnLimit = els.noTurnLimitCheckbox.checked;
       chosenMaxTurns = Math.max(4, parseInt(els.turnLimitInput.value, 10) || 40);
       els.startScreen.classList.add("hidden");
@@ -853,7 +938,6 @@ var UI = (function () {
 
     els.rematchBtn.addEventListener("click", function () {
       els.gameoverModal.classList.add("hidden");
-      chosenHumanTeam = GAME.getState().humanTeamId;
       formationOverrides = null;
       beginPreGameFlow();
     });
@@ -868,7 +952,7 @@ var UI = (function () {
       openCoinFlip();
     });
     els.lineupResetBtn.addEventListener("click", function () {
-      lineupWorking = buildDefaultLineup(chosenHumanTeam);
+      lineupWorking = buildDefaultLineup(chosenHomeSquadId);
       lineupSelectedId = null;
       renderLineupEditor();
     });
@@ -887,32 +971,33 @@ var UI = (function () {
   /* ---------------- pré-jogo: escalação e cara-ou-coroa ---------------- */
 
   function beginPreGameFlow() {
-    var teamName = chosenHumanTeam === "A" ? GAME_DATA.TEAMS[0].name : GAME_DATA.TEAMS[1].name;
+    var teamName = squadForSlot("A").name;
     els.lineupAskText.textContent = "Quer ajustar as posições iniciais do " + teamName + " em campo?";
     els.lineupAskModal.classList.remove("hidden");
   }
 
-  function buildDefaultLineup(teamId) {
+  // jogador sempre joga o squad escolhido (chosenHomeSquadId) no slot A
+  function buildDefaultLineup(squadId) {
     var teamData = null;
-    for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === teamId) teamData = GAME_DATA.TEAMS[i];
+    for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === squadId) teamData = GAME_DATA.TEAMS[i];
     return teamData.players.map(function (p) {
       return {
         id: p.id, number: p.number, name: p.name, position: p.position, temperament: p.temperament,
         flag: p.flag, nationality: p.nationality, stats: p.stats, power: p.power, quote: p.quote,
-        assetPrefix: teamData.assetPrefix, assetKey: p.assetKey, team: teamId,
+        assetPrefix: teamData.assetPrefix, assetKey: p.assetKey, team: "A",
         row: p.start.row, col: p.start.col
       };
     });
   }
 
   function lineupColRange() {
-    return chosenHumanTeam === "A" ? { min: 0, max: 5 } : { min: 7, max: 12 };
+    return { min: 0, max: 5 }; // jogador sempre é o slot A agora
   }
 
   function openLineupEditor() {
-    lineupWorking = buildDefaultLineup(chosenHumanTeam);
+    lineupWorking = buildDefaultLineup(chosenHomeSquadId);
     lineupSelectedId = null;
-    var teamName = chosenHumanTeam === "A" ? GAME_DATA.TEAMS[0].name : GAME_DATA.TEAMS[1].name;
+    var teamName = squadForSlot("A").name;
     els.lineupEditorTitle.textContent = "Monte o " + teamName;
     renderLineupEditor();
     els.lineupEditorModal.classList.remove("hidden");
@@ -1048,6 +1133,8 @@ var UI = (function () {
     els.coinflipModal.classList.remove("hidden");
     els.coinflipResult.textContent = "Girando a moeda...";
     els.coinflipContinueBtn.classList.add("hidden");
+    if (els.coinFaceA) fillSquadBadgeEl(els.coinFaceA, squadForSlot("A"));
+    if (els.coinFaceB) fillSquadBadgeEl(els.coinFaceB, squadForSlot("B"));
     coinWinnerTeamId = Math.random() < 0.5 ? "A" : "B";
     playCoinFlip(coinWinnerTeamId);
   }
@@ -1063,7 +1150,7 @@ var UI = (function () {
       coin.style.transform = "rotateY(" + finalDeg + "deg)";
     });
     setTimeout(function () {
-      var winnerData = winnerId === "A" ? GAME_DATA.TEAMS[0] : GAME_DATA.TEAMS[1];
+      var winnerData = squadForSlot(winnerId);
       els.coinflipResult.innerHTML = "<strong>" + winnerData.name + "</strong> venceu o sorteio e começa com a bola!";
       els.coinflipContinueBtn.classList.remove("hidden");
     }, 1850);
@@ -1075,12 +1162,14 @@ var UI = (function () {
     lastPositions = {};
     if (els.piecesLayer) els.piecesLayer.innerHTML = "";
     els.gameRoot.classList.remove("hidden");
-    GAME.start(chosenHumanTeam, formationOverrides, coinWinnerTeamId, chosenMaxTurns, chosenNoTurnLimit);
+    GAME.start(chosenHomeSquadId, chosenAwaySquadId, formationOverrides, coinWinnerTeamId, chosenMaxTurns, chosenNoTurnLimit);
   }
 
   function init() {
     cacheEls();
     buildBoardCells();
+    renderSquadPickList();
+    applySlotColors();
     wireStaticEvents();
   }
 

@@ -71,10 +71,7 @@ var AI = (function () {
   function chooseAction(team, allPieces, ball) {
     var myPieces = allPieces.filter(function (p) { return p.team === team.id && !p.stunned; });
     var candidates = [];
-    var defTeamMeta = null;
-    for (var i = 0; i < GAME_DATA.TEAMS.length; i++) {
-      if (GAME_DATA.TEAMS[i].id !== team.id) defTeamMeta = GAME_DATA.TEAMS[i];
-    }
+    var defTeamMeta = { goalCol: team.opponentGoalCol };
 
     myPieces.forEach(function (piece) {
       var moves = BOARD.getLegalMoves(piece, allPieces, ball.carrierId);
