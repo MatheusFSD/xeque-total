@@ -36,7 +36,7 @@ var GAME = (function () {
 
   // homeSquadId sempre ocupa o slot A (jogador humano), awaySquadId sempre o slot B (CPU).
   // Squads guardam a formação em orientação canônica "esquerda" — no slot B a coluna é espelhada.
-  function buildInitialState(homeSquadId, awaySquadId, maxTurns, noTurnLimit) {
+  function buildInitialState(homeSquadId, awaySquadId, maxTurns, noTurnLimit, goldenGoalOnDraw) {
     var teamsMeta = {};
     var pieces = [];
     [{ slot: "A", squadId: homeSquadId }, { slot: "B", squadId: awaySquadId }].forEach(function (s) {
@@ -64,7 +64,8 @@ var GAME = (function () {
       phase: "playing", humanTeamId: "A",
       teams: teamsMeta, pieces: pieces,
       ball: { row: Math.floor(BOARD.ROWS / 2), col: BOARD.MID_COL, carrierId: null, gkHoldTurns: 0 },
-      currentTeamId: "A", turnCount: 0, maxTurns: maxTurns || 40, noTurnLimit: !!noTurnLimit, half: 1,
+      currentTeamId: "A", turnCount: 0, maxTurns: maxTurns || 50, noTurnLimit: !!noTurnLimit, half: 1,
+      timeUpPending: null, suddenDeath: false, goldenGoalOnDraw: !!goldenGoalOnDraw,
       score: { A: 0, B: 0 }, scorers: { A: [], B: [] }, selectedPieceId: null,
       legalMoves: [], passTargets: [], canShoot: false, shootInfo: null,
       log: [], duelContext: null
@@ -114,8 +115,8 @@ var GAME = (function () {
     state.pieces.forEach(function (p) { p.homeCol = BOARD.COLS - 1 - p.homeCol; });
   }
 
-  function start(homeSquadId, awaySquadId, formationOverrides, kickoffTeamId, maxTurns, noTurnLimit) {
-    state = buildInitialState(homeSquadId || "TEC", awaySquadId || "RAP", maxTurns, noTurnLimit);
+  function start(homeSquadId, awaySquadId, formationOverrides, kickoffTeamId, maxTurns, noTurnLimit, goldenGoalOnDraw) {
+    state = buildInitialState(homeSquadId || "BRA", awaySquadId || "ALE", maxTurns, noTurnLimit, goldenGoalOnDraw);
     applyFormationOverrides(formationOverrides);
     state.pieces.forEach(function (p) { p.homeRow = p.row; p.homeCol = p.col; });
     applyKickoff(kickoffTeamId || "A");
@@ -438,11 +439,13 @@ var GAME = (function () {
     addLog("⚽ GOL de " + scorerPiece.name + "! Placar: " + state.score.A + " x " + state.score.B, "ev-goal");
     state.phase = "goal-pause";
     var routed = state.noTurnLimit && state.score[teamId] >= 3;
+    var suddenDeathWin = state.suddenDeath;
     if (routed) addLog("🏁 " + state.teams[teamId].name + " fez 3 gols! A partida termina aqui.", "ev-goal");
+    if (suddenDeathWin) addLog("🥇 GOL DE OURO! " + state.teams[teamId].name + " vence na prorrogação!", "ev-goal");
     render();
     UI.showGoalBanner(scorerPiece, teamId);
     setTimeout(function () {
-      if (routed) { finishGame(); return; }
+      if (routed || suddenDeathWin) { finishGame(); return; }
       var concedingTeamId = teamId === "A" ? "B" : "A";
       resetForKickoff(concedingTeamId);
       addLog("🔄 Jogadores voltam à formação inicial. " + state.teams[concedingTeamId].name + " repõe a bola do centro.", "ev-info");
@@ -468,15 +471,37 @@ var GAME = (function () {
     }, 1900);
   }
 
+  // bola ainda no campo de ataque de quem está com ela — o tempo não fecha
+  // até ela voltar pro meio-campo (ou for além, campo defensivo)
+  function isBallInAttackingHalf() {
+    var carrier = state.ball.carrierId ? findPieceById(state.ball.carrierId) : null;
+    if (!carrier) return false;
+    return BOARD.isPastMidfield(state.ball.row, state.ball.col, state.teams[carrier.team]);
+  }
+
+  function enterSuddenDeath() {
+    state.suddenDeath = true;
+    addLog("⏱️ Prorrogação! Gol de ouro — o próximo gol decide a partida.", "ev-info");
+  }
+
   function advanceToTeamTurn(teamId) {
     state.turnCount++;
-    if (!state.noTurnLimit && state.turnCount >= state.maxTurns) {
-      if (state.half === 1) { beginHalftime(); return; }
-      finishGame();
-      return;
+    if (!state.noTurnLimit && !state.timeUpPending && !state.suddenDeath && state.turnCount >= state.maxTurns) {
+      state.timeUpPending = state.half === 1 ? "halftime" : "fulltime";
+    }
+    if (state.timeUpPending && !isBallInAttackingHalf()) {
+      var pending = state.timeUpPending;
+      state.timeUpPending = null;
+      if (pending === "halftime") { beginHalftime(); return; }
+      if (state.goldenGoalOnDraw && state.score.A === state.score.B) {
+        enterSuddenDeath();
+      } else {
+        finishGame();
+        return;
+      }
     }
     state.currentTeamId = teamId;
-    regenMana(teamId);
+    if (!state.suddenDeath) regenMana(teamId);
     processStunForTurn(teamId);
     checkGoalkeeperHoldLimit(teamId);
     clearActionOptions();

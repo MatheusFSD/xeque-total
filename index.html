@@ -26,25 +26,30 @@
           <span class="theme-switch-thumb"></span>
         </span>
       </label>
-      <p class="kicker">XADREZ TÁTICO DE FUTEBOL</p>
-      <h1 class="logo">XEQUE <span>TOTAL</span></h1>
-      <p class="tagline">Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
-
-      <div class="squad-pick-group">
-        <p class="squad-pick-heading" id="squad-pick-hint">Toque num time pra ser o seu</p>
-        <div class="squad-pick-grid" id="squad-pick-list"></div>
-      </div>
-
-      <p class="squad-pick-heading">Configurações da partida</p>
-      <div class="match-settings">
+      <button type="button" class="icon-btn settings-gear-btn" id="settings-gear-btn" title="Configurações da partida">⚙️</button>
+      <div class="settings-menu hidden" id="settings-menu">
+        <p class="settings-menu-title">Configurações da partida</p>
         <label class="turn-limit-row" for="turn-limit-input">
           <span>Turnos por tempo (1º + 2º tempo)</span>
-          <input type="number" id="turn-limit-input" min="4" max="200" step="2" value="40">
+          <input type="number" id="turn-limit-input" min="4" max="200" step="2" value="50">
         </label>
         <label class="no-turn-limit-row" for="no-turn-limit-checkbox">
           <input type="checkbox" id="no-turn-limit-checkbox">
           <span>Sem limite de turnos — a partida termina quando um time fizer 3 gols</span>
         </label>
+      </div>
+      <p class="kicker">XADREZ TÁTICO DE FUTEBOL</p>
+      <h1 class="logo">XEQUE <span>TOTAL</span></h1>
+      <p class="tagline">Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
+
+      <div class="mode-toggle" id="mode-toggle">
+        <button type="button" class="mode-toggle-btn active" id="mode-toggle-amistoso" data-mode="amistoso">Amistoso</button>
+        <button type="button" class="mode-toggle-btn" id="mode-toggle-copa" data-mode="copa">Copa</button>
+      </div>
+
+      <div class="squad-pick-group">
+        <p class="squad-pick-heading" id="squad-pick-hint">Toque num time pra ser o seu</p>
+        <div class="squad-pick-grid" id="squad-pick-list"></div>
       </div>
 
       <button id="start-btn" class="btn btn-primary btn-start">⚽ Iniciar Partida</button>
@@ -98,12 +103,12 @@
               <div class="tv-team tv-team-a" id="tv-team-a">
                 <span class="tv-you-mark" id="tv-you-a" title="Seu time">★</span>
                 <span class="tv-flag" id="tv-badge-a"></span>
-                <span class="tv-abbr" id="tv-abbr-a">TEC</span>
+                <span class="tv-abbr" id="tv-abbr-a">BRA</span>
               </div>
               <div class="tv-scorebox tv-scorebox-a" id="tv-scorebox-a"><span id="tv-score-a">0</span></div>
               <div class="tv-scorebox tv-scorebox-b" id="tv-scorebox-b"><span id="tv-score-b">0</span></div>
               <div class="tv-team tv-team-b" id="tv-team-b">
-                <span class="tv-abbr" id="tv-abbr-b">RAP</span>
+                <span class="tv-abbr" id="tv-abbr-b">ALE</span>
                 <span class="tv-flag" id="tv-badge-b"></span>
                 <span class="tv-you-mark" id="tv-you-b" title="Seu time">★</span>
               </div>
@@ -277,6 +282,56 @@
     </div>
   </div>
 
+  <div id="loading-modal" class="overlay-screen hidden">
+    <div class="start-card loading-card">
+      <p class="kicker">PREPARANDO O CAMPO</p>
+      <h1 class="logo lineup-title">CARREGANDO...</h1>
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <div class="loading-track"><div class="loading-fill" id="loading-fill"></div></div>
+      <p class="loading-count" id="loading-count">0 / 0 imagens</p>
+    </div>
+  </div>
+
+  <div id="copa-draw-modal" class="overlay-screen hidden">
+    <div class="start-card">
+      <p class="kicker">SORTEIO DA COPA</p>
+      <h1 class="logo lineup-title">GRUPOS DEFINIDOS</h1>
+      <div class="copa-draw-groups">
+        <div class="copa-draw-group">
+          <p class="copa-draw-group-title">Grupo A</p>
+          <div class="copa-draw-group-list" id="copa-draw-group-a"></div>
+        </div>
+        <div class="copa-draw-group">
+          <p class="copa-draw-group-title">Grupo B</p>
+          <div class="copa-draw-group-list" id="copa-draw-group-b"></div>
+        </div>
+      </div>
+      <button id="copa-draw-continue-btn" class="btn btn-primary btn-start">Continuar</button>
+    </div>
+  </div>
+
+  <div id="copa-hub-modal" class="overlay-screen hidden">
+    <div class="start-card copa-hub-card">
+      <p class="kicker" id="copa-hub-stage-label">FASE DE GRUPOS</p>
+      <h1 class="logo lineup-title">COPA</h1>
+      <div class="copa-standings" id="copa-hub-standings"></div>
+      <div class="copa-round-results" id="copa-hub-round-results"></div>
+      <button id="copa-hub-fixture-btn" class="btn btn-primary btn-start">⚽ Jogar Partida</button>
+      <button id="copa-hub-menu-btn" class="link-btn">Sair da Copa</button>
+    </div>
+  </div>
+
+  <div id="copa-result-modal" class="overlay-screen hidden">
+    <div class="start-card copa-result-card" id="copa-result-inner">
+      <p class="kicker" id="copa-result-kicker">FIM DA COPA</p>
+      <h1 class="logo lineup-title" id="copa-result-title">CAMPEÃO!</h1>
+      <div class="copa-result-badge-wrap" id="copa-result-badge"></div>
+      <p class="copa-result-detail" id="copa-result-detail"></p>
+      <p class="copa-result-final-score hidden" id="copa-result-final-score"></p>
+      <button id="copa-result-menu-btn" class="btn btn-primary btn-start">Voltar ao Menu</button>
+    </div>
+  </div>
+
 </div>
 
 <script src="js/data.js"></script>
@@ -284,6 +339,7 @@
 <script src="js/duel.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/game.js"></script>
+<script src="js/copa.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>

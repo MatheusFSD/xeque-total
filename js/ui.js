@@ -8,8 +8,11 @@ var UI = (function () {
   var inspectedId = null;
   var chosenHomeSquadId = null;
   var chosenAwaySquadId = null;
-  var chosenMaxTurns = 40;
+  var chosenMaxTurns = 50;
   var chosenNoTurnLimit = false;
+  var gameMode = "amistoso"; // "amistoso" | "copa"
+  var copaPendingFixtureId = null; // fixture da Copa em andamento (enquanto uma partida real está rolando)
+  var copaMatchResultPending = null; // resultado já calculado, esperando o jogador clicar "Continuar" no modal padrão de fim de jogo
   var rosterViewAway = false; // alternador da escalação: false = seu time, true = adversário
 
   var tokenEls = {};
@@ -43,6 +46,12 @@ var UI = (function () {
   function cacheEls() {
     var ids = [
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
+      "settings-gear-btn", "settings-menu",
+      "mode-toggle", "mode-toggle-amistoso", "mode-toggle-copa",
+      "copa-draw-modal", "copa-draw-group-a", "copa-draw-group-b", "copa-draw-continue-btn",
+      "copa-hub-modal", "copa-hub-stage-label", "copa-hub-standings", "copa-hub-round-results", "copa-hub-fixture-btn", "copa-hub-menu-btn",
+      "copa-result-modal", "copa-result-inner", "copa-result-kicker", "copa-result-title", "copa-result-badge",
+      "copa-result-detail", "copa-result-final-score", "copa-result-menu-btn",
       "game-root", "theme-toggle-btn", "theme-toggle-btn-start",
       "tv-scoreboard", "tv-team-a", "tv-badge-a", "tv-abbr-a", "tv-you-a", "tv-scorebox-a",
       "tv-team-b", "tv-badge-b", "tv-abbr-b", "tv-you-b", "tv-scorebox-b",
@@ -57,7 +66,8 @@ var UI = (function () {
       "gameover-modal", "gameover-kicker", "gameover-title", "gameover-score", "gameover-sub", "rematch-btn",
       "lineup-ask-modal", "lineup-ask-text", "lineup-ask-yes", "lineup-ask-no",
       "lineup-editor-modal", "lineup-editor-title", "lineup-grid", "lineup-detail", "lineup-reset-btn", "lineup-confirm-btn",
-      "coinflip-modal", "coin", "coin-face-a", "coin-face-b", "coinflip-result", "coinflip-continue-btn"
+      "coinflip-modal", "coin", "coin-face-a", "coin-face-b", "coinflip-result", "coinflip-continue-btn",
+      "loading-modal", "loading-fill", "loading-count"
     ];
     ids.forEach(function (id) {
       var key = id.replace(/-([a-z])/g, function (m, c) { return c.toUpperCase(); });
@@ -97,6 +107,23 @@ var UI = (function () {
     }
   }
 
+  // bandeira do jogador (peça no tabuleiro): mesma lógica de fillSquadBadgeEl —
+  // usa imagem de verdade porque o emoji de bandeira não renderiza no Windows.
+  function fillFlagEl(el, piece) {
+    el.innerHTML = "";
+    var iso2 = flagToIso2(piece.flag);
+    if (iso2) {
+      var img = document.createElement("img");
+      img.className = "piece-flag-img";
+      img.src = "https://flagcdn.com/w40/" + iso2 + ".png";
+      img.alt = piece.nationality;
+      img.onerror = function () { el.textContent = piece.flag; };
+      el.appendChild(img);
+    } else {
+      el.textContent = piece.flag;
+    }
+  }
+
   function applySlotColors() {
     var home = squadForSlot("A"), away = squadForSlot("B");
     var root = document.documentElement.style;
@@ -108,8 +135,12 @@ var UI = (function () {
 
   // lista única: 1º clique define seu time, 2º define o adversário (não repete time).
   // com os dois já definidos, o próximo clique reinicia o ciclo a partir do time clicado.
+  // no modo Copa é seleção única — só escolhe a sua seleção, o adversário vem do sorteio.
   function pickSquad(id) {
-    if (chosenHomeSquadId !== null && chosenAwaySquadId !== null) {
+    if (gameMode === "copa") {
+      chosenHomeSquadId = id;
+      chosenAwaySquadId = null;
+    } else if (chosenHomeSquadId !== null && chosenAwaySquadId !== null) {
       chosenHomeSquadId = id;
       chosenAwaySquadId = null;
     } else if (chosenHomeSquadId === null) {
@@ -123,25 +154,38 @@ var UI = (function () {
     applySlotColors();
   }
 
+  function setGameMode(mode) {
+    gameMode = mode;
+    chosenHomeSquadId = null;
+    chosenAwaySquadId = null;
+    if (els.modeToggleAmistoso) els.modeToggleAmistoso.classList.toggle("active", mode === "amistoso");
+    if (els.modeToggleCopa) els.modeToggleCopa.classList.toggle("active", mode === "copa");
+    if (els.startBtn) els.startBtn.textContent = mode === "copa" ? "🏆 Ir pro Sorteio" : "⚽ Iniciar Partida";
+    renderSquadPickList();
+    applySlotColors();
+  }
+
   function renderSquadPickList() {
     if (els.squadPickHint) {
-      if (chosenHomeSquadId === null) els.squadPickHint.textContent = "Toque num time pra ser o seu";
+      if (gameMode === "copa") {
+        els.squadPickHint.textContent = chosenHomeSquadId === null ? "Escolha sua seleção pra Copa" : "Tudo pronto — toque em outra seleção pra trocar";
+      } else if (chosenHomeSquadId === null) els.squadPickHint.textContent = "Toque num time pra ser o seu";
       else if (chosenAwaySquadId === null) els.squadPickHint.textContent = "Agora toque no time do adversário";
       else els.squadPickHint.textContent = "Tudo pronto — toque em outro time pra trocar";
     }
-    if (els.startBtn) els.startBtn.disabled = !(chosenHomeSquadId && chosenAwaySquadId);
+    if (els.startBtn) els.startBtn.disabled = gameMode === "copa" ? !chosenHomeSquadId : !(chosenHomeSquadId && chosenAwaySquadId);
 
     if (!els.squadPickList) return;
     els.squadPickList.innerHTML = "";
     GAME_DATA.TEAMS.forEach(function (sq) {
-      var role = sq.id === chosenHomeSquadId ? "is-home" : (sq.id === chosenAwaySquadId ? "is-away" : "");
+      var role = sq.id === chosenHomeSquadId ? "is-home" : (gameMode !== "copa" && sq.id === chosenAwaySquadId ? "is-away" : "");
       var card = document.createElement("button");
       card.type = "button";
       card.className = "team-pick-card" + (role ? " " + role : "");
       if (role) {
         var tag = document.createElement("span");
         tag.className = "team-pick-role-tag";
-        tag.textContent = role === "is-home" ? "SEU TIME" : "ADVERSÁRIO";
+        tag.textContent = role === "is-home" ? (gameMode === "copa" ? "SUA SELEÇÃO" : "SEU TIME") : "ADVERSÁRIO";
         card.appendChild(tag);
       }
       var badge = document.createElement("span");
@@ -445,7 +489,9 @@ var UI = (function () {
 
     els.scoreTurn.textContent = state.phase === "gameover" ? "Fim de jogo" : (state.currentTeamId === state.humanTeamId ? "Sua vez" : "Vez do adversário");
 
-    if (state.noTurnLimit) {
+    if (state.suddenDeath) {
+      els.scoreClock.textContent = "🥇 GOL DE OURO";
+    } else if (state.noTurnLimit) {
       els.scoreClock.textContent = "⚡ 3 GOLS";
     } else {
       var base = state.half === 2 ? 45 : 0;
@@ -542,7 +588,7 @@ var UI = (function () {
     num.textContent = piece.number;
     var flag = document.createElement("span");
     flag.className = "piece-flag";
-    flag.textContent = piece.flag;
+    fillFlagEl(flag, piece);
 
     visual.appendChild(artWrap);
     visual.appendChild(postag);
@@ -954,8 +1000,9 @@ var UI = (function () {
     setTimeout(function () { els.halftimeBanner.classList.add("hidden"); }, 1850);
   }
 
-  function showGameOver(state) {
-    els.gameoverModal.classList.remove("hidden");
+  // preenche o modal padrão de fim de jogo (título/placar/cor) — usado tanto no
+  // Amistoso (com "Jogar Novamente") quanto no modo Copa (com "Continuar" pro hub)
+  function fillGameoverModal(state) {
     var cpuTeamId = state.humanTeamId === "A" ? "B" : "A";
     var humanScore = state.score[state.humanTeamId];
     var cpuScore = state.score[cpuTeamId];
@@ -968,9 +1015,17 @@ var UI = (function () {
     els.gameoverTitle.style.webkitTextFillColor = color;
     els.gameoverTitle.style.color = color;
     els.gameoverScore.textContent = state.score.A + " — " + state.score.B;
+    return result;
+  }
+
+  function showGameOver(state) {
+    if (gameMode === "copa" && COPA.isActive()) { showCopaGameOver(state); return; }
+    els.rematchBtn.textContent = "🔄 Jogar Novamente";
+    var result = fillGameoverModal(state);
     els.gameoverSub.textContent = result === "win"
       ? "Você dominou o campo do início ao fim!"
       : (result === "lose" ? "O adversário levou a melhor desta vez. Revanche?" : "Um empate emocionante até o apito final!");
+    els.gameoverModal.classList.remove("hidden");
   }
 
   /* ---------------- eventos estáticos ---------------- */
@@ -980,16 +1035,67 @@ var UI = (function () {
       els.howToPlay.classList.toggle("hidden");
     });
 
+    if (els.settingsGearBtn) els.settingsGearBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      els.settingsMenu.classList.toggle("hidden");
+    });
+    document.addEventListener("click", function (e) {
+      if (!els.settingsMenu || els.settingsMenu.classList.contains("hidden")) return;
+      if (els.settingsMenu.contains(e.target) || e.target === els.settingsGearBtn) return;
+      els.settingsMenu.classList.add("hidden");
+    });
+
     els.noTurnLimitCheckbox.addEventListener("change", function () {
       els.turnLimitInput.disabled = els.noTurnLimitCheckbox.checked;
     });
 
+    if (els.modeToggleAmistoso) els.modeToggleAmistoso.addEventListener("click", function () { setGameMode("amistoso"); });
+    if (els.modeToggleCopa) els.modeToggleCopa.addEventListener("click", function () { setGameMode("copa"); });
+
     els.startBtn.addEventListener("click", function () {
-      if (!chosenHomeSquadId || !chosenAwaySquadId) return;
       chosenNoTurnLimit = els.noTurnLimitCheckbox.checked;
-      chosenMaxTurns = Math.max(4, parseInt(els.turnLimitInput.value, 10) || 40);
+      chosenMaxTurns = Math.max(4, parseInt(els.turnLimitInput.value, 10) || 50);
+      if (gameMode === "copa") {
+        if (!chosenHomeSquadId) return;
+        COPA.startTournament(chosenHomeSquadId);
+        els.startScreen.classList.add("hidden");
+        renderCopaDraw();
+        return;
+      }
+      if (!chosenHomeSquadId || !chosenAwaySquadId) return;
       els.startScreen.classList.add("hidden");
       beginPreGameFlow();
+    });
+
+    if (els.copaDrawContinueBtn) els.copaDrawContinueBtn.addEventListener("click", function () {
+      els.copaDrawModal.classList.add("hidden");
+      renderCopaHub();
+    });
+
+    if (els.copaHubFixtureBtn) els.copaHubFixtureBtn.addEventListener("click", function () {
+      var step = COPA.getNextStep();
+      if (step.type === "human-fixture") {
+        chosenHomeSquadId = step.homeSquadId;
+        chosenAwaySquadId = step.awaySquadId;
+        copaPendingFixtureId = step.fixtureId;
+        els.copaHubModal.classList.add("hidden");
+        beginPreGameFlow();
+      } else if (step.type === "stage-summary") {
+        COPA.advance();
+        renderCopaHub();
+      }
+    });
+
+    if (els.copaHubMenuBtn) els.copaHubMenuBtn.addEventListener("click", function () {
+      if (window.confirm("Sair da Copa? O progresso do torneio será perdido.")) {
+        els.copaHubModal.classList.add("hidden");
+        returnToMenuFromCopa();
+      }
+    });
+
+    if (els.copaResultMenuBtn) els.copaResultMenuBtn.addEventListener("click", function () {
+      els.copaResultModal.classList.add("hidden");
+      returnToMenuFromCopa();
     });
 
     if (els.rosterToggleOwn) els.rosterToggleOwn.addEventListener("click", function () {
@@ -1007,11 +1113,18 @@ var UI = (function () {
     if (els.themeToggleBtnStart) els.themeToggleBtnStart.addEventListener("change", toggleTheme);
 
     els.menuBtn.addEventListener("click", function () {
-      if (window.confirm("Voltar ao menu inicial? O progresso da partida atual será perdido.")) {
+      var msg = gameMode === "copa"
+        ? "Voltar ao menu inicial? O progresso da partida e da Copa serão perdidos."
+        : "Voltar ao menu inicial? O progresso da partida atual será perdido.";
+      if (window.confirm(msg)) {
         els.gameRoot.classList.add("hidden");
         els.duelModal.classList.add("hidden");
         els.gameoverModal.classList.add("hidden");
-        els.startScreen.classList.remove("hidden");
+        if (gameMode === "copa") {
+          returnToMenuFromCopa();
+        } else {
+          els.startScreen.classList.remove("hidden");
+        }
       }
     });
 
@@ -1024,6 +1137,15 @@ var UI = (function () {
 
     els.rematchBtn.addEventListener("click", function () {
       els.gameoverModal.classList.add("hidden");
+      if (gameMode === "copa" && copaMatchResultPending) {
+        var pending = copaMatchResultPending;
+        copaMatchResultPending = null;
+        COPA.reportHumanResult(copaPendingFixtureId, pending.state.score.A, pending.state.score.B, pending.scorersA, pending.scorersB);
+        copaPendingFixtureId = null;
+        els.gameRoot.classList.add("hidden");
+        renderCopaHub();
+        return;
+      }
       formationOverrides = null;
       beginPreGameFlow();
     });
@@ -1050,8 +1172,258 @@ var UI = (function () {
     });
     els.coinflipContinueBtn.addEventListener("click", function () {
       els.coinflipModal.classList.add("hidden");
-      launchMatch();
+      showLoadingAndLaunch();
     });
+  }
+
+  /* ---------------- modo Copa ---------------- */
+
+  function squadById(id) {
+    for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === id) return GAME_DATA.TEAMS[i];
+    return null;
+  }
+
+  function buildCopaSquadRow(squadId, extraClass) {
+    var sq = squadById(squadId);
+    var row = document.createElement("div");
+    row.className = "copa-squad-row" + (extraClass ? " " + extraClass : "");
+    var badge = document.createElement("span");
+    badge.className = "copa-squad-badge " + sq.colorVar + "-badge";
+    fillSquadBadgeEl(badge, sq);
+    var name = document.createElement("span");
+    name.className = "copa-squad-name";
+    name.textContent = sq.name;
+    row.appendChild(badge);
+    row.appendChild(name);
+    return row;
+  }
+
+  function renderCopaDraw() {
+    var groups = COPA.getGroups();
+    if (!groups) return;
+    var humanId = COPA.getState().humanSquadId;
+    [["A", els.copaDrawGroupA], ["B", els.copaDrawGroupB]].forEach(function (pair) {
+      var groupId = pair[0], container = pair[1];
+      if (!container) return;
+      container.innerHTML = "";
+      groups[groupId].forEach(function (squadId) {
+        container.appendChild(buildCopaSquadRow(squadId, squadId === humanId ? "is-human" : ""));
+      });
+    });
+    els.copaDrawModal.classList.remove("hidden");
+  }
+
+  function copaStageLabel(stage) {
+    if (stage === "groups") return "FASE DE GRUPOS";
+    if (stage === "semis") return "SEMIFINAL";
+    if (stage === "final") return "FINAL";
+    return "COPA";
+  }
+
+  function buildCopaStandingsTable(groupId) {
+    var wrap = document.createElement("div");
+    wrap.className = "copa-standings-group";
+    var title = document.createElement("p");
+    title.className = "copa-standings-title";
+    title.textContent = "Grupo " + groupId;
+    wrap.appendChild(title);
+
+    var table = document.createElement("table");
+    table.className = "copa-standings-table";
+    var thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th></th><th>P</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr>";
+    table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    var humanId = COPA.getState().humanSquadId;
+    COPA.getStandings(groupId).forEach(function (row, idx) {
+      var tr = document.createElement("tr");
+      var cls = idx < 2 ? "qualified" : "";
+      if (row.squadId === humanId) cls += " is-human";
+      if (cls) tr.className = cls;
+      var sq = squadById(row.squadId);
+      var nameTd = document.createElement("td");
+      nameTd.className = "copa-standings-name";
+      var badge = document.createElement("span");
+      badge.className = "copa-standings-badge " + sq.colorVar + "-badge";
+      fillSquadBadgeEl(badge, sq);
+      nameTd.appendChild(badge);
+      var nameSpan = document.createElement("span");
+      nameSpan.textContent = sq.shortName;
+      nameTd.appendChild(nameSpan);
+      tr.appendChild(nameTd);
+      [row.pts, row.w, row.d, row.l, row.gd].forEach(function (v) {
+        var td = document.createElement("td");
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  function buildCopaBracketRow(fx) {
+    var row = document.createElement("div");
+    row.className = "copa-bracket-row" + (fx.isHumanFixture ? " is-human" : "");
+    var home = squadById(fx.homeSquadId), away = squadById(fx.awaySquadId);
+    var homeSpan = document.createElement("span");
+    homeSpan.className = "copa-bracket-team";
+    homeSpan.textContent = home.shortName;
+    var scoreSpan = document.createElement("span");
+    scoreSpan.className = "copa-bracket-score";
+    scoreSpan.textContent = fx.status === "done" ? (fx.golsA + " - " + fx.golsB) : "vs";
+    var awaySpan = document.createElement("span");
+    awaySpan.className = "copa-bracket-team";
+    awaySpan.textContent = away.shortName;
+    row.appendChild(homeSpan);
+    row.appendChild(scoreSpan);
+    row.appendChild(awaySpan);
+    return row;
+  }
+
+  // se o jogador já foi eliminado, avança sozinho até sair um campeão — não faz
+  // sentido pedir clique numa sequência de telas de resumo vazias pro espectador
+  function renderCopaHub() {
+    var state = COPA.getState();
+    if (!state) return;
+
+    var step = COPA.getNextStep();
+    while (step.type === "stage-summary" && state.humanEliminatedAt !== null) {
+      COPA.advance();
+      step = COPA.getNextStep();
+    }
+    if (step.type === "tournament-over") {
+      els.copaHubModal.classList.add("hidden");
+      renderCopaResult();
+      return;
+    }
+
+    els.copaHubStageLabel.textContent = copaStageLabel(state.stage);
+
+    els.copaHubStandings.innerHTML = "";
+    if (state.stage === "groups") {
+      els.copaHubStandings.appendChild(buildCopaStandingsTable("A"));
+      els.copaHubStandings.appendChild(buildCopaStandingsTable("B"));
+    } else {
+      state.fixtures.filter(function (f) { return f.stage === state.stage; })
+        .forEach(function (fx) { els.copaHubStandings.appendChild(buildCopaBracketRow(fx)); });
+    }
+
+    els.copaHubRoundResults.innerHTML = "";
+    var simulated = state.fixtures.filter(function (f) { return f.stage === state.stage && f.status === "done" && !f.isHumanFixture; });
+    if (simulated.length) {
+      var heading = document.createElement("p");
+      heading.className = "copa-round-results-heading";
+      heading.textContent = "Resultados simulados";
+      els.copaHubRoundResults.appendChild(heading);
+      simulated.forEach(function (fx) {
+        var home = squadById(fx.homeSquadId), away = squadById(fx.awaySquadId);
+        var line = document.createElement("p");
+        line.className = "copa-round-results-line";
+        line.textContent = home.shortName + " " + fx.golsA + " - " + fx.golsB + " " + away.shortName;
+        els.copaHubRoundResults.appendChild(line);
+      });
+    }
+
+    if (step.type === "human-fixture") {
+      els.copaHubFixtureBtn.textContent = "⚽ Jogar Partida";
+      els.copaHubFixtureBtn.classList.remove("hidden");
+    } else if (step.type === "stage-summary") {
+      els.copaHubFixtureBtn.textContent = "Continuar ➜";
+      els.copaHubFixtureBtn.classList.remove("hidden");
+    } else {
+      els.copaHubFixtureBtn.classList.add("hidden");
+    }
+
+    els.copaHubModal.classList.remove("hidden");
+  }
+
+  function renderCopaResult() {
+    var step = COPA.getNextStep();
+    if (step.type !== "tournament-over") return;
+    var champ = squadById(step.championSquadId);
+    var st = COPA.getState();
+    var humanId = st.humanSquadId;
+    var isChampion = step.championSquadId === humanId;
+
+    if (els.copaResultInner) els.copaResultInner.classList.toggle("is-champion", isChampion);
+    els.copaResultKicker.textContent = isChampion ? "CAMPEÃO DA COPA" : "FIM DA SUA JORNADA";
+    els.copaResultTitle.textContent = isChampion ? "CAMPEÃO!" : "ELIMINADO";
+    els.copaResultTitle.style.background = "none";
+    els.copaResultTitle.style.webkitTextFillColor = isChampion ? "var(--gold)" : "var(--danger)";
+    els.copaResultTitle.style.color = isChampion ? "var(--gold)" : "var(--danger)";
+
+    if (els.copaResultBadge) {
+      els.copaResultBadge.innerHTML = "";
+      var trophy = document.createElement("div");
+      trophy.className = "copa-result-champ-trophy";
+      trophy.textContent = "🏆";
+      var badge = document.createElement("span");
+      badge.className = "copa-result-badge-img " + champ.colorVar + "-badge";
+      fillSquadBadgeEl(badge, champ);
+      var name = document.createElement("p");
+      name.className = "copa-result-champ-name";
+      name.textContent = champ.name;
+      els.copaResultBadge.appendChild(trophy);
+      els.copaResultBadge.appendChild(badge);
+      els.copaResultBadge.appendChild(name);
+    }
+
+    var detail;
+    if (isChampion) {
+      detail = "Vitória com o " + champ.name + " — nenhuma seleção resistiu à sua caminhada na Copa!";
+    } else {
+      var stageLabel = step.humanEliminatedAt === "groups" ? "na fase de grupos"
+        : step.humanEliminatedAt === "semis" ? "na semifinal" : "na final";
+      detail = "Sua jornada terminou " + stageLabel + ".";
+    }
+    els.copaResultDetail.textContent = detail;
+
+    if (els.copaResultFinalScore) {
+      var finalFx = st.fixtures.filter(function (f) { return f.stage === "final"; })[0];
+      if (finalFx && finalFx.status === "done") {
+        var home = squadById(finalFx.homeSquadId), away = squadById(finalFx.awaySquadId);
+        els.copaResultFinalScore.textContent = "Final: " + home.shortName + " " + finalFx.golsA + " - " + finalFx.golsB + " " + away.shortName;
+        els.copaResultFinalScore.classList.remove("hidden");
+      } else {
+        els.copaResultFinalScore.classList.add("hidden");
+      }
+    }
+
+    els.copaResultModal.classList.remove("hidden");
+  }
+
+  // mostra o mesmo modal padrão de fim de jogo do Amistoso primeiro — só depois
+  // que o jogador clicar "Continuar" é que o resultado é reportado pra Copa e o
+  // hub reaparece (não pula direto pro hub sem mostrar o resultado da partida)
+  function showCopaGameOver(state) {
+    var scorersA = state.scorers.A.map(function (s) { return s.name; });
+    var scorersB = state.scorers.B.map(function (s) { return s.name; });
+    copaMatchResultPending = { state: state, scorersA: scorersA, scorersB: scorersB };
+
+    els.rematchBtn.textContent = "Continuar ➜";
+    var result = fillGameoverModal(state);
+    els.gameoverSub.textContent = result === "win"
+      ? "Vitória na Copa! Vamos ver o resto da rodada."
+      : (result === "lose" ? "Não foi dessa vez... mas a Copa continua." : "Empate! Fica pra classificação geral.");
+    els.gameoverModal.classList.remove("hidden");
+  }
+
+  function returnToMenuFromCopa() {
+    COPA.reset();
+    gameMode = "amistoso";
+    chosenHomeSquadId = null;
+    chosenAwaySquadId = null;
+    copaPendingFixtureId = null;
+    if (els.copaDrawModal) els.copaDrawModal.classList.add("hidden");
+    if (els.copaHubModal) els.copaHubModal.classList.add("hidden");
+    if (els.copaResultModal) els.copaResultModal.classList.add("hidden");
+    if (els.modeToggleAmistoso) els.modeToggleAmistoso.classList.add("active");
+    if (els.modeToggleCopa) els.modeToggleCopa.classList.remove("active");
+    if (els.startBtn) els.startBtn.textContent = "⚽ Iniciar Partida";
+    renderSquadPickList();
+    els.startScreen.classList.remove("hidden");
   }
 
   /* ---------------- pré-jogo: escalação e cara-ou-coroa ---------------- */
@@ -1242,6 +1614,65 @@ var UI = (function () {
     }, 1850);
   }
 
+  // ícones + splash arts dos 2 elencos escolhidos — pré-carrega antes da partida
+  // pra evitar avatares "estourando" na tela (splash art aparece cedo, já no 1º duelo).
+  function collectMatchImageUrls() {
+    var urls = [];
+    [chosenHomeSquadId, chosenAwaySquadId].forEach(function (squadId) {
+      var sq = null;
+      for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === squadId) sq = GAME_DATA.TEAMS[i];
+      if (!sq) return;
+      sq.players.forEach(function (p) {
+        urls.push("icones/" + sq.assetPrefix + "_" + p.assetKey + ".png");
+        urls.push("splashs_art/" + sq.assetPrefix + "_" + p.assetKey + ".png");
+      });
+    });
+    return urls;
+  }
+
+  function preloadImages(urls, onProgress) {
+    var total = urls.length;
+    var done = 0;
+    onProgress(done, total);
+    if (total === 0) return Promise.resolve();
+    return Promise.all(urls.map(function (url) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = img.onerror = function () {
+          done++;
+          onProgress(done, total);
+          resolve();
+        };
+        img.src = url;
+      });
+    }));
+  }
+
+  function showLoadingAndLaunch() {
+    var urls = collectMatchImageUrls();
+    els.loadingModal.classList.remove("hidden");
+    els.loadingFill.style.width = "0%";
+    els.loadingCount.textContent = "0 / " + urls.length + " imagens";
+    preloadImages(urls, function (done, total) {
+      var pct = total === 0 ? 100 : Math.round((done / total) * 100);
+      els.loadingFill.style.width = pct + "%";
+      els.loadingCount.textContent = done + " / " + total + " imagens";
+    }).then(function () {
+      els.loadingModal.classList.add("hidden");
+      launchMatch();
+    });
+  }
+
+  // partidas de mata-mata da Copa (semifinal/final) empatadas viram gol de ouro —
+  // fase de grupos e o modo Amistoso continuam podendo terminar em empate normal
+  function isCopaKnockoutFixturePending() {
+    if (gameMode !== "copa" || !copaPendingFixtureId) return false;
+    var st = COPA.getState();
+    if (!st) return false;
+    var fx = st.fixtures.filter(function (f) { return f.id === copaPendingFixtureId; })[0];
+    return !!fx && (fx.stage === "semis" || fx.stage === "final");
+  }
+
   function launchMatch() {
     inspectedId = null;
     tokenEls = {};
@@ -1249,7 +1680,7 @@ var UI = (function () {
     rosterViewAway = false;
     if (els.piecesLayer) els.piecesLayer.innerHTML = "";
     els.gameRoot.classList.remove("hidden");
-    GAME.start(chosenHomeSquadId, chosenAwaySquadId, formationOverrides, coinWinnerTeamId, chosenMaxTurns, chosenNoTurnLimit);
+    GAME.start(chosenHomeSquadId, chosenAwaySquadId, formationOverrides, coinWinnerTeamId, chosenMaxTurns, chosenNoTurnLimit, isCopaKnockoutFixturePending());
   }
 
   /* ---------------- modo noturno ---------------- */
