@@ -10,13 +10,14 @@ var UI = (function () {
   var chosenAwaySquadId = null;
   var chosenMaxTurns = 40;
   var chosenNoTurnLimit = false;
+  var rosterViewAway = false; // alternador da escalação: false = seu time, true = adversário
 
   var tokenEls = {};
   var lastPositions = {};
   var lastBallPos = null;
   var hoverArrowEl = null;
   var PITCH_TILT_DEG = 14; // precisa bater com o rotateX de #pitch no style.css
-  var PITCH_UPRIGHT = " rotateX(-" + PITCH_TILT_DEG + "deg)"; // "de-tilta" peças/bola pra ficarem em pé
+  var PITCH_UPRIGHT = PITCH_TILT_DEG ? (" rotateX(-" + PITCH_TILT_DEG + "deg)") : ""; // "de-tilta" peças/bola pra ficarem em pé
 
   var lineupWorking = null;
   var lineupSelectedId = null;
@@ -25,20 +26,34 @@ var UI = (function () {
 
   var SVG_NS = "http://www.w3.org/2000/svg";
 
+  // ícones do duelo — SVG em vez de emoji (consistência visual entre plataformas)
+  var DUEL_ICONS = {
+    sword: '<svg class="duel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="14,4 19,4 19,9"/><line x1="19" y1="19" x2="5" y2="5"/><polyline points="10,4 5,4 5,9"/></svg>',
+    bolt: '<svg class="duel-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 L4 14 H11 L10 22 L20 9 H13 Z"/></svg>',
+    target: '<svg class="duel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>',
+    dots: '<svg class="duel-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="12" r="3"/><circle cx="12" cy="12" r="3"/><circle cx="20" cy="12" r="3"/></svg>',
+    trophy: '<svg class="duel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v5a6 6 0 0 1-12 0z"/><path d="M6 6H3a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4"/><path d="M18 6h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/><line x1="12" y1="15" x2="12" y2="19"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="19" x2="12" y2="21"/></svg>',
+    shieldCheck: '<svg class="duel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"/><polyline points="8.5,12 11,14.5 16,9"/></svg>',
+    ball: '<svg class="duel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><polygon points="12,6 16,9 14.5,14 9.5,14 8,9" fill="currentColor" stroke="none"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="16" y1="9" x2="19" y2="7"/><line x1="8" y1="9" x2="5" y2="7"/><line x1="14.5" y1="14" x2="16" y2="18"/><line x1="9.5" y1="14" x2="8" y2="18"/></svg>'
+  };
+  function icon(name) { return DUEL_ICONS[name] || ""; }
+
   function $(id) { return document.getElementById(id); }
 
   function cacheEls() {
     var ids = [
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
-      "game-root", "score-team-a", "name-team-a", "tag-team-a", "score-a", "badge-team-a",
-      "score-team-b", "name-team-b", "tag-team-b", "score-b", "badge-team-b", "score-clock", "score-turn", "menu-btn",
-      "roster-list", "player-detail-panel",
+      "game-root", "theme-toggle-btn", "theme-toggle-btn-start",
+      "tv-scoreboard", "tv-team-a", "tv-badge-a", "tv-abbr-a", "tv-you-a", "tv-scorebox-a",
+      "tv-team-b", "tv-badge-b", "tv-abbr-b", "tv-you-b", "tv-scorebox-b",
+      "tv-score-a", "tv-score-b", "score-clock", "score-turn", "menu-btn",
+      "roster-toggle-own", "roster-toggle-away", "roster-list", "player-detail-panel",
       "board", "pitch",
       "player-stats-modal", "player-stats-body", "player-stats-close",
-      "duel-modal", "duel-title", "duel-left-avatar", "duel-left-name", "duel-left-role", "duel-left-score", "duel-left-actions",
-      "duel-right-avatar", "duel-right-name", "duel-right-role", "duel-right-score", "duel-right-actions",
+      "duel-modal", "duel-title", "duel-left", "duel-left-avatar", "duel-left-name", "duel-left-role", "duel-left-mana-fill", "duel-left-score", "duel-left-actions",
+      "duel-right", "duel-right-avatar", "duel-right-name", "duel-right-role", "duel-right-mana-fill", "duel-right-score", "duel-right-actions",
       "duel-result", "duel-continue-btn",
-      "goal-banner", "goal-scorer", "halftime-banner",
+      "goal-banner", "goal-word", "goal-scorer", "goal-scorer-portrait", "halftime-banner",
       "gameover-modal", "gameover-kicker", "gameover-title", "gameover-score", "gameover-sub", "rematch-btn",
       "lineup-ask-modal", "lineup-ask-text", "lineup-ask-yes", "lineup-ask-no",
       "lineup-editor-modal", "lineup-editor-title", "lineup-grid", "lineup-detail", "lineup-reset-btn", "lineup-confirm-btn",
@@ -408,17 +423,26 @@ var UI = (function () {
     renderDuelModal(state);
   }
 
+  // placar estilo transmissão de TV — uma barra só, sigla+bandeira de cada
+  // lado, placar central (a casa de quem tem a vez acende) e o relógio
+  // encostado no canto, tudo numa linha só (não empilhado, pra não estourar
+  // a altura reservada pro campo)
   function renderScoreboard(state) {
-    els.nameTeamA.textContent = state.teams.A.name;
-    els.nameTeamB.textContent = state.teams.B.name;
-    els.tagTeamA.textContent = (state.humanTeamId === "A" ? "Você" : "CPU") + " · Precisão";
-    els.tagTeamB.textContent = (state.humanTeamId === "B" ? "Você" : "CPU") + " · Instinto";
-    if (els.badgeTeamA) { els.badgeTeamA.className = "score-team-badge " + state.teams.A.colorVar + "-badge"; fillSquadBadgeEl(els.badgeTeamA, state.teams.A); }
-    if (els.badgeTeamB) { els.badgeTeamB.className = "score-team-badge " + state.teams.B.colorVar + "-badge"; fillSquadBadgeEl(els.badgeTeamB, state.teams.B); }
-    els.scoreA.textContent = state.score.A;
-    els.scoreB.textContent = state.score.B;
-    els.scoreTeamA.classList.toggle("active-turn", state.currentTeamId === "A" && state.phase !== "gameover");
-    els.scoreTeamB.classList.toggle("active-turn", state.currentTeamId === "B" && state.phase !== "gameover");
+    if (els.tvAbbrA) els.tvAbbrA.textContent = state.teams.A.shortName;
+    if (els.tvAbbrB) els.tvAbbrB.textContent = state.teams.B.shortName;
+    if (els.tvBadgeA) fillSquadBadgeEl(els.tvBadgeA, state.teams.A);
+    if (els.tvBadgeB) fillSquadBadgeEl(els.tvBadgeB, state.teams.B);
+    if (els.tvScoreA) els.tvScoreA.textContent = state.score.A;
+    if (els.tvScoreB) els.tvScoreB.textContent = state.score.B;
+    if (els.tvYouA) els.tvYouA.classList.toggle("hidden", state.humanTeamId !== "A");
+    if (els.tvYouB) els.tvYouB.classList.toggle("hidden", state.humanTeamId !== "B");
+    var aTurn = state.currentTeamId === "A" && state.phase !== "gameover";
+    var bTurn = state.currentTeamId === "B" && state.phase !== "gameover";
+    if (els.tvTeamA) els.tvTeamA.classList.toggle("active-turn", aTurn);
+    if (els.tvTeamB) els.tvTeamB.classList.toggle("active-turn", bTurn);
+    if (els.tvScoreboxA) els.tvScoreboxA.classList.toggle("active-turn", aTurn);
+    if (els.tvScoreboxB) els.tvScoreboxB.classList.toggle("active-turn", bTurn);
+
     els.scoreTurn.textContent = state.phase === "gameover" ? "Fim de jogo" : (state.currentTeamId === state.humanTeamId ? "Sua vez" : "Vez do adversário");
 
     if (state.noTurnLimit) {
@@ -546,6 +570,33 @@ var UI = (function () {
     setTimeout(function () { el.remove(); }, 1600);
   }
 
+  // emojis subindo no local do choque, antes do modal de duelo abrir (ver
+  // DUEL_INTRO_MS em js/game.js). Vai direto em #pitch (não em .trail-layer,
+  // que tem z-index abaixo das peças) pra ficar por cima de tudo. Usa um
+  // wrapper estático (posição + "de-tilt" da perspectiva 3D, igual peça/bola)
+  // por fora e o span animado por dentro — senão a animação CSS (que também
+  // mexe em transform) vence e apaga o de-tilt aplicado por JS no mesmo elemento
+  var DUEL_START_EMOJIS = ["⚔️", "💥", "🔥"];
+  function flashDuelStart(row, col) {
+    if (!els.pitch) return;
+    var center = cellCenterPct(row, col);
+    DUEL_START_EMOJIS.forEach(function (emoji, i) {
+      var wrap = document.createElement("div");
+      wrap.className = "duel-start-fx-wrap";
+      wrap.style.left = center.x + "%";
+      wrap.style.top = center.y + "%";
+      wrap.style.transform = "translate(-50%, -50%)" + PITCH_UPRIGHT;
+      var el = document.createElement("span");
+      el.className = "duel-start-fx";
+      el.textContent = emoji;
+      el.style.setProperty("--dx", ((i - 1) * 16) + "px");
+      el.style.animationDelay = (i * 70) + "ms";
+      wrap.appendChild(el);
+      els.pitch.appendChild(wrap);
+      setTimeout(function () { wrap.remove(); }, 950 + i * 70);
+    });
+  }
+
   function updatePieceToken(token, piece, state) {
     var last = lastPositions[piece.id];
     if (last && (last.row !== piece.row || last.col !== piece.col)) {
@@ -632,9 +683,12 @@ var UI = (function () {
   }
 
   function renderRosters(state) {
+    var viewTeamId = rosterViewAway ? (state.humanTeamId === "A" ? "B" : "A") : state.humanTeamId;
+    if (els.rosterToggleOwn) els.rosterToggleOwn.classList.toggle("active", !rosterViewAway);
+    if (els.rosterToggleAway) els.rosterToggleAway.classList.toggle("active", rosterViewAway);
     els.rosterList.innerHTML = "";
     state.pieces.forEach(function (p) {
-      if (p.team !== state.humanTeamId) return;
+      if (p.team !== viewTeamId) return;
       els.rosterList.appendChild(buildRosterCard(p, state));
     });
   }
@@ -745,16 +799,16 @@ var UI = (function () {
     els.duelModal.classList.remove("hidden");
 
     var labels = DUEL.roleLabels(ctx.isShoot, ctx.isDribble);
-    els.duelTitle.textContent = ctx.isShoot ? "🔥 CHANCE DE GOL!" : "⚔️ DUELO NO CAMPO!";
+    els.duelTitle.innerHTML = (ctx.isShoot ? icon("target") : icon("sword")) + (ctx.isShoot ? " CHANCE DE GOL!" : " DUELO NO CAMPO!");
 
     fillDuelSide("left", ctx.challenger, labels.challenger, ctx, "challenger");
     fillDuelSide("right", ctx.holder, labels.holder, ctx, "holder");
 
     if (ctx.revealed) {
-      els.duelResult.textContent = buildResultText(ctx);
+      els.duelResult.innerHTML = buildResultText(ctx);
       els.duelContinueBtn.classList.remove("hidden");
     } else {
-      els.duelResult.textContent = "";
+      els.duelResult.innerHTML = "";
       els.duelContinueBtn.classList.add("hidden");
     }
   }
@@ -780,19 +834,23 @@ var UI = (function () {
     var avatarEl = sideKey === "left" ? els.duelLeftAvatar : els.duelRightAvatar;
     var nameEl = sideKey === "left" ? els.duelLeftName : els.duelRightName;
     var roleEl = sideKey === "left" ? els.duelLeftRole : els.duelRightRole;
+    var manaFillEl = sideKey === "left" ? els.duelLeftManaFill : els.duelRightManaFill;
     var scoreEl = sideKey === "left" ? els.duelLeftScore : els.duelRightScore;
     var actionsEl = sideKey === "left" ? els.duelLeftActions : els.duelRightActions;
+    var sideEl = sideKey === "left" ? els.duelLeft : els.duelRight;
 
     fillAvatarEl(avatarEl, piece, "splashs_art");
     nameEl.textContent = piece.name;
     nameEl.appendChild(buildDuelInfoIcon(piece));
     roleEl.textContent = roleLabel;
+    if (manaFillEl) manaFillEl.style.width = Math.round((piece.mana / piece.maxMana) * 100) + "%";
 
     var controller = side === "challenger" ? ctx.challengerController : ctx.holderController;
     var choice = side === "challenger" ? ctx.challengerChoice : ctx.holderChoice;
 
     actionsEl.innerHTML = "";
     scoreEl.classList.remove("revealed", "winner", "loser");
+    if (sideEl) sideEl.classList.remove("duel-winner", "duel-loser");
 
     var existingDist = roleEl.parentNode.querySelector(".duel-distance");
     if (existingDist) existingDist.remove();
@@ -812,10 +870,11 @@ var UI = (function () {
       scoreEl.classList.add("revealed");
       var won = ctx.result.winnerSide === side;
       scoreEl.classList.add(won ? "winner" : "loser");
+      if (sideEl) sideEl.classList.add(won ? "duel-winner" : "duel-loser");
 
       var choiceLabel = document.createElement("div");
       choiceLabel.className = "duel-choice-label" + (choice === "poder" ? " is-poder" : "");
-      choiceLabel.textContent = choice === "poder" ? ("✨ " + piece.power.name) : "⚔️ Ação Básica";
+      choiceLabel.innerHTML = choice === "poder" ? (icon("bolt") + " " + piece.power.name) : (icon("sword") + " Ação Básica");
       actionsEl.appendChild(choiceLabel);
       return;
     }
@@ -825,13 +884,13 @@ var UI = (function () {
     if (controller === "human" && !choice) {
       var btnAcao = document.createElement("button");
       btnAcao.className = "duel-btn btn-acao";
-      btnAcao.innerHTML = "⚔️ Ação Básica<small>Sem custo de mana</small>";
+      btnAcao.innerHTML = icon("sword") + " Ação Básica<small>Sem custo de mana</small>";
       btnAcao.addEventListener("click", function () { GAME.chooseDuelAction(side, "acao"); });
 
       var btnPoder = document.createElement("button");
       var canAfford = DUEL.canUsePower(piece);
       btnPoder.className = "duel-btn btn-poder";
-      btnPoder.innerHTML = "✨ " + piece.power.name + "<small>Custo: " + piece.power.manaCost + " mana</small>";
+      btnPoder.innerHTML = icon("bolt") + " " + piece.power.name + "<small>Custo: " + piece.power.manaCost + " mana</small>";
       btnPoder.disabled = !canAfford;
       btnPoder.addEventListener("click", function () { GAME.chooseDuelAction(side, "poder"); });
 
@@ -840,12 +899,12 @@ var UI = (function () {
     } else if (controller === "human" && choice) {
       var chosen = document.createElement("div");
       chosen.className = "duel-choice-label" + (choice === "poder" ? " is-poder" : "");
-      chosen.textContent = "Escolhido: " + (choice === "poder" ? ("✨ " + piece.power.name) : "⚔️ Ação Básica");
+      chosen.innerHTML = "Escolhido: " + (choice === "poder" ? (icon("bolt") + " " + piece.power.name) : (icon("sword") + " Ação Básica"));
       actionsEl.appendChild(chosen);
     } else {
       var thinking = document.createElement("div");
       thinking.className = "duel-thinking";
-      thinking.textContent = "🤔 Pensando...";
+      thinking.innerHTML = icon("dots") + " Pensando...";
       actionsEl.appendChild(thinking);
     }
   }
@@ -854,23 +913,36 @@ var UI = (function () {
     var winnerPiece = ctx.result.winnerSide === "challenger" ? ctx.challenger : ctx.holder;
     if (ctx.isShoot) {
       return ctx.result.winnerSide === "challenger"
-        ? "⚽ GOL!!! " + winnerPiece.name + " balança a rede!"
-        : "🧤 DEFESA! " + winnerPiece.name + " salva o time!";
+        ? icon("ball") + " GOL!!! " + winnerPiece.name + " balança a rede!"
+        : icon("shieldCheck") + " DEFESA! " + winnerPiece.name + " salva o time!";
     }
-    return "🏆 " + winnerPiece.name + " vence o duelo!";
+    return icon("trophy") + " " + winnerPiece.name + " vence o duelo!";
   }
 
   /* ---------------- banner de gol / fim de jogo ---------------- */
 
+  function buildStaggeredWord(el, word) {
+    el.innerHTML = "";
+    Array.prototype.forEach.call(word, function (ch, i) {
+      var span = document.createElement("span");
+      span.className = "goal-letter";
+      span.style.setProperty("--i", i);
+      span.textContent = ch === " " ? " " : ch;
+      el.appendChild(span);
+    });
+  }
+
   function showGoalBanner(scorerPiece, teamId) {
     var state = GAME.getState();
+    if (els.goalWord) buildStaggeredWord(els.goalWord, "GOOOOL!");
     els.goalScorer.textContent = scorerPiece.name + " — " + state.teams[teamId].name;
+    if (els.goalScorerPortrait) fillAvatarEl(els.goalScorerPortrait, scorerPiece, "splashs_art");
     els.goalBanner.classList.remove("hidden");
     var inner = els.goalBanner.querySelector(".goal-banner-inner");
     inner.style.animation = "none";
     void inner.offsetWidth;
     inner.style.animation = "";
-    setTimeout(function () { els.goalBanner.classList.add("hidden"); }, 1650);
+    setTimeout(function () { els.goalBanner.classList.add("hidden"); }, 2550);
   }
 
   function showHalftimeBanner() {
@@ -919,6 +991,20 @@ var UI = (function () {
       els.startScreen.classList.add("hidden");
       beginPreGameFlow();
     });
+
+    if (els.rosterToggleOwn) els.rosterToggleOwn.addEventListener("click", function () {
+      rosterViewAway = false;
+      var state = GAME.getState();
+      if (state) render(state);
+    });
+    if (els.rosterToggleAway) els.rosterToggleAway.addEventListener("click", function () {
+      rosterViewAway = true;
+      var state = GAME.getState();
+      if (state) render(state);
+    });
+
+    if (els.themeToggleBtn) els.themeToggleBtn.addEventListener("change", toggleTheme);
+    if (els.themeToggleBtnStart) els.themeToggleBtnStart.addEventListener("change", toggleTheme);
 
     els.menuBtn.addEventListener("click", function () {
       if (window.confirm("Voltar ao menu inicial? O progresso da partida atual será perdido.")) {
@@ -1160,9 +1246,33 @@ var UI = (function () {
     inspectedId = null;
     tokenEls = {};
     lastPositions = {};
+    rosterViewAway = false;
     if (els.piecesLayer) els.piecesLayer.innerHTML = "";
     els.gameRoot.classList.remove("hidden");
     GAME.start(chosenHomeSquadId, chosenAwaySquadId, formationOverrides, coinWinnerTeamId, chosenMaxTurns, chosenNoTurnLimit);
+  }
+
+  /* ---------------- modo noturno ---------------- */
+
+  var THEME_STORAGE_KEY = "xequeTotalTheme";
+
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    if (els.themeToggleBtn) els.themeToggleBtn.checked = theme === "dark";
+    if (els.themeToggleBtnStart) els.themeToggleBtnStart.checked = theme === "dark";
+  }
+
+  // disparado pelo "change" de qualquer um dos dois switches (jogo / tela inicial) —
+  // lê o checkbox que disparou o evento pra saber pra qual lado foi, e sincroniza o outro
+  function toggleTheme(ev) {
+    var source = (ev && ev.target) || els.themeToggleBtn;
+    var next = source && source.checked ? "dark" : "light";
+    applyTheme(next);
+    try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch (e) { /* modo privado etc — ignora */ }
   }
 
   function init() {
@@ -1171,6 +1281,9 @@ var UI = (function () {
     renderSquadPickList();
     applySlotColors();
     wireStaticEvents();
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) { /* ignora */ }
+    if (savedTheme === "dark") applyTheme("dark");
   }
 
   return {
@@ -1179,7 +1292,8 @@ var UI = (function () {
     showGoalBanner: showGoalBanner,
     showHalftimeBanner: showHalftimeBanner,
     showGameOver: showGameOver,
-    flashPiece: flashPiece
+    flashPiece: flashPiece,
+    flashDuelStart: flashDuelStart
   };
 
 })();

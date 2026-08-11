@@ -65,7 +65,7 @@ var GAME = (function () {
       teams: teamsMeta, pieces: pieces,
       ball: { row: Math.floor(BOARD.ROWS / 2), col: BOARD.MID_COL, carrierId: null, gkHoldTurns: 0 },
       currentTeamId: "A", turnCount: 0, maxTurns: maxTurns || 40, noTurnLimit: !!noTurnLimit, half: 1,
-      score: { A: 0, B: 0 }, selectedPieceId: null,
+      score: { A: 0, B: 0 }, scorers: { A: [], B: [] }, selectedPieceId: null,
       legalMoves: [], passTargets: [], canShoot: false, shootInfo: null,
       log: [], duelContext: null
     };
@@ -281,33 +281,43 @@ var GAME = (function () {
     beginDuel(shooter, gk, true, info.penalty, false, info.blockerCount);
   }
 
+  var DUEL_INTRO_MS = 550; // tempo do "impacto" de emojis subindo antes do modal abrir
+
+  // fase intermediária: trava o input e dispara o efeito de emojis subindo
+  // no local do choque, e só depois monta o duelo de verdade e abre o modal
   function beginDuel(challenger, holder, isShoot, distancePenalty, isDribble, shootBlockerCount) {
-    var challengerCtrl = challenger.team === state.humanTeamId ? "human" : "cpu";
-    var holderCtrl = holder.team === state.humanTeamId ? "human" : "cpu";
-    var ctx = {
-      isShoot: isShoot, isDribble: !!isDribble, challenger: challenger, holder: holder,
-      distancePenalty: distancePenalty || 0, shootBlockerCount: shootBlockerCount || 0,
-      challengerChoice: null, holderChoice: null,
-      challengerController: challengerCtrl, holderController: holderCtrl,
-      revealed: false, result: null
-    };
-    state.duelContext = ctx;
-    state.phase = "duel";
+    state.phase = "duel-intro";
     clearActionOptions();
-
-    if (challengerCtrl === "cpu") {
-      ctx.challengerChoice = AI.chooseDuelChoice(challenger, { isShoot: isShoot, critical: isShoot });
-    }
-    if (holder.stunned) {
-      ctx.holderChoice = "acao"; // atordoado não consegue reagir — perde automaticamente, não precisa escolher
-    } else if (holderCtrl === "cpu") {
-      var criticalHold = isShoot || BOARD.isInOwnGoalBox(holder.row, holder.col, state.teams[holder.team]);
-      ctx.holderChoice = AI.chooseDuelChoice(holder, { isShoot: isShoot, critical: criticalHold });
-    }
-
     render();
+    UI.flashDuelStart(holder.row, holder.col);
 
-    if (ctx.challengerChoice && ctx.holderChoice) resolveDuelNow();
+    setTimeout(function () {
+      var challengerCtrl = challenger.team === state.humanTeamId ? "human" : "cpu";
+      var holderCtrl = holder.team === state.humanTeamId ? "human" : "cpu";
+      var ctx = {
+        isShoot: isShoot, isDribble: !!isDribble, challenger: challenger, holder: holder,
+        distancePenalty: distancePenalty || 0, shootBlockerCount: shootBlockerCount || 0,
+        challengerChoice: null, holderChoice: null,
+        challengerController: challengerCtrl, holderController: holderCtrl,
+        revealed: false, result: null
+      };
+      state.duelContext = ctx;
+      state.phase = "duel";
+
+      if (challengerCtrl === "cpu") {
+        ctx.challengerChoice = AI.chooseDuelChoice(challenger, { isShoot: isShoot, critical: isShoot });
+      }
+      if (holder.stunned) {
+        ctx.holderChoice = "acao"; // atordoado não consegue reagir — perde automaticamente, não precisa escolher
+      } else if (holderCtrl === "cpu") {
+        var criticalHold = isShoot || BOARD.isInOwnGoalBox(holder.row, holder.col, state.teams[holder.team]);
+        ctx.holderChoice = AI.chooseDuelChoice(holder, { isShoot: isShoot, critical: criticalHold });
+      }
+
+      render();
+
+      if (ctx.challengerChoice && ctx.holderChoice) resolveDuelNow();
+    }, DUEL_INTRO_MS);
   }
 
   function chooseDuelAction(side, choice) {
@@ -413,8 +423,18 @@ var GAME = (function () {
     endTurn();
   }
 
+  // mesma conta usada no placar (ver renderScoreboard em ui.js) — precisa
+  // bater pro minuto do artilheiro fazer sentido no relógio exibido
+  function matchMinute() {
+    if (state.noTurnLimit) return null;
+    var base = state.half === 2 ? 45 : 0;
+    var progress = Math.min(1, state.turnCount / state.maxTurns);
+    return Math.min(base + 45, Math.floor(base + progress * 45));
+  }
+
   function scoreGoal(teamId, scorerPiece) {
     state.score[teamId]++;
+    state.scorers[teamId].push({ name: scorerPiece.name, minute: matchMinute() });
     addLog("⚽ GOL de " + scorerPiece.name + "! Placar: " + state.score.A + " x " + state.score.B, "ev-goal");
     state.phase = "goal-pause";
     var routed = state.noTurnLimit && state.score[teamId] >= 3;
@@ -427,7 +447,7 @@ var GAME = (function () {
       resetForKickoff(concedingTeamId);
       addLog("🔄 Jogadores voltam à formação inicial. " + state.teams[concedingTeamId].name + " repõe a bola do centro.", "ev-info");
       advanceToTeamTurn(concedingTeamId);
-    }, 1700);
+    }, 2600);
   }
 
   function beginHalftime() {

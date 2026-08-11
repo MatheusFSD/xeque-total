@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Digital+Numbers&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,6 +18,14 @@
   <div id="start-screen" class="overlay-screen">
     <div class="stars"></div>
     <div class="start-card">
+      <label class="theme-switch theme-switch-corner" title="Modo noturno">
+        <input type="checkbox" id="theme-toggle-btn-start">
+        <span class="theme-switch-track">
+          <span class="theme-switch-icon">☀️</span>
+          <span class="theme-switch-icon">🌙</span>
+          <span class="theme-switch-thumb"></span>
+        </span>
+      </label>
       <p class="kicker">XADREZ TÁTICO DE FUTEBOL</p>
       <h1 class="logo">XEQUE <span>TOTAL</span></h1>
       <p class="tagline">Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
@@ -59,31 +67,53 @@
   <!-- ============ JOGO PRINCIPAL ============ -->
   <div id="game-root" class="hidden">
 
-    <button id="menu-btn" class="icon-btn menu-btn-floating" title="Menu">☰</button>
-
     <main id="main-grid">
       <div class="side-column">
-        <div class="side-score-card print-texture side-score-a" id="score-team-a">
-          <span class="score-team-badge" id="badge-team-a">🛡️</span>
-          <div class="score-team-info">
-            <span class="score-team-name" id="name-team-a">Tecos</span>
-            <span class="score-team-tag" id="tag-team-a">Você</span>
-          </div>
-          <span class="side-score-value" id="score-a">0</span>
+        <div class="ad-billboard ad-billboard-1" aria-hidden="true">
+          <span class="ad-billboard-brand">TORRE SEGUROS</span>
+          <span class="ad-billboard-tag">Proteção Total</span>
         </div>
         <aside class="roster-panel print-texture" id="roster-left">
-          <h2 class="roster-title" id="roster-title-own">Escalação</h2>
+          <div class="roster-toggle" id="roster-toggle">
+            <button type="button" class="roster-toggle-btn active" id="roster-toggle-own">Seu time</button>
+            <button type="button" class="roster-toggle-btn" id="roster-toggle-away">Adversário</button>
+          </div>
           <div class="roster-list" id="roster-list"></div>
         </aside>
       </div>
 
       <section id="board-wrap">
         <div id="stadium">
-          <div class="stadium-audience stadium-audience-top">
-            <div class="stadium-clock">
-              <span class="score-clock" id="score-clock">1ºT 0'</span>
-              <span class="score-turn" id="score-turn">Sua vez</span>
+          <div class="stadium-topbar">
+            <label class="theme-switch" title="Modo noturno">
+              <input type="checkbox" id="theme-toggle-btn">
+              <span class="theme-switch-track">
+                <span class="theme-switch-icon">☀️</span>
+                <span class="theme-switch-icon">🌙</span>
+                <span class="theme-switch-thumb"></span>
+              </span>
+            </label>
+            <div class="tv-scoreboard" id="tv-scoreboard">
+              <div class="tv-accent tv-accent-a"></div>
+              <div class="tv-team tv-team-a" id="tv-team-a">
+                <span class="tv-you-mark" id="tv-you-a" title="Seu time">★</span>
+                <span class="tv-flag" id="tv-badge-a"></span>
+                <span class="tv-abbr" id="tv-abbr-a">TEC</span>
+              </div>
+              <div class="tv-scorebox tv-scorebox-a" id="tv-scorebox-a"><span id="tv-score-a">0</span></div>
+              <div class="tv-scorebox tv-scorebox-b" id="tv-scorebox-b"><span id="tv-score-b">0</span></div>
+              <div class="tv-team tv-team-b" id="tv-team-b">
+                <span class="tv-abbr" id="tv-abbr-b">RAP</span>
+                <span class="tv-flag" id="tv-badge-b"></span>
+                <span class="tv-you-mark" id="tv-you-b" title="Seu time">★</span>
+              </div>
+              <div class="tv-clock-seg">
+                <span class="tv-clock-time" id="score-clock">1ºT 0'</span>
+                <span class="tv-clock-turn" id="score-turn">Sua vez</span>
+              </div>
+              <div class="tv-accent tv-accent-b"></div>
             </div>
+            <button id="menu-btn" class="icon-btn" title="Menu">☰</button>
           </div>
           <div id="pitch">
             <div class="pitch-goal pitch-goal-left"><div class="pitch-net"></div><div class="pitch-post-back"></div></div>
@@ -107,13 +137,9 @@
       </section>
 
       <div class="side-column">
-        <div class="side-score-card print-texture side-score-b" id="score-team-b">
-          <span class="side-score-value" id="score-b">0</span>
-          <div class="score-team-info">
-            <span class="score-team-name" id="name-team-b">Raptors</span>
-            <span class="score-team-tag" id="tag-team-b">CPU</span>
-          </div>
-          <span class="score-team-badge" id="badge-team-b">🦖</span>
+        <div class="ad-billboard ad-billboard-2" aria-hidden="true">
+          <span class="ad-billboard-brand">CAVALO ENERGIA</span>
+          <span class="ad-billboard-tag">Salta na Frente</span>
         </div>
         <aside class="roster-panel print-texture" id="roster-right">
           <h2 class="roster-title">Ficha do Jogador</h2>
@@ -139,9 +165,14 @@
       <p class="duel-title" id="duel-title">DUELO!</p>
       <div class="duel-arena">
         <div class="duel-side duel-side-left" id="duel-left">
-          <div class="duel-avatar" id="duel-left-avatar"></div>
-          <p class="duel-name" id="duel-left-name">—</p>
-          <p class="duel-role" id="duel-left-role">—</p>
+          <div class="duel-portrait-wrap">
+            <div class="duel-portrait" id="duel-left-avatar"></div>
+            <div class="duel-portrait-info">
+              <p class="duel-name" id="duel-left-name">—</p>
+              <p class="duel-role" id="duel-left-role">—</p>
+              <div class="duel-mana"><div class="mana-track"><div class="mana-fill" id="duel-left-mana-fill"></div></div></div>
+            </div>
+          </div>
           <div class="duel-score" id="duel-left-score">—</div>
           <div class="duel-actions" id="duel-left-actions"></div>
         </div>
@@ -151,9 +182,14 @@
         </div>
 
         <div class="duel-side duel-side-right" id="duel-right">
-          <div class="duel-avatar" id="duel-right-avatar"></div>
-          <p class="duel-name" id="duel-right-name">—</p>
-          <p class="duel-role" id="duel-right-role">—</p>
+          <div class="duel-portrait-wrap">
+            <div class="duel-portrait" id="duel-right-avatar"></div>
+            <div class="duel-portrait-info">
+              <p class="duel-name" id="duel-right-name">—</p>
+              <p class="duel-role" id="duel-right-role">—</p>
+              <div class="duel-mana"><div class="mana-track"><div class="mana-fill" id="duel-right-mana-fill"></div></div></div>
+            </div>
+          </div>
           <div class="duel-score" id="duel-right-score">—</div>
           <div class="duel-actions" id="duel-right-actions"></div>
         </div>
@@ -166,8 +202,11 @@
   <!-- ============ BANNER DE GOL ============ -->
   <div id="goal-banner" class="hidden">
     <div class="goal-banner-inner">
-      <p class="goal-word">GOOOOL!</p>
-      <p class="goal-scorer" id="goal-scorer"></p>
+      <p class="goal-word" id="goal-word" aria-label="GOOOOL!"></p>
+      <div class="goal-sticker">
+        <div class="goal-sticker-portrait" id="goal-scorer-portrait"></div>
+        <p class="goal-scorer" id="goal-scorer"></p>
+      </div>
     </div>
   </div>
 
