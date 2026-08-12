@@ -289,9 +289,9 @@ button{ font-family: inherit; }
   padding: 3px;
 }
 .mode-toggle-btn{
-  font-family: var(--font-display); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 8px 20px; border: none; border-radius: 4px; background: transparent; color: var(--ink-dim);
-  cursor: pointer; transition: all 0.15s ease;
+  font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 8px 15px; border: none; border-radius: 4px; background: transparent; color: var(--ink-dim);
+  cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
 }
 .mode-toggle-btn:hover{ color: var(--ink); }
 .mode-toggle-btn.active{ background: var(--gold); color: var(--shadow-ink); box-shadow: 2px 2px 0 var(--shadow-ink); }

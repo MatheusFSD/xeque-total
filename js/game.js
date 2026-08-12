@@ -28,6 +28,12 @@ var GAME = (function () {
     return null;
   }
 
+  // no modo 2 jogadores local, os dois lados são "humanos" — ninguém chama a IA
+  // e os dois lados do duelo esperam escolha manual, independente do slot
+  function isHumanControlled(teamId) {
+    return state.twoPlayerLocal || teamId === state.humanTeamId;
+  }
+
   function addLog(text, cls) {
     logId++;
     state.log.push({ id: logId, text: text, cls: cls || "ev-info" });
@@ -36,7 +42,7 @@ var GAME = (function () {
 
   // homeSquadId sempre ocupa o slot A (jogador humano), awaySquadId sempre o slot B (CPU).
   // Squads guardam a formação em orientação canônica "esquerda" — no slot B a coluna é espelhada.
-  function buildInitialState(homeSquadId, awaySquadId, maxTurns, noTurnLimit, goldenGoalOnDraw) {
+  function buildInitialState(homeSquadId, awaySquadId, maxTurns, noTurnLimit, goldenGoalOnDraw, twoPlayerLocal) {
     var teamsMeta = {};
     var pieces = [];
     [{ slot: "A", squadId: homeSquadId }, { slot: "B", squadId: awaySquadId }].forEach(function (s) {
@@ -65,7 +71,7 @@ var GAME = (function () {
       teams: teamsMeta, pieces: pieces,
       ball: { row: Math.floor(BOARD.ROWS / 2), col: BOARD.MID_COL, carrierId: null, gkHoldTurns: 0 },
       currentTeamId: "A", turnCount: 0, maxTurns: maxTurns || 50, noTurnLimit: !!noTurnLimit, half: 1,
-      timeUpPending: null, suddenDeath: false, goldenGoalOnDraw: !!goldenGoalOnDraw,
+      timeUpPending: null, suddenDeath: false, goldenGoalOnDraw: !!goldenGoalOnDraw, twoPlayerLocal: !!twoPlayerLocal,
       score: { A: 0, B: 0 }, scorers: { A: [], B: [] }, selectedPieceId: null,
       legalMoves: [], passTargets: [], canShoot: false, shootInfo: null,
       log: [], duelContext: null
@@ -115,18 +121,18 @@ var GAME = (function () {
     state.pieces.forEach(function (p) { p.homeCol = BOARD.COLS - 1 - p.homeCol; });
   }
 
-  function start(homeSquadId, awaySquadId, formationOverrides, kickoffTeamId, maxTurns, noTurnLimit, goldenGoalOnDraw) {
-    state = buildInitialState(homeSquadId || "BRA", awaySquadId || "ALE", maxTurns, noTurnLimit, goldenGoalOnDraw);
+  function start(homeSquadId, awaySquadId, formationOverrides, kickoffTeamId, maxTurns, noTurnLimit, goldenGoalOnDraw, twoPlayerLocal) {
+    state = buildInitialState(homeSquadId || "BRA", awaySquadId || "ALE", maxTurns, noTurnLimit, goldenGoalOnDraw, twoPlayerLocal);
     applyFormationOverrides(formationOverrides);
     state.pieces.forEach(function (p) { p.homeRow = p.row; p.homeCol = p.col; });
     applyKickoff(kickoffTeamId || "A");
     state.firstHalfKickoffTeamId = state.currentTeamId;
     var teamName = state.teams[state.humanTeamId].name;
     var kickoffName = state.teams[state.currentTeamId].name;
-    addLog("Apito inicial! Você comanda o " + teamName + ".", "ev-info");
+    addLog(state.twoPlayerLocal ? ("Apito inicial! " + teamName + " x " + state.teams.B.name + ".") : ("Apito inicial! Você comanda o " + teamName + "."), "ev-info");
     addLog("🪙 " + kickoffName + " venceu o sorteio e começa com a bola!", "ev-info");
     render();
-    if (state.currentTeamId !== state.humanTeamId) setTimeout(runAITurn, 800);
+    if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
   }
 
   function getState() { return state; }
@@ -149,9 +155,9 @@ var GAME = (function () {
 
   function selectPiece(pieceId) {
     if (!state || state.phase !== "playing") return;
-    if (state.currentTeamId !== state.humanTeamId) return;
+    if (!isHumanControlled(state.currentTeamId)) return;
     var piece = findPieceById(pieceId);
-    if (!piece || piece.team !== state.humanTeamId || piece.stunned) return;
+    if (!piece || piece.team !== state.currentTeamId || piece.stunned) return;
     if (state.selectedPieceId === pieceId) {
       clearActionOptions();
     } else {
@@ -169,7 +175,7 @@ var GAME = (function () {
 
   function attemptMove(pieceId, row, col) {
     if (!state || state.phase !== "playing") return;
-    if (state.currentTeamId !== state.humanTeamId) return;
+    if (!isHumanControlled(state.currentTeamId)) return;
     var piece = findPieceById(pieceId);
     if (!piece || piece.id !== state.selectedPieceId) return;
     var mv = null;
@@ -183,7 +189,7 @@ var GAME = (function () {
 
   function attemptPass(pieceId, row, col) {
     if (!state || state.phase !== "playing") return;
-    if (state.currentTeamId !== state.humanTeamId) return;
+    if (!isHumanControlled(state.currentTeamId)) return;
     var piece = findPieceById(pieceId);
     if (!piece || piece.id !== state.selectedPieceId || state.ball.carrierId !== piece.id) return;
     var target = null;
@@ -197,7 +203,7 @@ var GAME = (function () {
 
   function attemptShoot(pieceId) {
     if (!state || state.phase !== "playing") return;
-    if (state.currentTeamId !== state.humanTeamId) return;
+    if (!isHumanControlled(state.currentTeamId)) return;
     var piece = findPieceById(pieceId);
     if (!piece || piece.id !== state.selectedPieceId || state.ball.carrierId !== piece.id || !state.canShoot) return;
     beginShootSequence(piece);
@@ -293,8 +299,8 @@ var GAME = (function () {
     UI.flashDuelStart(holder.row, holder.col);
 
     setTimeout(function () {
-      var challengerCtrl = challenger.team === state.humanTeamId ? "human" : "cpu";
-      var holderCtrl = holder.team === state.humanTeamId ? "human" : "cpu";
+      var challengerCtrl = isHumanControlled(challenger.team) ? "human" : "cpu";
+      var holderCtrl = isHumanControlled(holder.team) ? "human" : "cpu";
       var ctx = {
         isShoot: isShoot, isDribble: !!isDribble, challenger: challenger, holder: holder,
         distancePenalty: distancePenalty || 0, shootBlockerCount: shootBlockerCount || 0,
@@ -467,7 +473,7 @@ var GAME = (function () {
       addLog("🔔 Fim do 1º tempo! Os times trocam de lado — " + state.teams[kickoffTeamId].name + " repõe a bola.", "ev-info");
       state.phase = "playing";
       render();
-      if (state.currentTeamId !== state.humanTeamId) setTimeout(runAITurn, 800);
+      if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
     }, 1900);
   }
 
@@ -507,7 +513,7 @@ var GAME = (function () {
     clearActionOptions();
     state.phase = "playing";
     render();
-    if (state.currentTeamId !== state.humanTeamId) setTimeout(runAITurn, 800);
+    if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
   }
 
   // o goleiro só pode segurar a bola por 2 turnos do próprio time — no 3º, ela escapa sozinha
@@ -550,7 +556,7 @@ var GAME = (function () {
 
   function runAITurn() {
     if (!state || state.phase !== "playing") return;
-    if (state.currentTeamId === state.humanTeamId) return;
+    if (isHumanControlled(state.currentTeamId)) return;
     var team = state.teams[state.currentTeamId];
     var action = AI.chooseAction(team, state.pieces, state.ball);
     if (!action) { endTurn(); return; }

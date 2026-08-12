@@ -26,6 +26,7 @@ var UI = (function () {
   var lineupSelectedId = null;
   var formationOverrides = null;
   var coinWinnerTeamId = null;
+  var duelImpactSoundPlayed = false; // evita repetir o som de impacto a cada re-render do mesmo duelo já revelado
 
   var SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -47,7 +48,7 @@ var UI = (function () {
     var ids = [
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
-      "mode-toggle", "mode-toggle-amistoso", "mode-toggle-copa",
+      "mode-toggle", "mode-toggle-amistoso", "mode-toggle-copa", "mode-toggle-duo", "sound-checkbox",
       "copa-draw-modal", "copa-draw-group-a", "copa-draw-group-b", "copa-draw-continue-btn",
       "copa-hub-modal", "copa-hub-stage-label", "copa-hub-standings", "copa-hub-round-results", "copa-hub-fixture-btn", "copa-hub-menu-btn",
       "copa-result-modal", "copa-result-inner", "copa-result-kicker", "copa-result-title", "copa-result-badge",
@@ -73,6 +74,12 @@ var UI = (function () {
       var key = id.replace(/-([a-z])/g, function (m, c) { return c.toUpperCase(); });
       els[key] = $(id);
     });
+  }
+
+  // no modo 2 jogadores local os dois lados são "humanos" — replica a mesma
+  // lógica de js/game.js pra decidir se o clique/hover deve reagir
+  function isHumanControlled(state, teamId) {
+    return !!state.twoPlayerLocal || teamId === state.humanTeamId;
   }
 
   function pieceAtCell(state, row, col) {
@@ -137,6 +144,7 @@ var UI = (function () {
   // com os dois já definidos, o próximo clique reinicia o ciclo a partir do time clicado.
   // no modo Copa é seleção única — só escolhe a sua seleção, o adversário vem do sorteio.
   function pickSquad(id) {
+    SOUND.playSelect();
     if (gameMode === "copa") {
       chosenHomeSquadId = id;
       chosenAwaySquadId = null;
@@ -160,6 +168,7 @@ var UI = (function () {
     chosenAwaySquadId = null;
     if (els.modeToggleAmistoso) els.modeToggleAmistoso.classList.toggle("active", mode === "amistoso");
     if (els.modeToggleCopa) els.modeToggleCopa.classList.toggle("active", mode === "copa");
+    if (els.modeToggleDuo) els.modeToggleDuo.classList.toggle("active", mode === "2players");
     if (els.startBtn) els.startBtn.textContent = mode === "copa" ? "🏆 Ir pro Sorteio" : "⚽ Iniciar Partida";
     renderSquadPickList();
     applySlotColors();
@@ -169,6 +178,8 @@ var UI = (function () {
     if (els.squadPickHint) {
       if (gameMode === "copa") {
         els.squadPickHint.textContent = chosenHomeSquadId === null ? "Escolha sua seleção pra Copa" : "Tudo pronto — toque em outra seleção pra trocar";
+      } else if (gameMode === "2players") {
+        els.squadPickHint.textContent = chosenHomeSquadId === null ? "Jogador 1, escolha seu time" : (chosenAwaySquadId === null ? "Jogador 2, escolha seu time" : "Tudo pronto — toque em outro time pra trocar");
       } else if (chosenHomeSquadId === null) els.squadPickHint.textContent = "Toque num time pra ser o seu";
       else if (chosenAwaySquadId === null) els.squadPickHint.textContent = "Agora toque no time do adversário";
       else els.squadPickHint.textContent = "Tudo pronto — toque em outro time pra trocar";
@@ -185,7 +196,10 @@ var UI = (function () {
       if (role) {
         var tag = document.createElement("span");
         tag.className = "team-pick-role-tag";
-        tag.textContent = role === "is-home" ? (gameMode === "copa" ? "SUA SELEÇÃO" : "SEU TIME") : "ADVERSÁRIO";
+        var roleText = role === "is-home"
+          ? (gameMode === "copa" ? "SUA SELEÇÃO" : (gameMode === "2players" ? "JOGADOR 1" : "SEU TIME"))
+          : (gameMode === "2players" ? "JOGADOR 2" : "ADVERSÁRIO");
+        tag.textContent = roleText;
         card.appendChild(tag);
       }
       var badge = document.createElement("span");
@@ -284,7 +298,7 @@ var UI = (function () {
   function handleSquareHover(row, col) {
     var state = GAME.getState();
     if (!state || !state.selectedPieceId) return;
-    if (state.phase !== "playing" || state.currentTeamId !== state.humanTeamId) return;
+    if (state.phase !== "playing" || !isHumanControlled(state, state.currentTeamId)) return;
     var selPiece = GAME.findPieceById(state.selectedPieceId);
     if (!selPiece) return;
 
@@ -373,7 +387,7 @@ var UI = (function () {
     shootFab.addEventListener("click", function (e) {
       e.stopPropagation();
       var state = GAME.getState();
-      if (state && state.selectedPieceId) GAME.attemptShoot(state.selectedPieceId);
+      if (state && state.selectedPieceId) { SOUND.playKick(); GAME.attemptShoot(state.selectedPieceId); }
     });
     shootFab.addEventListener("mouseenter", function () {
       var state = GAME.getState();
@@ -413,18 +427,20 @@ var UI = (function () {
     var piece = pieceAtCell(state, row, col);
     if (piece) inspectedId = piece.id;
 
-    if (state.phase === "playing" && state.currentTeamId === state.humanTeamId) {
+    if (state.phase === "playing" && isHumanControlled(state, state.currentTeamId)) {
       if (state.selectedPieceId) {
         for (var i = 0; i < state.passTargets.length; i++) {
           var t = state.passTargets[i];
           if (t.row === row && t.col === col) {
             clearHoverArrow();
+            SOUND.playPass();
             GAME.attemptPass(state.selectedPieceId, row, col);
             return;
           }
         }
       }
-      if (piece && piece.team === state.humanTeamId) {
+      if (piece && piece.team === state.currentTeamId) {
+        SOUND.playSelect();
         GAME.selectPiece(piece.id);
         return;
       }
@@ -433,6 +449,7 @@ var UI = (function () {
           var m = state.legalMoves[j];
           if (m.row === row && m.col === col) {
             clearHoverArrow();
+            if (!m.capture) SOUND.playMove();
             GAME.attemptMove(state.selectedPieceId, row, col);
             return;
           }
@@ -447,7 +464,8 @@ var UI = (function () {
     var state = GAME.getState();
     if (!state) return;
     var piece = GAME.findPieceById(pieceId);
-    if (state.phase === "playing" && state.currentTeamId === state.humanTeamId && piece && piece.team === state.humanTeamId) {
+    if (state.phase === "playing" && isHumanControlled(state, state.currentTeamId) && piece && piece.team === state.currentTeamId) {
+      SOUND.playSelect();
       GAME.selectPiece(pieceId);
       return;
     }
@@ -456,8 +474,11 @@ var UI = (function () {
 
   /* ---------------- render principal ---------------- */
 
+  var lastSuddenDeathState = false;
   function render(state) {
     if (!state) return;
+    if (state.suddenDeath && !lastSuddenDeathState) SOUND.playSuddenDeath();
+    lastSuddenDeathState = !!state.suddenDeath;
     clearHoverArrow();
     renderScoreboard(state);
     renderBoard(state);
@@ -478,8 +499,8 @@ var UI = (function () {
     if (els.tvBadgeB) fillSquadBadgeEl(els.tvBadgeB, state.teams.B);
     if (els.tvScoreA) els.tvScoreA.textContent = state.score.A;
     if (els.tvScoreB) els.tvScoreB.textContent = state.score.B;
-    if (els.tvYouA) els.tvYouA.classList.toggle("hidden", state.humanTeamId !== "A");
-    if (els.tvYouB) els.tvYouB.classList.toggle("hidden", state.humanTeamId !== "B");
+    if (els.tvYouA) els.tvYouA.classList.toggle("hidden", state.twoPlayerLocal || state.humanTeamId !== "A");
+    if (els.tvYouB) els.tvYouB.classList.toggle("hidden", state.twoPlayerLocal || state.humanTeamId !== "B");
     var aTurn = state.currentTeamId === "A" && state.phase !== "gameover";
     var bTurn = state.currentTeamId === "B" && state.phase !== "gameover";
     if (els.tvTeamA) els.tvTeamA.classList.toggle("active-turn", aTurn);
@@ -487,7 +508,13 @@ var UI = (function () {
     if (els.tvScoreboxA) els.tvScoreboxA.classList.toggle("active-turn", aTurn);
     if (els.tvScoreboxB) els.tvScoreboxB.classList.toggle("active-turn", bTurn);
 
-    els.scoreTurn.textContent = state.phase === "gameover" ? "Fim de jogo" : (state.currentTeamId === state.humanTeamId ? "Sua vez" : "Vez do adversário");
+    if (state.phase === "gameover") {
+      els.scoreTurn.textContent = "Fim de jogo";
+    } else if (state.twoPlayerLocal) {
+      els.scoreTurn.textContent = "Vez: " + state.teams[state.currentTeamId].name;
+    } else {
+      els.scoreTurn.textContent = state.currentTeamId === state.humanTeamId ? "Sua vez" : "Vez do adversário";
+    }
 
     if (state.suddenDeath) {
       els.scoreClock.textContent = "🥇 GOL DE OURO";
@@ -504,7 +531,7 @@ var UI = (function () {
   function renderShootFab(state) {
     if (!els.shootFab) return;
     var piece = state.selectedPieceId ? GAME.findPieceById(state.selectedPieceId) : null;
-    var show = state.phase === "playing" && state.currentTeamId === state.humanTeamId &&
+    var show = state.phase === "playing" && isHumanControlled(state, state.currentTeamId) &&
       piece && state.ball.carrierId === piece.id && state.canShoot;
     if (!show) { els.shootFab.classList.add("hidden"); return; }
     els.shootFab.classList.remove("hidden");
@@ -624,6 +651,8 @@ var UI = (function () {
   // mexe em transform) vence e apaga o de-tilt aplicado por JS no mesmo elemento
   var DUEL_START_EMOJIS = ["⚔️", "💥", "🔥"];
   function flashDuelStart(row, col) {
+    SOUND.playDuelStart();
+    duelImpactSoundPlayed = false;
     if (!els.pitch) return;
     var center = cellCenterPct(row, col);
     DUEL_START_EMOJIS.forEach(function (emoji, i) {
@@ -730,8 +759,14 @@ var UI = (function () {
 
   function renderRosters(state) {
     var viewTeamId = rosterViewAway ? (state.humanTeamId === "A" ? "B" : "A") : state.humanTeamId;
-    if (els.rosterToggleOwn) els.rosterToggleOwn.classList.toggle("active", !rosterViewAway);
-    if (els.rosterToggleAway) els.rosterToggleAway.classList.toggle("active", rosterViewAway);
+    if (els.rosterToggleOwn) {
+      els.rosterToggleOwn.classList.toggle("active", !rosterViewAway);
+      els.rosterToggleOwn.textContent = state.twoPlayerLocal ? state.teams.A.shortName : "Seu time";
+    }
+    if (els.rosterToggleAway) {
+      els.rosterToggleAway.classList.toggle("active", rosterViewAway);
+      els.rosterToggleAway.textContent = state.twoPlayerLocal ? state.teams.B.shortName : "Adversário";
+    }
     els.rosterList.innerHTML = "";
     state.pieces.forEach(function (p) {
       if (p.team !== viewTeamId) return;
@@ -851,6 +886,7 @@ var UI = (function () {
     fillDuelSide("right", ctx.holder, labels.holder, ctx, "holder");
 
     if (ctx.revealed) {
+      if (!duelImpactSoundPlayed) { duelImpactSoundPlayed = true; SOUND.playDuelImpact(); }
       els.duelResult.innerHTML = buildResultText(ctx);
       els.duelContinueBtn.classList.remove("hidden");
     } else {
@@ -979,6 +1015,7 @@ var UI = (function () {
   }
 
   function showGoalBanner(scorerPiece, teamId) {
+    SOUND.playGoal();
     var state = GAME.getState();
     if (els.goalWord) buildStaggeredWord(els.goalWord, "GOOOOL!");
     els.goalScorer.textContent = scorerPiece.name + " — " + state.teams[teamId].name;
@@ -992,6 +1029,7 @@ var UI = (function () {
   }
 
   function showHalftimeBanner() {
+    SOUND.playWhistle();
     els.halftimeBanner.classList.remove("hidden");
     var inner = els.halftimeBanner.querySelector(".halftime-banner-inner");
     inner.style.animation = "none";
@@ -1003,6 +1041,18 @@ var UI = (function () {
   // preenche o modal padrão de fim de jogo (título/placar/cor) — usado tanto no
   // Amistoso (com "Jogar Novamente") quanto no modo Copa (com "Continuar" pro hub)
   function fillGameoverModal(state) {
+    if (state.twoPlayerLocal) {
+      var result2p = state.score.A === state.score.B ? "draw" : "win";
+      var color2p = result2p === "draw" ? "var(--gold)" : "var(--success)";
+      els.gameoverKicker.textContent = "FIM DE JOGO";
+      els.gameoverTitle.textContent = result2p === "draw" ? "EMPATE" : (state.teams[state.score.A > state.score.B ? "A" : "B"].name.toUpperCase() + " VENCEU!");
+      els.gameoverTitle.style.background = "none";
+      els.gameoverTitle.style.webkitTextFillColor = color2p;
+      els.gameoverTitle.style.color = color2p;
+      els.gameoverScore.textContent = state.score.A + " — " + state.score.B;
+      return result2p;
+    }
+
     var cpuTeamId = state.humanTeamId === "A" ? "B" : "A";
     var humanScore = state.score[state.humanTeamId];
     var cpuScore = state.score[cpuTeamId];
@@ -1020,11 +1070,16 @@ var UI = (function () {
 
   function showGameOver(state) {
     if (gameMode === "copa" && COPA.isActive()) { showCopaGameOver(state); return; }
+    SOUND.playWhistle();
     els.rematchBtn.textContent = "🔄 Jogar Novamente";
     var result = fillGameoverModal(state);
-    els.gameoverSub.textContent = result === "win"
-      ? "Você dominou o campo do início ao fim!"
-      : (result === "lose" ? "O adversário levou a melhor desta vez. Revanche?" : "Um empate emocionante até o apito final!");
+    if (state.twoPlayerLocal) {
+      els.gameoverSub.textContent = result === "draw" ? "Um empate emocionante até o apito final!" : "Parabéns aos vencedores!";
+    } else {
+      els.gameoverSub.textContent = result === "win"
+        ? "Você dominou o campo do início ao fim!"
+        : (result === "lose" ? "O adversário levou a melhor desta vez. Revanche?" : "Um empate emocionante até o apito final!");
+    }
     els.gameoverModal.classList.remove("hidden");
   }
 
@@ -1049,10 +1104,20 @@ var UI = (function () {
       els.turnLimitInput.disabled = els.noTurnLimitCheckbox.checked;
     });
 
-    if (els.modeToggleAmistoso) els.modeToggleAmistoso.addEventListener("click", function () { setGameMode("amistoso"); });
-    if (els.modeToggleCopa) els.modeToggleCopa.addEventListener("click", function () { setGameMode("copa"); });
+    if (els.modeToggleAmistoso) els.modeToggleAmistoso.addEventListener("click", function () { SOUND.playClick(); setGameMode("amistoso"); });
+    if (els.modeToggleCopa) els.modeToggleCopa.addEventListener("click", function () { SOUND.playClick(); setGameMode("copa"); });
+    if (els.modeToggleDuo) els.modeToggleDuo.addEventListener("click", function () { SOUND.playClick(); setGameMode("2players"); });
+
+    if (els.soundCheckbox) {
+      els.soundCheckbox.checked = !SOUND.isMuted();
+      els.soundCheckbox.addEventListener("change", function () {
+        SOUND.setMuted(!els.soundCheckbox.checked);
+        if (els.soundCheckbox.checked) SOUND.playClick();
+      });
+    }
 
     els.startBtn.addEventListener("click", function () {
+      SOUND.playClick();
       chosenNoTurnLimit = els.noTurnLimitCheckbox.checked;
       chosenMaxTurns = Math.max(4, parseInt(els.turnLimitInput.value, 10) || 50);
       if (gameMode === "copa") {
@@ -1068,11 +1133,13 @@ var UI = (function () {
     });
 
     if (els.copaDrawContinueBtn) els.copaDrawContinueBtn.addEventListener("click", function () {
+      SOUND.playClick();
       els.copaDrawModal.classList.add("hidden");
       renderCopaHub();
     });
 
     if (els.copaHubFixtureBtn) els.copaHubFixtureBtn.addEventListener("click", function () {
+      SOUND.playClick();
       var step = COPA.getNextStep();
       if (step.type === "human-fixture") {
         chosenHomeSquadId = step.homeSquadId;
@@ -1099,11 +1166,13 @@ var UI = (function () {
     });
 
     if (els.rosterToggleOwn) els.rosterToggleOwn.addEventListener("click", function () {
+      SOUND.playClick();
       rosterViewAway = false;
       var state = GAME.getState();
       if (state) render(state);
     });
     if (els.rosterToggleAway) els.rosterToggleAway.addEventListener("click", function () {
+      SOUND.playClick();
       rosterViewAway = true;
       var state = GAME.getState();
       if (state) render(state);
@@ -1133,9 +1202,10 @@ var UI = (function () {
       if (e.target === els.playerStatsModal) closePlayerStatsModal();
     });
 
-    els.duelContinueBtn.addEventListener("click", function () { GAME.continueAfterDuel(); });
+    els.duelContinueBtn.addEventListener("click", function () { SOUND.playClick(); GAME.continueAfterDuel(); });
 
     els.rematchBtn.addEventListener("click", function () {
+      SOUND.playClick();
       els.gameoverModal.classList.add("hidden");
       if (gameMode === "copa" && copaMatchResultPending) {
         var pending = copaMatchResultPending;
@@ -1151,26 +1221,31 @@ var UI = (function () {
     });
 
     els.lineupAskYes.addEventListener("click", function () {
+      SOUND.playClick();
       els.lineupAskModal.classList.add("hidden");
       openLineupEditor();
     });
     els.lineupAskNo.addEventListener("click", function () {
+      SOUND.playClick();
       els.lineupAskModal.classList.add("hidden");
       formationOverrides = null;
       openCoinFlip();
     });
     els.lineupResetBtn.addEventListener("click", function () {
+      SOUND.playClick();
       lineupWorking = buildDefaultLineup(chosenHomeSquadId);
       lineupSelectedId = null;
       renderLineupEditor();
     });
     els.lineupConfirmBtn.addEventListener("click", function () {
+      SOUND.playClick();
       formationOverrides = {};
       lineupWorking.forEach(function (p) { formationOverrides[p.id] = { row: p.row, col: p.col }; });
       els.lineupEditorModal.classList.add("hidden");
       openCoinFlip();
     });
     els.coinflipContinueBtn.addEventListener("click", function () {
+      SOUND.playClick();
       els.coinflipModal.classList.add("hidden");
       showLoadingAndLaunch();
     });
@@ -1398,6 +1473,7 @@ var UI = (function () {
   // que o jogador clicar "Continuar" é que o resultado é reportado pra Copa e o
   // hub reaparece (não pula direto pro hub sem mostrar o resultado da partida)
   function showCopaGameOver(state) {
+    SOUND.playWhistle();
     var scorersA = state.scorers.A.map(function (s) { return s.name; });
     var scorersB = state.scorers.B.map(function (s) { return s.name; });
     copaMatchResultPending = { state: state, scorersA: scorersA, scorersB: scorersB };
@@ -1607,7 +1683,15 @@ var UI = (function () {
       coin.style.transition = "transform 1.8s cubic-bezier(.2,.7,.2,1)";
       coin.style.transform = "rotateY(" + finalDeg + "deg)";
     });
+    var spinTicks = 0;
+    var spinInterval = setInterval(function () {
+      spinTicks++;
+      SOUND.playCoinSpin();
+      if (spinTicks >= 9) clearInterval(spinInterval);
+    }, 190);
     setTimeout(function () {
+      clearInterval(spinInterval);
+      SOUND.playCoinLand();
       var winnerData = squadForSlot(winnerId);
       els.coinflipResult.innerHTML = "<strong>" + winnerData.name + "</strong> venceu o sorteio e começa com a bola!";
       els.coinflipContinueBtn.classList.remove("hidden");
@@ -1678,9 +1762,11 @@ var UI = (function () {
     tokenEls = {};
     lastPositions = {};
     rosterViewAway = false;
+    lastSuddenDeathState = false;
     if (els.piecesLayer) els.piecesLayer.innerHTML = "";
     els.gameRoot.classList.remove("hidden");
-    GAME.start(chosenHomeSquadId, chosenAwaySquadId, formationOverrides, coinWinnerTeamId, chosenMaxTurns, chosenNoTurnLimit, isCopaKnockoutFixturePending());
+    SOUND.playWhistle();
+    GAME.start(chosenHomeSquadId, chosenAwaySquadId, formationOverrides, coinWinnerTeamId, chosenMaxTurns, chosenNoTurnLimit, isCopaKnockoutFixturePending(), gameMode === "2players");
   }
 
   /* ---------------- modo noturno ---------------- */

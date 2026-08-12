@@ -37,6 +37,10 @@
           <input type="checkbox" id="no-turn-limit-checkbox">
           <span>Sem limite de turnos — a partida termina quando um time fizer 3 gols</span>
         </label>
+        <label class="no-turn-limit-row" for="sound-checkbox">
+          <input type="checkbox" id="sound-checkbox" checked>
+          <span>🔊 Efeitos sonoros</span>
+        </label>
       </div>
       <p class="kicker">XADREZ TÁTICO DE FUTEBOL</p>
       <h1 class="logo">XEQUE <span>TOTAL</span></h1>
@@ -45,6 +49,7 @@
       <div class="mode-toggle" id="mode-toggle">
         <button type="button" class="mode-toggle-btn active" id="mode-toggle-amistoso" data-mode="amistoso">Amistoso</button>
         <button type="button" class="mode-toggle-btn" id="mode-toggle-copa" data-mode="copa">Copa</button>
+        <button type="button" class="mode-toggle-btn" id="mode-toggle-duo" data-mode="2players">2 Jogadores</button>
       </div>
 
       <div class="squad-pick-group">
@@ -340,6 +345,7 @@
 <script src="js/ai.js"></script>
 <script src="js/game.js"></script>
 <script src="js/copa.js"></script>
+<script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>
