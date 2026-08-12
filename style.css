@@ -821,9 +821,10 @@ button{ font-family: inherit; }
 
 .token-art-wrap{ position: absolute; inset: 0; border-radius: var(--radius-token); overflow: hidden; }
 .token-art-wrap img.token-art{ width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
-/* as splash arts são desenhadas olhando pra direita; o time B fica sempre do lado
-   direito do tabuleiro, então espelha pra ele "olhar" de volta pro centro */
-.piece-token.team-b .token-art-wrap img.token-art{ transform: scaleX(-1); }
+/* as splash arts são desenhadas olhando pra direita; espelha pra quem estiver
+   jogando do lado direito do campo AGORA (times trocam de lado no intervalo,
+   então isso é dinâmico por turno, não fixo por time - ver .mirror-art em ui.js) */
+.piece-token.mirror-art .token-art-wrap img.token-art{ transform: scaleX(-1); }
 .token-fallback{
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-weight: 800; font-size: clamp(0.8rem, 2.4vw, 1.15rem); color: #14100a;
@@ -1057,6 +1058,7 @@ button{ font-family: inherit; }
   box-shadow: 6px 6px 0 var(--shadow-ink);
 }
 .duel-portrait img{ width: 100%; height: 100%; object-fit: cover; object-position: center 15%; display: block; }
+.duel-portrait.mirror-art img{ transform: scaleX(-1); }
 .duel-portrait .avatar-fallback{
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-weight: 800; font-size: 2.6rem; color: var(--ink);

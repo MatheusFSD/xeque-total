@@ -684,6 +684,10 @@ var UI = (function () {
     token.classList.toggle("has-ball", state.ball.carrierId === piece.id);
     token.classList.toggle("low-mana", piece.mana < piece.power.manaCost);
     token.classList.toggle("stunned", !!piece.stunned);
+    // espelha a arte de quem está jogando do lado direito do campo NESTE momento —
+    // times trocam de lado no intervalo (swapSides em game.js), por isso usa o
+    // attackDir atual do time, não o id fixo do time
+    token.classList.toggle("mirror-art", state.teams[piece.team].attackDir === -1);
   }
 
   /* dispara uma animação passageira (tremor/giro) na peça, sem mexer no
@@ -882,8 +886,8 @@ var UI = (function () {
     var labels = DUEL.roleLabels(ctx.isShoot, ctx.isDribble);
     els.duelTitle.innerHTML = (ctx.isShoot ? icon("target") : icon("sword")) + (ctx.isShoot ? " CHANCE DE GOL!" : " DUELO NO CAMPO!");
 
-    fillDuelSide("left", ctx.challenger, labels.challenger, ctx, "challenger");
-    fillDuelSide("right", ctx.holder, labels.holder, ctx, "holder");
+    fillDuelSide(state, "left", ctx.challenger, labels.challenger, ctx, "challenger");
+    fillDuelSide(state, "right", ctx.holder, labels.holder, ctx, "holder");
 
     if (ctx.revealed) {
       if (!duelImpactSoundPlayed) { duelImpactSoundPlayed = true; SOUND.playDuelImpact(); }
@@ -912,7 +916,7 @@ var UI = (function () {
     return wrap;
   }
 
-  function fillDuelSide(sideKey, piece, roleLabel, ctx, side) {
+  function fillDuelSide(state, sideKey, piece, roleLabel, ctx, side) {
     var avatarEl = sideKey === "left" ? els.duelLeftAvatar : els.duelRightAvatar;
     var nameEl = sideKey === "left" ? els.duelLeftName : els.duelRightName;
     var roleEl = sideKey === "left" ? els.duelLeftRole : els.duelRightRole;
@@ -922,6 +926,7 @@ var UI = (function () {
     var sideEl = sideKey === "left" ? els.duelLeft : els.duelRight;
 
     fillAvatarEl(avatarEl, piece, "splashs_art");
+    avatarEl.classList.toggle("mirror-art", state.teams[piece.team].attackDir === -1);
     nameEl.textContent = piece.name;
     nameEl.appendChild(buildDuelInfoIcon(piece));
     roleEl.textContent = roleLabel;
