@@ -49,7 +49,7 @@ var UI = (function () {
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
       "mode-toggle", "mode-toggle-amistoso", "mode-toggle-copa", "mode-toggle-duo", "sound-checkbox",
-      "copa-draw-modal", "copa-draw-group-a", "copa-draw-group-b", "copa-draw-continue-btn",
+      "copa-draw-modal", "copa-draw-group-a", "copa-draw-group-b", "copa-draw-group-c", "copa-draw-group-d", "copa-draw-excluded", "copa-draw-excluded-list", "copa-draw-continue-btn",
       "copa-hub-modal", "copa-hub-stage-label", "copa-hub-standings", "copa-hub-round-results", "copa-hub-fixture-btn", "copa-hub-menu-btn",
       "copa-result-modal", "copa-result-inner", "copa-result-kicker", "copa-result-title", "copa-result-badge",
       "copa-result-detail", "copa-result-final-score", "copa-result-menu-btn",
@@ -1282,19 +1282,32 @@ var UI = (function () {
     var groups = COPA.getGroups();
     if (!groups) return;
     var humanId = COPA.getState().humanSquadId;
-    [["A", els.copaDrawGroupA], ["B", els.copaDrawGroupB]].forEach(function (pair) {
-      var groupId = pair[0], container = pair[1];
+    var groupContainers = { A: els.copaDrawGroupA, B: els.copaDrawGroupB, C: els.copaDrawGroupC, D: els.copaDrawGroupD };
+    groups.groupIds.forEach(function (groupId) {
+      var container = groupContainers[groupId];
       if (!container) return;
       container.innerHTML = "";
       groups[groupId].forEach(function (squadId) {
         container.appendChild(buildCopaSquadRow(squadId, squadId === humanId ? "is-human" : ""));
       });
     });
+    if (els.copaDrawExcluded && els.copaDrawExcludedList) {
+      if (groups.excludedSquadIds.length) {
+        els.copaDrawExcludedList.innerHTML = "";
+        groups.excludedSquadIds.forEach(function (squadId) {
+          els.copaDrawExcludedList.appendChild(buildCopaSquadRow(squadId));
+        });
+        els.copaDrawExcluded.classList.remove("hidden");
+      } else {
+        els.copaDrawExcluded.classList.add("hidden");
+      }
+    }
     els.copaDrawModal.classList.remove("hidden");
   }
 
   function copaStageLabel(stage) {
     if (stage === "groups") return "FASE DE GRUPOS";
+    if (stage === "quartas") return "QUARTAS DE FINAL";
     if (stage === "semis") return "SEMIFINAL";
     if (stage === "final") return "FINAL";
     return "COPA";
@@ -1383,8 +1396,7 @@ var UI = (function () {
 
     els.copaHubStandings.innerHTML = "";
     if (state.stage === "groups") {
-      els.copaHubStandings.appendChild(buildCopaStandingsTable("A"));
-      els.copaHubStandings.appendChild(buildCopaStandingsTable("B"));
+      state.groupIds.forEach(function (gid) { els.copaHubStandings.appendChild(buildCopaStandingsTable(gid)); });
     } else {
       state.fixtures.filter(function (f) { return f.stage === state.stage; })
         .forEach(function (fx) { els.copaHubStandings.appendChild(buildCopaBracketRow(fx)); });
@@ -1455,6 +1467,7 @@ var UI = (function () {
       detail = "Vitória com o " + champ.name + " — nenhuma seleção resistiu à sua caminhada na Copa!";
     } else {
       var stageLabel = step.humanEliminatedAt === "groups" ? "na fase de grupos"
+        : step.humanEliminatedAt === "quartas" ? "nas quartas de final"
         : step.humanEliminatedAt === "semis" ? "na semifinal" : "na final";
       detail = "Sua jornada terminou " + stageLabel + ".";
     }
