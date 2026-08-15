@@ -1,19 +1,20 @@
 /* =========================================================
    XEQUE TOTAL — modo Copa (fase de grupos -> quartas -> semi -> final)
 
-   O jogador escolhe só sua seleção; um sorteio decide quais outras 11
+   O jogador escolhe só sua seleção; um sorteio decide quais outras 15
    seleções do pool entram nesta Copa (a sua entra sempre) — o resto
-   fica de fora dessa edição. As 12 participantes caem em 4 grupos de 3
-   (sorteio aleatório, o squad do jogador cai num deles). Depois da
-   fase de grupos, os 2 primeiros de cada grupo (4 grupos x 2 = 8 times)
-   formam as quartas de final direto, sem precisar de curinga de
-   terceiro colocado — o maior mata-mata que o pool atual permite
-   fechar de forma "cheia". Partidas que NÃO envolvem o jogador são
-   resolvidas na hora por uma simulação de placar (Poisson) ponderada
-   pela força de cada squad — não existe conceito de "força" em nenhum
-   outro lugar do jogo, então é calculado aqui a partir da soma dos
-   stats de cada jogador. As partidas do jogador são sempre jogadas de
-   verdade, reaproveitando o fluxo normal de partida (GAME.start).
+   fica de fora dessa edição. As 16 participantes caem em 4 grupos de 4
+   (formato "Copa do Mundo" clássico, sorteio aleatório, o squad do
+   jogador cai num deles). Depois da fase de grupos, os 2 primeiros de
+   cada grupo (4 grupos x 2 = 8 times) formam as quartas de final
+   direto, sem precisar de curinga de terceiro colocado — o maior
+   mata-mata que o pool atual permite fechar de forma "cheia". Partidas
+   que NÃO envolvem o jogador são resolvidas na hora por uma simulação
+   de placar (Poisson) ponderada pela força de cada squad — não existe
+   conceito de "força" em nenhum outro lugar do jogo, então é calculado
+   aqui a partir da soma dos stats de cada jogador. As partidas do
+   jogador são sempre jogadas de verdade, reaproveitando o fluxo normal
+   de partida (GAME.start).
 
    Este módulo guarda o estado do torneio internamente, do mesmo
    jeito que js/game.js guarda o estado da partida — sem sistema de
@@ -25,8 +26,9 @@ var COPA = (function () {
   var state = null; // null = nenhum torneio ativo
 
   var GROUP_IDS = ["A", "B", "C", "D"];
-  var GROUP_SIZE = 3;
-  var TOURNEY_SIZE = GROUP_IDS.length * GROUP_SIZE; // 12 — fecha em quartas de final, 1o+2o de cada grupo
+  var GROUP_SIZE = 4;
+  var TOURNEY_SIZE = GROUP_IDS.length * GROUP_SIZE; // 16 — fecha em quartas de final, 1o+2o de cada grupo
+  var ROUNDS_PER_GROUP = GROUP_SIZE * (GROUP_SIZE - 1) / 2; // todos-contra-todos dentro do grupo (6 jogos p/ grupo de 4)
 
   function findSquad(id) {
     for (var i = 0; i < GAME_DATA.TEAMS.length; i++) {
@@ -117,10 +119,19 @@ var COPA = (function () {
     };
   }
 
+  // todos os pares possíveis dentro do grupo (cada dupla se enfrenta 1x) — pra um
+  // grupo de 4 são 6 jogos; a ordem não representa "rodadas simultâneas" de verdade,
+  // é só a sequência em que cada jogo é revelado
+  function roundRobinPairs(n) {
+    var pairs = [];
+    for (var i = 0; i < n; i++) {
+      for (var j = i + 1; j < n; j++) pairs.push([i, j]);
+    }
+    return pairs;
+  }
+
   function buildRoundRobinFixtures(groupId, teamIds) {
-    // 3 times => 3 jogos (cada par se enfrenta 1x), sem noção de "rodada" —
-    // os jogos que não envolvem o jogador já saem resolvidos na hora
-    var pairs = [[0, 1], [0, 2], [1, 2]];
+    var pairs = roundRobinPairs(teamIds.length);
     return pairs.map(function (pair, idx) {
       var fx = makeFixture(groupId + "-r" + idx, "groups", teamIds[pair[0]], teamIds[pair[1]]);
       fx.groupId = groupId;
@@ -148,7 +159,7 @@ var COPA = (function () {
   // rodadas sem jogo do jogador (a rodada em que ele "descansa") são resolvidas
   // e reveladas na hora, em sequência, até achar uma que dependa dele
   function advanceGroupRoundIfReady() {
-    while (state.groupRoundPtr <= 2) {
+    while (state.groupRoundPtr <= ROUNDS_PER_GROUP - 1) {
       var roundIndex = state.groupRoundPtr;
       var roundFixtures = state.fixtures.filter(function (f) { return f.stage === "groups" && f.roundIndex === roundIndex; });
       var hasHumanPending = roundFixtures.some(function (f) { return f.isHumanFixture && f.status === "pending"; });
@@ -252,7 +263,7 @@ var COPA = (function () {
   function startTournament(humanSquadId) {
     var allIds = GAME_DATA.TEAMS.map(function (t) { return t.id; });
     var others = shuffle(allIds.filter(function (id) { return id !== humanSquadId; }));
-    var drawnOthers = others.slice(0, TOURNEY_SIZE - 1); // 11 sorteadas pra completar com o jogador
+    var drawnOthers = others.slice(0, TOURNEY_SIZE - 1); // sorteadas pra completar com o jogador
     var excludedSquadIds = others.slice(TOURNEY_SIZE - 1); // ficam de fora desta edição da Copa
 
     var humanGroupId = GROUP_IDS[Math.floor(Math.random() * GROUP_IDS.length)];
@@ -260,9 +271,9 @@ var COPA = (function () {
     var pool = shuffle(drawnOthers);
 
     var groups = {};
-    groups[humanGroupId] = shuffle([humanSquadId, pool[0], pool[1]]);
+    groups[humanGroupId] = shuffle([humanSquadId].concat(pool.slice(0, GROUP_SIZE - 1)));
     restGroupIds.forEach(function (gid, idx) {
-      var start = 2 + idx * GROUP_SIZE;
+      var start = (GROUP_SIZE - 1) + idx * GROUP_SIZE;
       groups[gid] = pool.slice(start, start + GROUP_SIZE);
     });
 
@@ -281,7 +292,7 @@ var COPA = (function () {
       humanGroupId: humanGroupId,
       excludedSquadIds: excludedSquadIds,
       stage: "groups", // "groups" | "quartas" | "semis" | "final" | "done"
-      groupRoundPtr: 0, // rodada atual da fase de grupos (0,1,2) — pauta a revelação rodada por rodada
+      groupRoundPtr: 0, // rodada atual da fase de grupos (0..ROUNDS_PER_GROUP-1) — pauta a revelação rodada por rodada
       fixtures: [],
       championSquadId: null,
       humanEliminatedAt: null // null | "groups" | "quartas" | "semis" | "final"
@@ -330,7 +341,7 @@ var COPA = (function () {
       resolveAutoFixtures(function (fx) { return fx.stage === "groups" && fx.roundIndex === state.groupRoundPtr; });
       state.groupRoundPtr++;
       advanceGroupRoundIfReady();
-      if (state.groupRoundPtr <= 2) return; // ainda tem rodada(s) de grupo pela frente
+      if (state.groupRoundPtr <= ROUNDS_PER_GROUP - 1) return; // ainda tem rodada(s) de grupo pela frente
 
       var qfFixtures = buildQuartas();
       var qualifiedIds = [];

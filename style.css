@@ -48,6 +48,18 @@
   --coreia: #0b3d91;
   --coreia-2: #ff5b6a;
 
+  --belgica: #111111;
+  --belgica-2: #c8102e;
+
+  --chile: #0039a6;
+  --chile-2: #d52b1e;
+
+  --japao: #1c2b4a;
+  --japao-2: #f2f2f2;
+
+  --marrocos: #c1272d;
+  --marrocos-2: #4c9a5b;
+
   /* roxo decorativo do logo — não tem relação com nenhum squad (era var(--raptor) antes de Tecos/Raptors sair do jogo) */
   --logo-accent: #7b2fb0;
 
@@ -234,7 +246,8 @@ button{ font-family: inherit; }
 /* escudos viram "selos" impressos: cor chapada + anel de tinta grosso, sem brilho neon */
 .brasil-badge, .alemanha-badge, .franca-badge, .argentina-badge, .italia-badge, .espanha-badge,
 .colombia-badge, .croacia-badge, .holanda-badge, .mexico-badge, .noruega-badge,
-.portugal-badge, .inglaterra-badge, .uruguai-badge, .coreia-badge{
+.portugal-badge, .inglaterra-badge, .uruguai-badge, .coreia-badge,
+.belgica-badge, .chile-badge, .japao-badge, .marrocos-badge{
   border: 3px solid var(--panel-border);
   box-shadow: 2px 2px 0 var(--shadow-ink);
 }
@@ -253,6 +266,10 @@ button{ font-family: inherit; }
 .inglaterra-badge{ background: radial-gradient(circle at 30% 30%, var(--inglaterra-2), var(--inglaterra)); }
 .uruguai-badge{ background: radial-gradient(circle at 30% 30%, var(--uruguai-2), var(--uruguai)); }
 .coreia-badge{ background: radial-gradient(circle at 30% 30%, var(--coreia-2), var(--coreia)); }
+.belgica-badge{ background: radial-gradient(circle at 30% 30%, var(--belgica-2), var(--belgica)); }
+.chile-badge{ background: radial-gradient(circle at 30% 30%, var(--chile-2), var(--chile)); }
+.japao-badge{ background: radial-gradient(circle at 30% 30%, var(--japao-2), var(--japao)); }
+.marrocos-badge{ background: radial-gradient(circle at 30% 30%, var(--marrocos-2), var(--marrocos)); }
 
 /* =========================================================
    TELAS EM OVERLAY (início / duelo / fim de jogo)
@@ -321,18 +338,66 @@ button{ font-family: inherit; }
 
 .tagline{ color: var(--ink-dim); font-size: 1.05rem; margin: 0 auto 24px; max-width: 460px; line-height: 1.5; }
 
-.mode-toggle{
-  display: inline-flex; gap: 4px; margin: 0 auto 20px;
-  background: var(--panel-soft); border: 2px solid var(--panel-border); border-radius: var(--radius-sm);
-  padding: 3px;
+/* grade de 4 botões da tela inicial — cada um com um personagem em PNG que
+   "transborda" pra fora da borda de cima (posicionado absoluto, mais alto que
+   o próprio botão) pra dar a impressão de que ele salta pra fora do cartão.
+   Duas imagens empilhadas com opacity cruzada no :hover simulam uma animação
+   sem precisar de sprite-sheet nem JS. */
+.mode-select-grid{
+  display: grid;
+  grid-template-columns: repeat(4, 132px);
+  justify-content: center;
+  column-gap: 22px;
+  row-gap: 96px; /* generoso pra linha de baixo (no mobile) não colidir com o personagem que estoura pra cima da linha de cima */
+  margin: 105px auto 24px; max-width: 600px;
 }
-.mode-toggle-btn{
+.mode-card{
+  position: relative;
+  width: 100%; height: 100px;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: var(--panel-soft);
+  border: 3px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  cursor: pointer;
+  overflow: visible;
+  padding: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.mode-card:hover{ transform: translateY(-3px); box-shadow: 4px 6px 0 var(--shadow-ink); }
+.mode-card:active{ transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow-ink); }
+
+.mode-card-img{
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 172px; height: 210px;
+  object-fit: contain; object-position: bottom center;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.4));
+}
+.mode-card-img-b{ opacity: 0; }
+.mode-card:hover .mode-card-img-a{ opacity: 0; }
+.mode-card:hover .mode-card-img-b{ opacity: 1; }
+
+.mode-card-label{
+  position: relative; z-index: 2;
+  display: block; width: 100%;
   font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
-  padding: 8px 15px; border: none; border-radius: 4px; background: transparent; color: var(--ink-dim);
-  cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+  background: var(--panel-border); color: var(--panel);
+  padding: 6px 4px; border-radius: 3px 3px 0 0;
 }
-.mode-toggle-btn:hover{ color: var(--ink); }
-.mode-toggle-btn.active{ background: var(--gold); color: var(--shadow-ink); box-shadow: 2px 2px 0 var(--shadow-ink); }
+
+.mode-card-soon{
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(0.5);
+  flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+}
+.mode-card-soon:hover{ transform: none; box-shadow: 3px 3px 0 var(--shadow-ink); }
+.mode-card-soon-icon{ font-size: 1.6rem; }
+.mode-card-soon .mode-card-label{ background: transparent; color: var(--ink-faint); border-radius: 0; padding: 0; }
 
 .squad-pick-group{ margin-bottom: 22px; }
 .squad-pick-heading{
@@ -387,6 +452,7 @@ button{ font-family: inherit; }
 .team-pick-sub{ font-size: 0.56rem; color: var(--ink-dim); text-align: center; line-height: 1.2; }
 
 .settings-gear-btn{ position: absolute; top: 16px; right: 16px; z-index: 2; font-size: 1.1rem; }
+.squad-select-back-btn{ position: absolute; top: 16px; left: 16px; z-index: 2; font-size: 1.1rem; }
 
 .settings-menu{
   position: absolute; top: 54px; right: 16px; z-index: 3;
@@ -1659,6 +1725,12 @@ button{ font-family: inherit; }
   .detail-hero-wrap{ width: 100%; max-width: 220px; margin: 0 auto; }
   .lineup-editor-body{ grid-template-columns: 1fr; }
   .lineup-grid{ max-width: 320px; margin: 0 auto; }
+}
+
+@media (max-width: 700px){
+  .mode-select-grid{ grid-template-columns: repeat(2, 122px); column-gap: 18px; row-gap: 100px; margin-top: 96px; max-width: 280px; }
+  .mode-card{ height: 88px; }
+  .mode-card-img{ width: 158px; height: 194px; }
 }
 
 @media (max-width: 620px){

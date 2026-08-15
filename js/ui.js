@@ -48,7 +48,8 @@ var UI = (function () {
     var ids = [
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
-      "mode-toggle", "mode-toggle-amistoso", "mode-toggle-copa", "mode-toggle-duo", "sound-checkbox",
+      "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "sound-checkbox",
+      "squad-select-screen", "squad-select-back-btn", "squad-select-kicker",
       "copa-draw-modal", "copa-draw-group-a", "copa-draw-group-b", "copa-draw-group-c", "copa-draw-group-d", "copa-draw-excluded", "copa-draw-excluded-list", "copa-draw-continue-btn",
       "copa-hub-modal", "copa-hub-stage-label", "copa-hub-standings", "copa-hub-round-results", "copa-hub-fixture-btn", "copa-hub-menu-btn",
       "copa-result-modal", "copa-result-inner", "copa-result-kicker", "copa-result-title", "copa-result-badge",
@@ -162,16 +163,22 @@ var UI = (function () {
     applySlotColors();
   }
 
+  var MODE_KICKER_LABEL = { amistoso: "AMISTOSO", copa: "COPA", "2players": "2 JOGADORES" };
+
   function setGameMode(mode) {
     gameMode = mode;
     chosenHomeSquadId = null;
     chosenAwaySquadId = null;
-    if (els.modeToggleAmistoso) els.modeToggleAmistoso.classList.toggle("active", mode === "amistoso");
-    if (els.modeToggleCopa) els.modeToggleCopa.classList.toggle("active", mode === "copa");
-    if (els.modeToggleDuo) els.modeToggleDuo.classList.toggle("active", mode === "2players");
+    if (els.squadSelectKicker) els.squadSelectKicker.textContent = MODE_KICKER_LABEL[mode] || "";
     if (els.startBtn) els.startBtn.textContent = mode === "copa" ? "🏆 Ir pro Sorteio" : "⚽ Iniciar Partida";
     renderSquadPickList();
     applySlotColors();
+  }
+
+  function goToSquadSelect(mode) {
+    setGameMode(mode);
+    if (els.startScreen) els.startScreen.classList.add("hidden");
+    if (els.squadSelectScreen) els.squadSelectScreen.classList.remove("hidden");
   }
 
   function renderSquadPickList() {
@@ -1109,9 +1116,15 @@ var UI = (function () {
       els.turnLimitInput.disabled = els.noTurnLimitCheckbox.checked;
     });
 
-    if (els.modeToggleAmistoso) els.modeToggleAmistoso.addEventListener("click", function () { SOUND.playClick(); setGameMode("amistoso"); });
-    if (els.modeToggleCopa) els.modeToggleCopa.addEventListener("click", function () { SOUND.playClick(); setGameMode("copa"); });
-    if (els.modeToggleDuo) els.modeToggleDuo.addEventListener("click", function () { SOUND.playClick(); setGameMode("2players"); });
+    if (els.modeSelectAmistoso) els.modeSelectAmistoso.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("amistoso"); });
+    if (els.modeSelectCopa) els.modeSelectCopa.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("copa"); });
+    if (els.modeSelectDuo) els.modeSelectDuo.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("2players"); });
+
+    if (els.squadSelectBackBtn) els.squadSelectBackBtn.addEventListener("click", function () {
+      SOUND.playClick();
+      if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
+      if (els.startScreen) els.startScreen.classList.remove("hidden");
+    });
 
     if (els.soundCheckbox) {
       els.soundCheckbox.checked = !SOUND.isMuted();
@@ -1128,12 +1141,12 @@ var UI = (function () {
       if (gameMode === "copa") {
         if (!chosenHomeSquadId) return;
         COPA.startTournament(chosenHomeSquadId);
-        els.startScreen.classList.add("hidden");
+        els.squadSelectScreen.classList.add("hidden");
         renderCopaDraw();
         return;
       }
       if (!chosenHomeSquadId || !chosenAwaySquadId) return;
-      els.startScreen.classList.add("hidden");
+      els.squadSelectScreen.classList.add("hidden");
       beginPreGameFlow();
     });
 
@@ -1197,6 +1210,7 @@ var UI = (function () {
         if (gameMode === "copa") {
           returnToMenuFromCopa();
         } else {
+          if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
           els.startScreen.classList.remove("hidden");
         }
       }
@@ -1513,8 +1527,7 @@ var UI = (function () {
     if (els.copaDrawModal) els.copaDrawModal.classList.add("hidden");
     if (els.copaHubModal) els.copaHubModal.classList.add("hidden");
     if (els.copaResultModal) els.copaResultModal.classList.add("hidden");
-    if (els.modeToggleAmistoso) els.modeToggleAmistoso.classList.add("active");
-    if (els.modeToggleCopa) els.modeToggleCopa.classList.remove("active");
+    if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
     if (els.startBtn) els.startBtn.textContent = "⚽ Iniciar Partida";
     renderSquadPickList();
     els.startScreen.classList.remove("hidden");

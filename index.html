@@ -46,18 +46,27 @@
       <h1 class="logo">XEQUE <span>TOTAL</span></h1>
       <p class="tagline">Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
 
-      <div class="mode-toggle" id="mode-toggle">
-        <button type="button" class="mode-toggle-btn active" id="mode-toggle-amistoso" data-mode="amistoso">Amistoso</button>
-        <button type="button" class="mode-toggle-btn" id="mode-toggle-copa" data-mode="copa">Copa</button>
-        <button type="button" class="mode-toggle-btn" id="mode-toggle-duo" data-mode="2players">2 Jogadores</button>
+      <div class="mode-select-grid" id="mode-select-grid">
+        <button type="button" class="mode-card mode-card-amistoso" id="mode-select-amistoso" data-mode="amistoso">
+          <img class="mode-card-img mode-card-img-a" src="img/messicr71.png" alt="">
+          <img class="mode-card-img mode-card-img-b" src="img/messicr72.png" alt="">
+          <span class="mode-card-label">Amistoso</span>
+        </button>
+        <button type="button" class="mode-card mode-card-copa" id="mode-select-copa" data-mode="copa">
+          <img class="mode-card-img mode-card-img-a" src="img/belini1.png" alt="">
+          <img class="mode-card-img mode-card-img-b" src="img/belini2.png" alt="">
+          <span class="mode-card-label">Copa</span>
+        </button>
+        <button type="button" class="mode-card mode-card-duo" id="mode-select-duo" data-mode="2players">
+          <img class="mode-card-img mode-card-img-a" src="img/duo1.png" alt="">
+          <img class="mode-card-img mode-card-img-b" src="img/duo2.png" alt="">
+          <span class="mode-card-label">2 Jogadores</span>
+        </button>
+        <button type="button" class="mode-card mode-card-soon" id="mode-select-soon" disabled>
+          <span class="mode-card-soon-icon">🔒</span>
+          <span class="mode-card-label">Em Breve</span>
+        </button>
       </div>
-
-      <div class="squad-pick-group">
-        <p class="squad-pick-heading" id="squad-pick-hint">Toque num time pra ser o seu</p>
-        <div class="squad-pick-grid" id="squad-pick-list"></div>
-      </div>
-
-      <button id="start-btn" class="btn btn-primary btn-start">⚽ Iniciar Partida</button>
 
       <button id="how-to-play-btn" class="link-btn">Como jogar?</button>
 
@@ -71,6 +80,22 @@
           <li>Quem tiver mais gols quando o tempo acabar, vence!</li>
         </ul>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ SELEÇÃO DE EQUIPE (por modo) ============ -->
+  <div id="squad-select-screen" class="overlay-screen hidden">
+    <div class="stars"></div>
+    <div class="start-card">
+      <button type="button" class="icon-btn squad-select-back-btn" id="squad-select-back-btn" title="Voltar">←</button>
+      <p class="kicker" id="squad-select-kicker">AMISTOSO</p>
+
+      <div class="squad-pick-group">
+        <p class="squad-pick-heading" id="squad-pick-hint">Toque num time pra ser o seu</p>
+        <div class="squad-pick-grid" id="squad-pick-list"></div>
+      </div>
+
+      <button id="start-btn" class="btn btn-primary btn-start">⚽ Iniciar Partida</button>
     </div>
   </div>
 
