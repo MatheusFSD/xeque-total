@@ -65,7 +65,7 @@ var UI = (function () {
       "duel-right", "duel-right-avatar", "duel-right-name", "duel-right-role", "duel-right-mana-fill", "duel-right-score", "duel-right-actions",
       "duel-result", "duel-continue-btn",
       "goal-banner", "goal-word", "goal-scorer", "goal-scorer-portrait", "halftime-banner",
-      "gameover-modal", "gameover-kicker", "gameover-title", "gameover-score", "gameover-sub", "rematch-btn",
+      "gameover-modal", "gameover-kicker", "gameover-title", "gameover-score", "gameover-sub", "rematch-btn", "gameover-menu-btn",
       "lineup-ask-modal", "lineup-ask-text", "lineup-ask-yes", "lineup-ask-no",
       "lineup-editor-modal", "lineup-editor-title", "lineup-grid", "lineup-detail", "lineup-reset-btn", "lineup-confirm-btn",
       "coinflip-modal", "coin", "coin-face-a", "coin-face-b", "coinflip-result", "coinflip-continue-btn",
@@ -1237,6 +1237,22 @@ var UI = (function () {
       }
       formationOverrides = null;
       beginPreGameFlow();
+    });
+
+    if (els.gameoverMenuBtn) els.gameoverMenuBtn.addEventListener("click", function () {
+      SOUND.playClick();
+      if (gameMode === "copa" && COPA.isActive()) {
+        if (!window.confirm("Voltar ao menu inicial? O progresso da Copa será perdido.")) return;
+        copaMatchResultPending = null;
+        els.gameoverModal.classList.add("hidden");
+        els.gameRoot.classList.add("hidden");
+        returnToMenuFromCopa();
+        return;
+      }
+      els.gameoverModal.classList.add("hidden");
+      els.gameRoot.classList.add("hidden");
+      if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
+      els.startScreen.classList.remove("hidden");
     });
 
     els.lineupAskYes.addEventListener("click", function () {

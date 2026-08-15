@@ -238,10 +238,13 @@ button{ font-family: inherit; }
   border-radius: 50%;
   cursor: pointer;
   font-size: 1rem;
+  padding: 0;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s ease;
 }
 .icon-btn:hover{ background: var(--panel); }
+/* ícones em SVG (não emoji) pra centralização consistente entre navegadores/fontes */
+.icon-btn svg{ width: 18px; height: 18px; display: block; }
 
 /* escudos viram "selos" impressos: cor chapada + anel de tinta grosso, sem brilho neon */
 .brasil-badge, .alemanha-badge, .franca-badge, .argentina-badge, .italia-badge, .espanha-badge,
@@ -451,8 +454,8 @@ button{ font-family: inherit; }
 .team-pick-name{ font-family: var(--font-display); font-weight: 700; font-size: 0.7rem; text-align: center; line-height: 1.15; }
 .team-pick-sub{ font-size: 0.56rem; color: var(--ink-dim); text-align: center; line-height: 1.2; }
 
-.settings-gear-btn{ position: absolute; top: 16px; right: 16px; z-index: 2; font-size: 1.1rem; }
-.squad-select-back-btn{ position: absolute; top: 16px; left: 16px; z-index: 2; font-size: 1.1rem; }
+.settings-gear-btn{ position: absolute; top: 16px; right: 16px; z-index: 2; }
+.squad-select-back-btn{ position: absolute; top: 16px; left: 16px; z-index: 2; }
 
 .settings-menu{
   position: absolute; top: 54px; right: 16px; z-index: 3;
@@ -636,6 +639,7 @@ button{ font-family: inherit; }
 #main-grid{
   display: grid;
   grid-template-columns: 230px minmax(0,1fr) 230px;
+  grid-template-rows: minmax(0, 1fr);
   gap: 10px;
   padding: 10px;
   align-items: stretch;
