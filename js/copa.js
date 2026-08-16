@@ -193,6 +193,11 @@ var COPA = (function () {
 
   function getState() { return state; }
 
+  // `state` é dado puro (sem função/closure lá dentro), então salvar/restaurar é só
+  // repassar o objeto — usado pelo modo Campanha (js/campaign.js) pra persistir e
+  // retomar um torneio em andamento entre sessões via localStorage
+  function loadState(savedState) { state = savedState; }
+
   function getGroups() {
     if (!state) return null;
     var out = { groupIds: state.groupIds.slice(), humanGroupId: state.humanGroupId, excludedSquadIds: state.excludedSquadIds.slice() };
@@ -261,7 +266,11 @@ var COPA = (function () {
   }
 
   function startTournament(humanSquadId) {
-    var allIds = GAME_DATA.TEAMS.map(function (t) { return t.id; });
+    // squads marcados campaignOnly (o Corto Maltese do modo Campanha) nunca entram
+    // no sorteio de adversários de uma Copa normal — só participam quando são eles
+    // mesmos o squad do jogador (o próprio modo Campanha usa essa mesma função)
+    var allIds = GAME_DATA.TEAMS.filter(function (t) { return !t.campaignOnly || t.id === humanSquadId; })
+      .map(function (t) { return t.id; });
     var others = shuffle(allIds.filter(function (id) { return id !== humanSquadId; }));
     var drawnOthers = others.slice(0, TOURNEY_SIZE - 1); // sorteadas pra completar com o jogador
     var excludedSquadIds = others.slice(TOURNEY_SIZE - 1); // ficam de fora desta edição da Copa
@@ -389,6 +398,7 @@ var COPA = (function () {
     reset: reset,
     startTournament: startTournament,
     getState: getState,
+    loadState: loadState,
     getGroups: getGroups,
     getStandings: getStandings,
     getNextStep: getNextStep,

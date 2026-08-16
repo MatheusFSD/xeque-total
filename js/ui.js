@@ -11,6 +11,7 @@ var UI = (function () {
   var chosenMaxTurns = 50;
   var chosenNoTurnLimit = false;
   var gameMode = "amistoso"; // "amistoso" | "copa"
+  var campaignActive = false; // true = a partida/torneio "copa" em andamento é na verdade o modo Campanha (squad fixo CTM)
   var copaPendingFixtureId = null; // fixture da Copa em andamento (enquanto uma partida real está rolando)
   var copaMatchResultPending = null; // resultado já calculado, esperando o jogador clicar "Continuar" no modal padrão de fim de jogo
   var rosterViewAway = false; // alternador da escalação: false = seu time, true = adversário
@@ -48,8 +49,12 @@ var UI = (function () {
     var ids = [
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
-      "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "sound-checkbox",
+      "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "mode-select-campanha", "sound-checkbox",
       "squad-select-screen", "squad-select-back-btn", "squad-select-kicker",
+      "campaign-password-modal", "campaign-password-back-btn", "campaign-password-input", "campaign-password-continue-btn",
+      "campaign-shop-modal", "campaign-shop-fichas", "campaign-shop-award", "campaign-shop-roster",
+      "campaign-pack-medianos", "campaign-pack-medianos-cost", "campaign-pack-elite", "campaign-pack-elite-cost", "campaign-shop-continue-btn",
+      "campaign-recruit-modal", "campaign-recruit-name", "campaign-recruit-sub", "campaign-recruit-slots",
       "copa-draw-modal", "copa-draw-group-a", "copa-draw-group-b", "copa-draw-group-c", "copa-draw-group-d", "copa-draw-excluded", "copa-draw-excluded-list", "copa-draw-continue-btn",
       "copa-hub-modal", "copa-hub-stage-label", "copa-hub-standings", "copa-hub-round-results", "copa-hub-fixture-btn", "copa-hub-menu-btn",
       "copa-result-modal", "copa-result-inner", "copa-result-kicker", "copa-result-title", "copa-result-badge",
@@ -176,9 +181,137 @@ var UI = (function () {
   }
 
   function goToSquadSelect(mode) {
+    campaignActive = false; // saindo de qualquer fluxo de Campanha ao voltar pro seletor normal
     setGameMode(mode);
     if (els.startScreen) els.startScreen.classList.add("hidden");
     if (els.squadSelectScreen) els.squadSelectScreen.classList.remove("hidden");
+  }
+
+  /* ---------------- modo Campanha ---------------- */
+
+  function goToCampaignPassword() {
+    if (els.startScreen) els.startScreen.classList.add("hidden");
+    if (els.campaignPasswordInput) els.campaignPasswordInput.value = "";
+    if (els.campaignPasswordContinueBtn) els.campaignPasswordContinueBtn.disabled = true;
+    if (els.campaignPasswordModal) els.campaignPasswordModal.classList.remove("hidden");
+    if (els.campaignPasswordInput) els.campaignPasswordInput.focus();
+  }
+
+  function startOrResumeCampaign(password) {
+    campaignActive = true;
+    gameMode = "copa";
+    chosenHomeSquadId = "CTM";
+    chosenAwaySquadId = null;
+    COPA.reset();
+
+    var result = CAMPAIGN.startOrLoad(password);
+    var st = result.state;
+    if (els.campaignPasswordModal) els.campaignPasswordModal.classList.add("hidden");
+
+    if (st.stage === "finished") {
+      CAMPAIGN.startNextCopa(); // mantém elenco/fichas/reforços — só sorteia uma Copa nova
+    }
+
+    if (!COPA.isActive()) {
+      COPA.startTournament("CTM");
+      CAMPAIGN.markCopaStarted();
+      renderCopaDraw();
+      return;
+    }
+
+    var step = COPA.getNextStep();
+    if (step.type === "tournament-over") {
+      renderCopaResult();
+    } else {
+      renderCopaHub();
+    }
+  }
+
+  function statSumOf(p) { return p.stats.velocidade + p.stats.chute + p.stats.tecnica + p.stats.defesa + p.stats.espirito; }
+
+  function renderCampaignShop(awardText) {
+    if (!els.campaignShopModal) return;
+    var fichas = CAMPAIGN.getFichas();
+    els.campaignShopFichas.textContent = "🪙 " + fichas + " FICHAS";
+    if (els.campaignShopAward) els.campaignShopAward.textContent = awardText || "";
+
+    els.campaignShopRoster.innerHTML = "";
+    CAMPAIGN.getRoster().forEach(function (p) {
+      var row = document.createElement("div");
+      row.className = "campaign-shop-player-row";
+
+      var info = document.createElement("div");
+      info.className = "campaign-shop-player-info";
+      var name = document.createElement("p");
+      name.className = "campaign-shop-player-name";
+      name.textContent = p.number + ". " + p.name;
+      var meta = document.createElement("p");
+      meta.className = "campaign-shop-player-meta";
+      meta.textContent = GAME_DATA.POSITIONS[p.position].short + " · " + p.temperament + " · " + statSumOf(p) + " pts";
+      info.appendChild(name);
+      info.appendChild(meta);
+
+      var cost = CAMPAIGN.trainCost(p.id);
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "campaign-shop-train-btn";
+      btn.textContent = "Treinar (" + cost + ")";
+      btn.disabled = fichas < cost;
+      btn.addEventListener("click", function () {
+        SOUND.playClick();
+        var res = CAMPAIGN.trainPlayer(p.id);
+        if (!res) return;
+        renderCampaignShop(res.playerName + " subiu " + GAME_DATA.STATS[res.statKey] + " +" + res.gain + "!");
+      });
+
+      row.appendChild(info);
+      row.appendChild(btn);
+      els.campaignShopRoster.appendChild(row);
+    });
+
+    ["medianos", "elite"].forEach(function (tier) {
+      var btnEl = tier === "medianos" ? els.campaignPackMedianos : els.campaignPackElite;
+      var costEl = tier === "medianos" ? els.campaignPackMedianosCost : els.campaignPackEliteCost;
+      var cost = CAMPAIGN.figurinhaCost(tier);
+      var left = CAMPAIGN.availableRecruits(tier).length;
+      if (costEl) costEl.textContent = left ? (cost + " fichas") : "esgotado";
+      if (btnEl) btnEl.disabled = !left || fichas < cost;
+    });
+
+    els.campaignShopModal.classList.remove("hidden");
+  }
+
+  function handleBuyFigurinha(tier) {
+    SOUND.playClick();
+    var pack = CAMPAIGN.buyFigurinha(tier);
+    if (!pack) { renderCampaignShop(); return; }
+    if (pack.candidateSlots.length === 1) {
+      CAMPAIGN.signRecruit(pack.recruit, pack.candidateSlots[0].index);
+      renderCampaignShop(pack.recruit.name + " assinou com o Corto Maltese!");
+    } else {
+      showCampaignRecruitChoice(pack);
+    }
+  }
+
+  function showCampaignRecruitChoice(pack) {
+    els.campaignShopModal.classList.add("hidden");
+    els.campaignRecruitName.textContent = pack.recruit.name;
+    els.campaignRecruitSub.textContent = "Escolha quem sai do time pra abrir espaço no elenco:";
+    els.campaignRecruitSlots.innerHTML = "";
+    pack.candidateSlots.forEach(function (slot) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "campaign-recruit-slot-btn";
+      btn.textContent = "Substituir " + slot.player.number + ". " + slot.player.name;
+      btn.addEventListener("click", function () {
+        SOUND.playClick();
+        CAMPAIGN.signRecruit(pack.recruit, slot.index);
+        els.campaignRecruitModal.classList.add("hidden");
+        renderCampaignShop(pack.recruit.name + " assinou com o Corto Maltese!");
+      });
+      els.campaignRecruitSlots.appendChild(btn);
+    });
+    els.campaignRecruitModal.classList.remove("hidden");
   }
 
   function renderSquadPickList() {
@@ -195,7 +328,7 @@ var UI = (function () {
 
     if (!els.squadPickList) return;
     els.squadPickList.innerHTML = "";
-    GAME_DATA.TEAMS.forEach(function (sq) {
+    GAME_DATA.TEAMS.filter(function (sq) { return !sq.campaignOnly; }).forEach(function (sq) {
       var role = sq.id === chosenHomeSquadId ? "is-home" : (gameMode !== "copa" && sq.id === chosenAwaySquadId ? "is-away" : "");
       var card = document.createElement("button");
       card.type = "button";
@@ -1119,6 +1252,43 @@ var UI = (function () {
     if (els.modeSelectAmistoso) els.modeSelectAmistoso.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("amistoso"); });
     if (els.modeSelectCopa) els.modeSelectCopa.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("copa"); });
     if (els.modeSelectDuo) els.modeSelectDuo.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("2players"); });
+    if (els.modeSelectCampanha) els.modeSelectCampanha.addEventListener("click", function () { SOUND.playClick(); goToCampaignPassword(); });
+
+    if (els.campaignPasswordBackBtn) els.campaignPasswordBackBtn.addEventListener("click", function () {
+      SOUND.playClick();
+      if (els.campaignPasswordModal) els.campaignPasswordModal.classList.add("hidden");
+      if (els.startScreen) els.startScreen.classList.remove("hidden");
+    });
+    if (els.campaignPasswordInput) els.campaignPasswordInput.addEventListener("input", function () {
+      if (els.campaignPasswordContinueBtn) els.campaignPasswordContinueBtn.disabled = els.campaignPasswordInput.value.trim().length === 0;
+    });
+    if (els.campaignPasswordContinueBtn) els.campaignPasswordContinueBtn.addEventListener("click", function () {
+      var password = els.campaignPasswordInput ? els.campaignPasswordInput.value.trim() : "";
+      if (!password) return;
+      SOUND.playClick();
+      startOrResumeCampaign(password);
+    });
+    if (els.campaignPasswordInput) els.campaignPasswordInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && els.campaignPasswordContinueBtn && !els.campaignPasswordContinueBtn.disabled) {
+        els.campaignPasswordContinueBtn.click();
+      }
+    });
+
+    if (els.campaignPackMedianos) els.campaignPackMedianos.addEventListener("click", function () { handleBuyFigurinha("medianos"); });
+    if (els.campaignPackElite) els.campaignPackElite.addEventListener("click", function () { handleBuyFigurinha("elite"); });
+
+    if (els.campaignShopContinueBtn) els.campaignShopContinueBtn.addEventListener("click", function () {
+      SOUND.playClick();
+      els.campaignShopModal.classList.add("hidden");
+      els.gameRoot.classList.add("hidden");
+      var step = COPA.getNextStep();
+      if (step.type === "tournament-over") {
+        CAMPAIGN.finishRun(step.championSquadId);
+        renderCopaResult();
+      } else {
+        renderCopaHub();
+      }
+    });
 
     if (els.squadSelectBackBtn) els.squadSelectBackBtn.addEventListener("click", function () {
       SOUND.playClick();
@@ -1172,7 +1342,10 @@ var UI = (function () {
     });
 
     if (els.copaHubMenuBtn) els.copaHubMenuBtn.addEventListener("click", function () {
-      if (window.confirm("Sair da Copa? O progresso do torneio será perdido.")) {
+      var exitMsg = campaignActive
+        ? "Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois."
+        : "Sair da Copa? O progresso do torneio será perdido.";
+      if (window.confirm(exitMsg)) {
         els.copaHubModal.classList.add("hidden");
         returnToMenuFromCopa();
       }
@@ -1200,9 +1373,11 @@ var UI = (function () {
     if (els.themeToggleBtnStart) els.themeToggleBtnStart.addEventListener("change", toggleTheme);
 
     els.menuBtn.addEventListener("click", function () {
-      var msg = gameMode === "copa"
-        ? "Voltar ao menu inicial? O progresso da partida e da Copa serão perdidos."
-        : "Voltar ao menu inicial? O progresso da partida atual será perdido.";
+      var msg = campaignActive
+        ? "Voltar ao menu inicial? A partida atual (ainda não concluída) será perdida, mas sua Campanha salva continua de onde parou."
+        : (gameMode === "copa"
+          ? "Voltar ao menu inicial? O progresso da partida e da Copa serão perdidos."
+          : "Voltar ao menu inicial? O progresso da partida atual será perdido.");
       if (window.confirm(msg)) {
         els.gameRoot.classList.add("hidden");
         els.duelModal.classList.add("hidden");
@@ -1232,6 +1407,12 @@ var UI = (function () {
         COPA.reportHumanResult(copaPendingFixtureId, pending.state.score.A, pending.state.score.B, pending.scorersA, pending.scorersB);
         copaPendingFixtureId = null;
         els.gameRoot.classList.add("hidden");
+        if (campaignActive) {
+          var humanGoals = pending.state.score[pending.state.humanTeamId];
+          var gained = CAMPAIGN.awardFichas(pending.result, humanGoals);
+          renderCampaignShop("Você ganhou " + gained + " fichas!");
+          return;
+        }
         renderCopaHub();
         return;
       }
@@ -1242,7 +1423,15 @@ var UI = (function () {
     if (els.gameoverMenuBtn) els.gameoverMenuBtn.addEventListener("click", function () {
       SOUND.playClick();
       if (gameMode === "copa" && COPA.isActive()) {
-        if (!window.confirm("Voltar ao menu inicial? O progresso da Copa será perdido.")) return;
+        var exitMsg = campaignActive
+          ? "Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois."
+          : "Voltar ao menu inicial? O progresso da Copa será perdido.";
+        if (!window.confirm(exitMsg)) return;
+        if (campaignActive && copaMatchResultPending) {
+          var pending = copaMatchResultPending;
+          COPA.reportHumanResult(copaPendingFixtureId, pending.state.score.A, pending.state.score.B, pending.scorersA, pending.scorersB);
+          CAMPAIGN.awardFichas(pending.result, pending.state.score[pending.state.humanTeamId]);
+        }
         copaMatchResultPending = null;
         els.gameoverModal.classList.add("hidden");
         els.gameRoot.classList.add("hidden");
@@ -1524,10 +1713,10 @@ var UI = (function () {
     SOUND.playWhistle();
     var scorersA = state.scorers.A.map(function (s) { return s.name; });
     var scorersB = state.scorers.B.map(function (s) { return s.name; });
-    copaMatchResultPending = { state: state, scorersA: scorersA, scorersB: scorersB };
 
     els.rematchBtn.textContent = "Continuar ➜";
     var result = fillGameoverModal(state);
+    copaMatchResultPending = { state: state, scorersA: scorersA, scorersB: scorersB, result: result };
     els.gameoverSub.textContent = result === "win"
       ? "Vitória na Copa! Vamos ver o resto da rodada."
       : (result === "lose" ? "Não foi dessa vez... mas a Copa continua." : "Empate! Fica pra classificação geral.");
@@ -1536,6 +1725,8 @@ var UI = (function () {
 
   function returnToMenuFromCopa() {
     COPA.reset();
+    if (campaignActive) CAMPAIGN.abandon(); // já está salvo no localStorage — só limpa a referência em memória
+    campaignActive = false;
     gameMode = "amistoso";
     chosenHomeSquadId = null;
     chosenAwaySquadId = null;
@@ -1543,6 +1734,8 @@ var UI = (function () {
     if (els.copaDrawModal) els.copaDrawModal.classList.add("hidden");
     if (els.copaHubModal) els.copaHubModal.classList.add("hidden");
     if (els.copaResultModal) els.copaResultModal.classList.add("hidden");
+    if (els.campaignShopModal) els.campaignShopModal.classList.add("hidden");
+    if (els.campaignRecruitModal) els.campaignRecruitModal.classList.add("hidden");
     if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
     if (els.startBtn) els.startBtn.textContent = "⚽ Iniciar Partida";
     renderSquadPickList();

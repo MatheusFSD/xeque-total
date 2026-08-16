@@ -60,6 +60,9 @@
   --marrocos: #c1272d;
   --marrocos-2: #4c9a5b;
 
+  --cortomaltese: #5c6b47;
+  --cortomaltese-2: #cbb994;
+
   /* roxo decorativo do logo — não tem relação com nenhum squad (era var(--raptor) antes de Tecos/Raptors sair do jogo) */
   --logo-accent: #7b2fb0;
 
@@ -250,7 +253,7 @@ button{ font-family: inherit; }
 .brasil-badge, .alemanha-badge, .franca-badge, .argentina-badge, .italia-badge, .espanha-badge,
 .colombia-badge, .croacia-badge, .holanda-badge, .mexico-badge, .noruega-badge,
 .portugal-badge, .inglaterra-badge, .uruguai-badge, .coreia-badge,
-.belgica-badge, .chile-badge, .japao-badge, .marrocos-badge{
+.belgica-badge, .chile-badge, .japao-badge, .marrocos-badge, .cortomaltese-badge{
   border: 3px solid var(--panel-border);
   box-shadow: 2px 2px 0 var(--shadow-ink);
 }
@@ -273,6 +276,7 @@ button{ font-family: inherit; }
 .chile-badge{ background: radial-gradient(circle at 30% 30%, var(--chile-2), var(--chile)); }
 .japao-badge{ background: radial-gradient(circle at 30% 30%, var(--japao-2), var(--japao)); }
 .marrocos-badge{ background: radial-gradient(circle at 30% 30%, var(--marrocos-2), var(--marrocos)); }
+.cortomaltese-badge{ background: radial-gradient(circle at 30% 30%, var(--cortomaltese-2), var(--cortomaltese)); }
 
 /* =========================================================
    TELAS EM OVERLAY (início / duelo / fim de jogo)
@@ -1710,6 +1714,79 @@ button{ font-family: inherit; }
   font-family: var(--font-clock); font-weight: 700; font-size: 0.9rem; color: var(--ink-faint);
   margin: 0 auto 22px; letter-spacing: 0.03em;
 }
+
+/* ---------------- modo Campanha: senha / loja / figurinha ---------------- */
+
+.campaign-password-tagline{ max-width: 420px; }
+.campaign-password-input{
+  display: block; width: 100%; max-width: 320px; margin: 4px auto 18px;
+  background: var(--panel-soft);
+  border: 2px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  text-align: center;
+  padding: 10px 12px;
+}
+.campaign-password-input:focus{ outline: none; border-color: var(--gold); }
+
+.campaign-shop-card{ max-width: 560px; }
+.campaign-shop-fichas{ font-size: 1.7rem; margin-bottom: 4px; }
+.campaign-shop-award{ color: var(--success); font-size: 0.9rem; font-weight: 600; margin: 0 0 18px; min-height: 1.2em; }
+
+.campaign-shop-section{ margin-bottom: 18px; text-align: left; }
+.campaign-shop-section-title{
+  font-family: var(--font-display); color: var(--ink-faint); font-size: 0.7rem;
+  letter-spacing: 0.24em; text-transform: uppercase; margin: 0 0 10px; text-align: center;
+}
+
+.campaign-shop-roster{ display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; padding-right: 4px; }
+.campaign-shop-player-row{
+  display: flex; align-items: center; gap: 10px;
+  background: var(--panel-soft); border: 2px solid var(--panel-border); border-radius: var(--radius-sm);
+  padding: 6px 8px;
+}
+.campaign-shop-player-info{ flex: 1; min-width: 0; }
+.campaign-shop-player-name{ font-weight: 700; font-size: 0.85rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.campaign-shop-player-meta{ font-size: 0.72rem; color: var(--ink-faint); }
+.campaign-shop-train-btn{
+  flex-shrink: 0;
+  font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.04em;
+  background: var(--gold); color: var(--shadow-ink);
+  border: 2px solid var(--panel-border); border-radius: var(--radius-sm);
+  padding: 7px 10px; cursor: pointer; box-shadow: 2px 2px 0 var(--shadow-ink);
+  transition: all 0.12s ease;
+}
+.campaign-shop-train-btn:hover{ filter: brightness(1.08); }
+.campaign-shop-train-btn:active{ transform: translate(2px,2px); box-shadow: none; }
+.campaign-shop-train-btn:disabled{ opacity: 0.4; cursor: not-allowed; filter: grayscale(0.4); }
+
+.campaign-shop-packs{ display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.campaign-pack-btn{
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  flex: 1 1 160px; max-width: 200px;
+  background: var(--panel-soft); border: 3px solid var(--panel-border); border-radius: var(--radius-md);
+  padding: 14px 10px; cursor: pointer; box-shadow: 3px 3px 0 var(--shadow-ink);
+  transition: all 0.15s ease;
+}
+.campaign-pack-btn:hover{ transform: translateY(-2px); box-shadow: 4px 5px 0 var(--shadow-ink); }
+.campaign-pack-btn:active{ transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--shadow-ink); }
+.campaign-pack-btn:disabled{ opacity: 0.4; cursor: not-allowed; filter: grayscale(0.5); transform: none; box-shadow: 3px 3px 0 var(--shadow-ink); }
+.campaign-pack-elite{ border-color: var(--gold); }
+.campaign-pack-emoji{ font-size: 1.8rem; }
+.campaign-pack-label{ font-family: var(--font-display); font-size: 0.78rem; letter-spacing: 0.03em; color: var(--ink); }
+.campaign-pack-cost{ font-size: 0.72rem; color: var(--ink-faint); }
+
+.campaign-recruit-sub{ color: var(--ink-dim); font-size: 0.95rem; margin: 0 auto 18px; max-width: 420px; line-height: 1.5; }
+.campaign-recruit-slots{ display: flex; flex-direction: column; gap: 8px; max-width: 380px; margin: 0 auto; }
+.campaign-recruit-slot-btn{
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--panel-soft); border: 2px solid var(--panel-border); border-radius: var(--radius-sm);
+  padding: 10px 14px; cursor: pointer; font-size: 0.88rem; color: var(--ink);
+  transition: all 0.12s ease;
+}
+.campaign-recruit-slot-btn:hover{ background: var(--panel); border-color: var(--gold); }
 
 /* =========================================================
    RESPONSIVO

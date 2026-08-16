@@ -64,9 +64,10 @@
           <img class="mode-card-img mode-card-img-b" src="img/duo2.png" alt="">
           <span class="mode-card-label">2 Jogadores</span>
         </button>
-        <button type="button" class="mode-card mode-card-soon" id="mode-select-soon" disabled>
-          <span class="mode-card-soon-icon">🔒</span>
-          <span class="mode-card-label">Em Breve</span>
+        <button type="button" class="mode-card mode-card-campanha" id="mode-select-campanha" data-mode="campaign">
+          <img class="mode-card-img mode-card-img-a" src="img/campanha1.png" alt="">
+          <img class="mode-card-img mode-card-img-b" src="img/campanha2.png" alt="">
+          <span class="mode-card-label">Campanha</span>
         </button>
       </div>
 
@@ -379,6 +380,62 @@
     </div>
   </div>
 
+  <!-- ============ CAMPANHA: SENHA ============ -->
+  <div id="campaign-password-modal" class="overlay-screen hidden">
+    <div class="start-card">
+      <button type="button" class="icon-btn squad-select-back-btn" id="campaign-password-back-btn" title="Voltar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <p class="kicker">MODO CAMPANHA</p>
+      <h1 class="logo lineup-title">⚓ CORTO MALTESE</h1>
+      <p class="tagline campaign-password-tagline">Comece como a pior seleção da Copa e transforme o time treinando jogadores e comprando reforços com as fichas que ganhar jogando. Sua campanha fica salva neste navegador — escolha uma senha pra começar, e digite a mesma senha aqui pra continuar de onde parou.</p>
+      <input type="text" id="campaign-password-input" class="campaign-password-input" placeholder="Digite sua senha" maxlength="40" autocomplete="off">
+      <button id="campaign-password-continue-btn" class="btn btn-primary btn-start" disabled>Continuar</button>
+    </div>
+  </div>
+
+  <!-- ============ CAMPANHA: LOJA ============ -->
+  <div id="campaign-shop-modal" class="overlay-screen hidden">
+    <div class="start-card campaign-shop-card">
+      <p class="kicker">LOJA DO CORTO MALTESE</p>
+      <h1 class="logo lineup-title campaign-shop-fichas" id="campaign-shop-fichas">🪙 0 FICHAS</h1>
+      <p class="campaign-shop-award" id="campaign-shop-award"></p>
+
+      <div class="campaign-shop-section">
+        <p class="campaign-shop-section-title">Treinar elenco</p>
+        <div class="campaign-shop-roster" id="campaign-shop-roster"></div>
+      </div>
+
+      <div class="campaign-shop-section">
+        <p class="campaign-shop-section-title">Comprar figurinha</p>
+        <div class="campaign-shop-packs">
+          <button type="button" class="campaign-pack-btn" id="campaign-pack-medianos">
+            <span class="campaign-pack-emoji">🎴</span>
+            <span class="campaign-pack-label">Pacote Mediano</span>
+            <span class="campaign-pack-cost" id="campaign-pack-medianos-cost">60 fichas</span>
+          </button>
+          <button type="button" class="campaign-pack-btn campaign-pack-elite" id="campaign-pack-elite">
+            <span class="campaign-pack-emoji">🌟</span>
+            <span class="campaign-pack-label">Pacote Elite</span>
+            <span class="campaign-pack-cost" id="campaign-pack-elite-cost">150 fichas</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="campaign-shop-continue-btn" class="btn btn-primary btn-start">Continuar ➜</button>
+    </div>
+  </div>
+
+  <!-- ============ CAMPANHA: FIGURINHA SORTEADA ============ -->
+  <div id="campaign-recruit-modal" class="overlay-screen hidden">
+    <div class="start-card">
+      <p class="kicker">NOVA FIGURINHA</p>
+      <h1 class="logo lineup-title" id="campaign-recruit-name">Jogador</h1>
+      <p class="campaign-recruit-sub" id="campaign-recruit-sub"></p>
+      <div class="campaign-recruit-slots" id="campaign-recruit-slots"></div>
+    </div>
+  </div>
+
 </div>
 
 <script src="js/data.js"></script>
@@ -387,6 +444,7 @@
 <script src="js/ai.js"></script>
 <script src="js/game.js"></script>
 <script src="js/copa.js"></script>
+<script src="js/campaign.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
