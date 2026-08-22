@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — renderização e interações de interface
+   QUADRADO MÁGICO — renderização e interações de interface
 ========================================================= */
 
 var UI = (function () {
@@ -979,6 +979,36 @@ var UI = (function () {
       '</div>';
   }
 
+  // a splashs_art original vem em alta resolução (1254x1254), pensada pra ser vista
+  // grande — espremida "crua" numa caixa pequena (cover) ela mantém todo o nível de
+  // detalhe (textura da grama, torcida, bola) na mesma proporção da caixa, o que
+  // deixa a imagem poluída/difícil de ler nesse tamanho. Redesenhar num canvas menor
+  // faz um reamostragem real pra baixo (não é só CSS encolhendo visualmente): o
+  // resultado tem MENOS detalhe fino de fato, só o essencial da silhueta/pose fica
+  // nítido — leve o bastante pra ler de relance num card pequeno.
+  var HERO_BG_CACHE = {};
+  function loadDownscaledHeroBg(el, url, targetSize) {
+    var cacheKey = url + "@" + targetSize;
+    if (HERO_BG_CACHE[cacheKey]) {
+      el.style.backgroundImage = "url('" + HERO_BG_CACHE[cacheKey] + "')";
+      return;
+    }
+    var img = new Image();
+    img.onload = function () {
+      var canvas = document.createElement("canvas");
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      var ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, targetSize, targetSize);
+      var dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      HERO_BG_CACHE[cacheKey] = dataUrl;
+      el.style.backgroundImage = "url('" + dataUrl + "')";
+    };
+    img.src = url;
+  }
+
   function fillPlayerStatsInto(container, piece) {
     container.innerHTML = buildPlayerStatsHtml(piece);
 
@@ -988,9 +1018,7 @@ var UI = (function () {
     var heroBgEl = container.querySelector("#detail-hero-bg");
     if (heroBgEl) {
       var url = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".png";
-      var testImg = new Image();
-      testImg.onload = function () { heroBgEl.style.backgroundImage = "url('" + url + "')"; };
-      testImg.src = url;
+      loadDownscaledHeroBg(heroBgEl, url, 240);
     }
   }
 

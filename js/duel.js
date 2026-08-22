@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — resolução de duelos (Ação vs Poder)
+   QUADRADO MÁGICO — resolução de duelos (Ação vs Poder)
 ========================================================= */
 
 var DUEL = (function () {

@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — modo Copa (fase de grupos -> quartas -> semi -> final)
+   QUADRADO MÁGICO — modo Copa (fase de grupos -> quartas -> semi -> final)
 
    O jogador escolhe só sua seleção; um sorteio decide quais outras 15
    seleções do pool entram nesta Copa (a sua entra sempre) — o resto

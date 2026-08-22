@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — modo Campanha (roguelike)
+   QUADRADO MÁGICO — modo Campanha (roguelike)
 
    O jogador sempre controla o Corto Maltese (squad campaignOnly em
    js/data.js), que começa como a pior seleção do jogo. A campanha é
@@ -24,6 +24,8 @@
 
 var CAMPAIGN = (function () {
 
+  // mantém o nome antigo do jogo de propósito: renomear a chave apagaria a
+  // campanha de quem já jogou (o localStorage é indexado por ela)
   var SAVE_KEY = "xequeTotalCampaignSaves";
   var CTM_ID = "CTM";
 

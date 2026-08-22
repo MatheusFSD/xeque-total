@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — estilos globais
+   QUADRADO MÁGICO — estilos globais
 ========================================================= */
 
 :root{
@@ -297,6 +297,9 @@ button{ font-family: inherit; }
     radial-gradient(900px 650px at 50% 18%, rgba(60,45,20,0.28), rgba(30,22,12,0.88)),
     url('img/menu-bg.jpg') center 28% / cover no-repeat;
   background-color: var(--bg-0);
+  /* redeclara o fadeIn de .overlay-screen porque o shorthand `animation`
+     substitui a lista inteira — e emenda o tremor do impacto da logo */
+  animation: fadeIn 0.25s ease, screenSlamShake 0.5s ease-out 0.37s both;
 }
 
 /* meio-tom decorativo sobre a splash art, no lugar das estrelas cintilantes */
@@ -342,6 +345,132 @@ button{ font-family: inherit; }
   line-height: 1.05;
 }
 .logo span{ color: var(--gold); text-shadow: 3px 3px 0 var(--logo-accent); }
+
+/* =========================================================
+   LOGO DA TELA INICIAL — entrada em "slam" + brilho metálico
+
+   A sequência é 100% CSS e se reinicia sozinha toda vez que a tela
+   volta a aparecer: #start-screen fica com display:none (.hidden)
+   quando o jogador entra num modo, e sair de display:none zera e
+   redispara as animações — por isso não precisa de JS pra repetir.
+
+   Linha do tempo:
+     0.00s  a logo entra enorme e desfocada, vindo "pra cima" da tela
+     0.28s  impacto: ela passa do ponto, achata e a TELA INTEIRA treme
+     0.55s  o tremor assenta
+     0.72s  a listra branca de brilho metálico varre a logo e sai
+========================================================= */
+.logo-wrap{
+  position: relative;
+  display: block;
+  width: 100%; max-width: 430px;
+  margin: 0 auto 12px;
+  animation: logoSlam 0.6s linear both;
+}
+.logo-img{ width: 100%; height: auto; display: block; }
+
+/* a listra só aparece sobre os pixels opacos da logo: o mask recorta
+   o brilho no formato exato do PNG, senão a faixa passaria por cima do
+   fundo transparente e viraria um retângulo atravessando o cartão */
+.logo-shine{
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  -webkit-mask-image: url("img/logo.png"); mask-image: url("img/logo.png");
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.logo-shine::after{
+  content: '';
+  position: absolute; left: 0; top: -60%; bottom: -60%; width: 18%;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255,255,255,0.18),
+    rgba(255,255,255,0.92),
+    rgba(255,255,255,0.18),
+    transparent);
+  filter: blur(3px);
+  animation: logoShineSweep 0.7s ease-out 0.7s both;
+}
+
+/* o resto da tela entra DEPOIS da logo terminar (o brilho acaba em ~1,4s),
+   em cascata de cima pra baixo. Todas usam fill-mode `backwards` de
+   propósito: ele esconde o elemento durante o delay, mas devolve o controle
+   ao CSS normal quando a animação acaba. Com `both` o último keyframe ficaria
+   grudado pra sempre e o `transform` do :hover dos cartões pararia de
+   funcionar — o hover perderia a briga contra o preenchimento da animação. */
+.start-card .kicker{ animation: menuPartIn 0.35s ease-out 0.1s backwards; }
+.start-card .tagline{ animation: menuPartIn 0.45s ease-out 1.05s backwards; }
+.start-card #how-to-play-btn{ animation: menuPartIn 0.4s ease-out 1.62s backwards; }
+
+.mode-card{ animation: modeCardIn 0.4s cubic-bezier(.2,.8,.3,1.25) backwards; }
+.mode-select-grid .mode-card:nth-child(1){ animation-delay: 1.22s; }
+.mode-select-grid .mode-card:nth-child(2){ animation-delay: 1.29s; }
+.mode-select-grid .mode-card:nth-child(3){ animation-delay: 1.36s; }
+.mode-select-grid .mode-card:nth-child(4){ animation-delay: 1.43s; }
+
+@keyframes menuPartIn{
+  from{ opacity: 0; transform: translateY(8px); }
+  to{ opacity: 1; transform: none; }
+}
+
+/* termina em `transform: none` (e não em translateY(0)) pra soltar limpo,
+   sem degrau, no momento em que o :hover assume de novo */
+@keyframes modeCardIn{
+  from{ opacity: 0; transform: translateY(22px) scale(0.92); }
+  to{ opacity: 1; transform: none; }
+}
+
+/* o easing vive DENTRO dos keyframes: a primeira perna usa ease-in pra logo
+   ficar grande um tempo e só então despencar (é isso que dá o peso da
+   entrada); com um easing único no shorthand ela chegava perto do tamanho
+   final em ~150ms e o impacto passava batido, fora de sincronia com o tremor */
+@keyframes logoSlam{
+  0%   { opacity: 0; transform: scale(2.9); filter: blur(8px);
+         animation-timing-function: cubic-bezier(.55,.06,.68,.19); }
+  50%  { opacity: 1; transform: scale(1.3); filter: blur(1.5px);
+         animation-timing-function: cubic-bezier(.3,0,.2,1); }
+  62%  { opacity: 1; transform: scale(0.88); filter: blur(0); }  /* impacto */
+  73%  { transform: scale(1.07); }
+  84%  { transform: scale(0.97); }
+  93%  { transform: scale(1.015); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+@keyframes logoShineSweep{
+  0%   { transform: translateX(-260%) rotate(18deg); opacity: 0; }
+  12%  { opacity: 1; }
+  86%  { opacity: 1; }
+  100% { transform: translateX(600%) rotate(18deg); opacity: 0; }
+}
+
+/* o tremor mora no #start-screen (e não no .start-card, que já tem o popIn)
+   pra sacudir o fundo junto e não brigar por `transform` com outra animação.
+   O scale de ~1.02 durante o tremor existe pra que o deslocamento não abra
+   uma fresta nas bordas da tela, já que o elemento é position:fixed inset:0 */
+@keyframes screenSlamShake{
+  0%   { transform: none; }
+  6%   { transform: translate3d(-9px, 6px, 0) scale(1.02) rotate(-0.5deg); }
+  14%  { transform: translate3d(8px, -7px, 0) scale(1.02) rotate(0.45deg); }
+  24%  { transform: translate3d(-7px, -4px, 0) scale(1.018) rotate(-0.35deg); }
+  36%  { transform: translate3d(6px, 5px, 0) scale(1.015) rotate(0.3deg); }
+  50%  { transform: translate3d(-4px, 3px, 0) scale(1.012) rotate(-0.2deg); }
+  64%  { transform: translate3d(3px, -3px, 0) scale(1.008) rotate(0.15deg); }
+  78%  { transform: translate3d(-2px, 1px, 0) scale(1.005) rotate(-0.08deg); }
+  90%  { transform: translate3d(1px, -1px, 0) scale(1.002); }
+  100% { transform: none; }
+}
+
+/* quem pediu menos movimento no sistema recebe a logo já posicionada,
+   sem voo, sem tremor de tela e sem varredura */
+@media (prefers-reduced-motion: reduce){
+  .logo-wrap{ animation: fadeIn 0.3s ease both; }
+  .logo-shine::after{ animation: none; opacity: 0; }
+  #start-screen{ animation: fadeIn 0.25s ease; }
+  .start-card .kicker,
+  .start-card .tagline,
+  .start-card #how-to-play-btn,
+  .mode-card{ animation: none; }
+}
 
 .tagline{ color: var(--ink-dim); font-size: 1.05rem; margin: 0 auto 24px; max-width: 460px; line-height: 1.5; }
 

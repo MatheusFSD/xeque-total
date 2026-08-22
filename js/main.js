@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — bootstrap
+   QUADRADO MÁGICO — bootstrap
 ========================================================= */
 
 document.addEventListener("DOMContentLoaded", function () {

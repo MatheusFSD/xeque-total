@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — geometria do tabuleiro horizontal, movimento
+   QUADRADO MÁGICO — geometria do tabuleiro horizontal, movimento
    por personalidade, alcance de passe e alcance de chute
 
    Regra central: um duelo só acontece quando a bola está

@@ -1,3 +1,6 @@
 .DS_Store
 Thumbs.db
 node_modules/
+
+# configuracoes locais do Claude Code (caminhos da maquina, nao do projeto)
+.claude/

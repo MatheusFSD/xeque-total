@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — efeitos sonoros sintetizados (Web Audio API)
+   QUADRADO MÁGICO — efeitos sonoros sintetizados (Web Audio API)
    Nenhum arquivo de áudio externo — cada som é gerado na hora
    com osciladores + envelope de volume, estilo retrô/8-bit.
 ========================================================= */

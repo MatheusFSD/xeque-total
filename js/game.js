@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — máquina de estados da partida
+   QUADRADO MÁGICO — máquina de estados da partida
 ========================================================= */
 
 var GAME = (function () {

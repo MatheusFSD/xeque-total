@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — inteligência artificial do time adversário
+   QUADRADO MÁGICO — inteligência artificial do time adversário
    (decide entre Mover, Passar ou Chutar)
 ========================================================= */
 

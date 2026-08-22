@@ -1,5 +1,5 @@
 /* =========================================================
-   XEQUE TOTAL — dados dos times, jogadores, temperamentos e poderes
+   QUADRADO MÁGICO — dados dos times, jogadores, temperamentos e poderes
    Tabuleiro horizontal: 13 colunas (0-12) x 9 linhas (0-8).
 
    GAME_DATA.TEAMS é um POOL de squads escolhíveis (não são mais
