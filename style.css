@@ -474,6 +474,23 @@ button{ font-family: inherit; }
 
 .tagline{ color: var(--ink-dim); font-size: 1.05rem; margin: 0 auto 24px; max-width: 460px; line-height: 1.5; }
 
+/* habilidade passiva na ficha do jogador — visual mais sóbrio que o do poder
+   especial, porque não é uma escolha do jogador: está sempre valendo */
+.ability-box{
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px;
+  margin-top: 10px; padding: 8px 10px;
+  background: var(--panel-soft);
+  border: 2px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+}
+.ability-tag{
+  font-family: var(--font-display); font-size: 0.56rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--panel);
+  background: var(--ink-faint); padding: 2px 6px; border-radius: 3px;
+}
+.ability-name{ font-size: 0.92rem; font-weight: 600; color: var(--ink); }
+.ability-desc{ flex: 1 1 100%; font-size: 0.82rem; color: var(--ink-dim); line-height: 1.35; }
+
 /* grade de 4 botões da tela inicial — cada um com um personagem em PNG que
    "transborda" pra fora da borda de cima (posicionado absoluto, mais alto que
    o próprio botão) pra dar a impressão de que ele salta pra fora do cartão.

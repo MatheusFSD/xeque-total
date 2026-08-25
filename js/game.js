@@ -59,6 +59,7 @@ var GAME = (function () {
           id: pd.id, team: s.slot, name: pd.name, number: pd.number,
           nationality: pd.nationality, flag: pd.flag, temperament: pd.temperament,
           position: pd.position, stats: cloneStats(pd.stats), power: pd.power,
+          ability: pd.ability || null,
           maxMana: pd.maxMana, mana: pd.maxMana,
           row: pd.start.row, col: col, quote: pd.quote,
           assetKey: pd.assetKey, assetPrefix: sq.assetPrefix,
@@ -137,13 +138,36 @@ var GAME = (function () {
 
   function getState() { return state; }
 
+  function opponentGoalkeeper(teamId) {
+    var foe = teamId === "A" ? "B" : "A";
+    for (var i = 0; i < state.pieces.length; i++) {
+      if (state.pieces[i].team === foe && state.pieces[i].position === "GK") return state.pieces[i];
+    }
+    return null;
+  }
+
+  function shootInfoWithAbilities(piece, team) {
+    var info = BOARD.shootDistanceInfo(piece, team, state.pieces);
+    var gk = opponentGoalkeeper(piece.team);
+    if (!gk) return info;
+    var penalty = shotPenaltyWithAbilities(piece, gk, info);
+    if (penalty === info.penalty) return info;
+    return {
+      colDist: info.colDist, rowOffset: info.rowOffset, totalDistance: info.totalDistance,
+      blockerCount: info.blockerCount, penalty: penalty,
+      difficulty: penalty <= 8 ? "Fácil" : penalty <= 16 ? "Média" : penalty <= 24 ? "Difícil" : "Quase impossível"
+    };
+  }
+
   function updateActionOptions(piece) {
     state.legalMoves = BOARD.getLegalMoves(piece, state.pieces, state.ball.carrierId);
     if (state.ball.carrierId === piece.id) {
       var team = state.teams[piece.team];
       state.passTargets = BOARD.getPassTargets(piece, state.pieces, team);
       state.canShoot = BOARD.canShootFrom(piece, team);
-      state.shootInfo = state.canShoot ? BOARD.shootDistanceInfo(piece, team, state.pieces) : null;
+      // a prévia de dificuldade precisa refletir Canhão/Paredão, senão a UI
+      // promete "Difícil" e o duelo cobra outro número
+      state.shootInfo = state.canShoot ? shootInfoWithAbilities(piece, team) : null;
     } else {
       state.passTargets = []; state.canShoot = false; state.shootInfo = null;
     }
@@ -285,7 +309,19 @@ var GAME = (function () {
       scoreGoal(shooter.team, shooter);
       return;
     }
-    beginDuel(shooter, gk, true, info.penalty, false, info.blockerCount);
+    beginDuel(shooter, gk, true, shotPenaltyWithAbilities(shooter, gk, info), false, info.blockerCount);
+  }
+
+  // Canhão (do batedor) e Paredão (do goleiro) puxam a mesma corda em
+  // sentidos opostos, então moram juntos: os dois mexem na penalidade de
+  // distância, não na pontuação — assim o número que a UI mostra antes do
+  // chute ("Fácil / Difícil / Quase impossível") já sai com tudo embutido.
+  function shotPenaltyWithAbilities(shooter, gk, info) {
+    var penalty = info.penalty;
+    if (abilityHas(shooter, "canhao")) penalty = Math.round(penalty * 0.7);
+    // "de longe" = fora da grande área adversária, que é onde o Paredão pesa
+    if (abilityHas(gk, "paredao") && !BOARD.isInOwnGoalBox(shooter.row, shooter.col, state.teams[gk.team])) penalty += 5;
+    return Math.max(0, penalty);
   }
 
   var DUEL_INTRO_MS = 550; // tempo do "impacto" de emojis subindo antes do modal abrir
@@ -337,12 +373,56 @@ var GAME = (function () {
     if (ctx.challengerChoice && ctx.holderChoice) resolveDuelNow();
   }
 
+  /* ---------------- contexto das habilidades ----------------
+     O duel.js resolve só a conta; quem conhece o tabuleiro e o placar é
+     aqui. Estas duas funções traduzem o estado da partida no pacote que
+     as habilidades situacionais (Muralha, Decisivo, Zebra, Capitão,
+     Intimidação) precisam pra saber se valem naquele duelo.
+  --------------------------------------------------------- */
+
+  function abilityHas(piece, key) { return !!piece && piece.ability === key; }
+
+  // conta auras nas 8 casas ao redor do jogador
+  function neighborAuras(piece) {
+    var allyCaptains = 0, enemyIntimidators = 0;
+    state.pieces.forEach(function (o) {
+      if (o.id === piece.id || o.stunned) return;
+      if (Math.abs(o.row - piece.row) > 1 || Math.abs(o.col - piece.col) > 1) return;
+      if (o.team === piece.team) { if (abilityHas(o, "capitao")) allyCaptains++; }
+      else if (abilityHas(o, "intimidacao")) enemyIntimidators++;
+    });
+    return { allyCaptains: allyCaptains, enemyIntimidators: enemyIntimidators };
+  }
+
+  function duelAbilityContext(challenger, holder) {
+    var turnsLeft = state.noTurnLimit ? Infinity : (state.maxTurns - state.turnCount);
+    var losing = {
+      A: state.score.A < state.score.B,
+      B: state.score.B < state.score.A
+    };
+    return {
+      holderInOwnBox: BOARD.isInOwnGoalBox(holder.row, holder.col, state.teams[holder.team]),
+      isEndgame: turnsLeft <= 10,
+      losingByTeam: losing,
+      challengerNeighbors: neighborAuras(challenger),
+      holderNeighbors: neighborAuras(holder)
+    };
+  }
+
   function resolveDuelNow() {
     var ctx = state.duelContext;
+    var extra = duelAbilityContext(ctx.challenger, ctx.holder);
     var result = DUEL.resolveDuel({
       challenger: ctx.challenger, holder: ctx.holder,
       challengerChoice: ctx.challengerChoice, holderChoice: ctx.holderChoice,
-      isShoot: ctx.isShoot, distancePenalty: ctx.distancePenalty
+      isShoot: ctx.isShoot, isDribble: ctx.isDribble,
+      distancePenalty: ctx.distancePenalty,
+      shootBlockerCount: ctx.shootBlockerCount,
+      holderInOwnBox: extra.holderInOwnBox,
+      isEndgame: extra.isEndgame,
+      losingByTeam: extra.losingByTeam,
+      challengerNeighbors: extra.challengerNeighbors,
+      holderNeighbors: extra.holderNeighbors
     });
     ctx.result = result;
     ctx.revealed = true;
@@ -354,6 +434,11 @@ var GAME = (function () {
     var c = ctx.challenger, h = ctx.holder;
     var cLabel = result.challengerUsedPower ? (" usando " + c.power.name) : "";
     var hLabel = result.holderUsedPower ? (" usando " + h.power.name) : "";
+    // sem esse aviso o jogador vê a mana sumir e o poder não fazer efeito,
+    // e parece bug em vez de habilidade do adversário
+    if (result.shadowed) {
+      addLog("🌑 " + h.name + " é Sombra: o " + c.power.name + " de " + c.name + " não teve efeito.", "ev-info");
+    }
     if (ctx.isShoot) {
       if (result.winnerSide === "challenger") {
         addLog(c.name + " chuta de longe" + cLabel + "... e é GOL!", "ev-goal");
@@ -419,9 +504,13 @@ var GAME = (function () {
     }
 
     var loser = winnerSide === "challenger" ? ctx.holder : ctx.challenger;
-    loser.stunned = true;
-    loser.stunTurns = 1;
-    addLog(loser.name + " ficou atordoado e não age no próximo turno do time!", "ev-" + loser.team.toLowerCase());
+    if (abilityHas(loser, "inabalavel")) {
+      addLog(loser.name + " perdeu a disputa, mas é Inabalável e segue de pé.", "ev-info");
+    } else {
+      loser.stunned = true;
+      loser.stunTurns = 1;
+      addLog(loser.name + " ficou atordoado e não age no próximo turno do time!", "ev-" + loser.team.toLowerCase());
+    }
 
     state.duelContext = null;
     state.phase = "playing";
@@ -538,7 +627,8 @@ var GAME = (function () {
 
   function regenMana(teamId) {
     state.pieces.forEach(function (p) {
-      if (p.team === teamId) p.mana = Math.min(p.maxMana, p.mana + 8);
+      if (p.team !== teamId) return;
+      p.mana = Math.min(p.maxMana, p.mana + 8 + (abilityHas(p, "motor") ? 5 : 0));
     });
   }
 

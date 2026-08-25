@@ -4,3 +4,6 @@ node_modules/
 
 # configuracoes locais do Claude Code (caminhos da maquina, nao do projeto)
 .claude/
+
+# config local do editor
+.vscode/

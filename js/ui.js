@@ -975,7 +975,21 @@ var UI = (function () {
       '<div class="power-meta"><span>Custo: ' + piece.power.manaCost + ' mana</span><span>Bônus: +' + piece.power.bonus + '</span></div>' +
       '<div class="mana-track"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
       '</div></div>' +
+      abilityBoxHtml(piece) +
       (piece.quote ? '<p class="detail-quote">"' + piece.quote + '"</p>' : '') +
+      '</div>';
+  }
+
+  // a habilidade fica visualmente separada do poder de propósito: o poder é
+  // uma escolha que custa mana, a habilidade está sempre ligada e não se
+  // decide nada sobre ela — misturar os dois num bloco só confundiria
+  function abilityBoxHtml(piece) {
+    var ab = piece.ability && GAME_DATA.ABILITIES[piece.ability];
+    if (!ab) return "";
+    return '<div class="ability-box">' +
+      '<span class="ability-tag">Habilidade</span>' +
+      '<strong class="ability-name">' + ab.name + '</strong>' +
+      '<span class="ability-desc">' + ab.desc + '</span>' +
       '</div>';
   }
 

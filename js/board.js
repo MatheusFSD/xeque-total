@@ -44,9 +44,22 @@ var BOARD = (function () {
   }
 
   function getMovementSpec(piece) {
-    if (piece.position === "GK") return { shape: "king", maxDist: 1 };
-    var t = GAME_DATA.TEMPERAMENTS[piece.temperament];
-    return t ? { shape: t.shape, maxDist: t.maxDist } : { shape: "king", maxDist: 1 };
+    var spec;
+    if (piece.position === "GK") spec = { shape: "king", maxDist: 1 };
+    else {
+      var t = GAME_DATA.TEMPERAMENTS[piece.temperament];
+      spec = t ? { shape: t.shape, maxDist: t.maxDist } : { shape: "king", maxDist: 1 };
+    }
+    // "Arrancada" (+1 casa). Não se aplica a quem salta em L (o Cavalo não
+    // tem alcance, tem destino fixo) nem a quem já é ilimitado (temperamento
+    // Rei) — nesses dois casos maxDist é null e somar não significaria nada.
+    if (piece.ability === "arrancada" && spec.shape !== "knight" && spec.maxDist != null) {
+      spec.maxDist += 1;
+    }
+    // rebate na lateral: exclusivo do Rápido, e só quando ele de fato usa o
+    // movimento de Bispo — o goleiro anda como Rei mesmo sendo Rápido
+    spec.bounce = piece.position !== "GK" && piece.temperament === "Rápido";
+    return spec;
   }
 
   function dirsForShape(shape) {
@@ -85,15 +98,39 @@ var BOARD = (function () {
 
     var dirs = dirsForShape(spec.shape);
     var moves = [];
+    var seen = {}; // com rebate, duas direções podem chegar na mesma casa
     var limit = spec.maxDist == null ? (COLS + ROWS) : spec.maxDist; // null = sem limite (ex.: personalidade Rei)
+
+    // o caminho é percorrido casa a casa (e não por `origem + direção × dist`)
+    // porque o Rápido pode trocar de direção no meio do trajeto ao bater na
+    // lateral — depois do rebate a fórmula direta deixaria de valer
     dirs.forEach(function (d) {
+      var r = piece.row, c = piece.col;
+      var dr = d[0], dc = d[1];
       for (var dist = 1; dist <= limit; dist++) {
-        var r = piece.row + d[0] * dist, c = piece.col + d[1] * dist;
-        if (!inBounds(r, c)) break;
+        var nr = r + dr, nc = c + dc;
+
+        // LATERAIS do campo são as linhas 0 e 8 (os gols ficam nas colunas,
+        // ver GOAL_ROWS). Só o Rápido rebate nelas: inverte o sentido
+        // vertical e segue gastando o alcance que ainda tem. Bater na linha
+        // de fundo (coluna) encerra o lance, como na vida real.
+        if (spec.bounce && (nr < 0 || nr > ROWS - 1) && nc >= 0 && nc <= COLS - 1) {
+          dr = -dr;
+          nr = r + dr;
+        }
+
+        if (!inBounds(nr, nc)) break;
+        r = nr; c = nc;
+        if (r === piece.row && c === piece.col) break; // o rebate trouxe de volta à casa de origem
+
+        var key = r + "," + c;
         var occ = findPieceAt(allPieces, r, c);
-        if (!occ) { moves.push({ row: r, col: c, capture: false, targetId: null, dribble: false }); continue; }
+        if (!occ) {
+          if (!seen[key]) { seen[key] = 1; moves.push({ row: r, col: c, capture: false, targetId: null, dribble: false }); }
+          continue;
+        }
         var res = classify(r, c, occ);
-        if (res) moves.push(res);
+        if (res && !seen[key]) { seen[key] = 1; moves.push(res); }
         if (!res && occ.team !== piece.team && occ.stunned) continue; // atordoado não bloqueia — dá pra passar por cima
         break; // qualquer peça na casa bloqueia o resto da linha (menos o Cavalo, que nem passa por aqui)
       }
