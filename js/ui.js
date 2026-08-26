@@ -368,11 +368,10 @@ var UI = (function () {
     return "linear-gradient(135deg, var(--" + v + "-2), var(--" + v + "))";
   }
 
+  var DIFF_CLS = { "Fácil": "diff-facil", "Média": "diff-media", "Difícil": "diff-dificil", "Quase impossível": "diff-impossivel" };
   function difficultyFromPenalty(p) {
-    if (p <= 8) return { label: "Fácil", cls: "diff-facil" };
-    if (p <= 16) return { label: "Média", cls: "diff-media" };
-    if (p <= 24) return { label: "Difícil", cls: "diff-dificil" };
-    return { label: "Quase impossível", cls: "diff-impossivel" };
+    var label = BOARD.difficultyForPenalty(p);
+    return { label: label, cls: DIFF_CLS[label] };
   }
 
   /* ---------------- imagens (splash art / ícone) com fallback ---------------- */
@@ -1068,8 +1067,9 @@ var UI = (function () {
     var labels = DUEL.roleLabels(ctx.isShoot, ctx.isDribble);
     els.duelTitle.innerHTML = (ctx.isShoot ? icon("target") : icon("sword")) + (ctx.isShoot ? " CHANCE DE GOL!" : " DUELO NO CAMPO!");
 
-    fillDuelSide(state, "left", ctx.challenger, labels.challenger, ctx, "challenger");
-    fillDuelSide(state, "right", ctx.holder, labels.holder, ctx, "holder");
+    var stats = DUEL.statLabels(ctx.isShoot, ctx.isDribble);
+    fillDuelSide(state, "left", ctx.challenger, labels.challenger, ctx, "challenger", stats.challenger);
+    fillDuelSide(state, "right", ctx.holder, labels.holder, ctx, "holder", stats.holder);
 
     if (ctx.revealed) {
       if (!duelImpactSoundPlayed) { duelImpactSoundPlayed = true; SOUND.playDuelImpact(); }
@@ -1098,7 +1098,7 @@ var UI = (function () {
     return wrap;
   }
 
-  function fillDuelSide(state, sideKey, piece, roleLabel, ctx, side) {
+  function fillDuelSide(state, sideKey, piece, roleLabel, ctx, side, statLabel) {
     var avatarEl = sideKey === "left" ? els.duelLeftAvatar : els.duelRightAvatar;
     var nameEl = sideKey === "left" ? els.duelLeftName : els.duelRightName;
     var roleEl = sideKey === "left" ? els.duelLeftRole : els.duelRightRole;
@@ -1112,6 +1112,14 @@ var UI = (function () {
     nameEl.textContent = piece.name;
     nameEl.appendChild(buildDuelInfoIcon(piece));
     roleEl.textContent = roleLabel;
+    if (statLabel) {
+      // sem isso o jogador não tem como saber por que um atacante perdeu
+      // um desarme: o atributo em jogo muda conforme o tipo de disputa
+      var st = document.createElement("span");
+      st.className = "duel-stat-used";
+      st.textContent = statLabel;
+      roleEl.appendChild(st);
+    }
     if (manaFillEl) manaFillEl.style.width = Math.round((piece.mana / piece.maxMana) * 100) + "%";
 
     var controller = side === "challenger" ? ctx.challengerController : ctx.holderController;

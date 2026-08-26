@@ -42,7 +42,10 @@ var AI = (function () {
       var newD2 = Math.abs(mv.col - team.opponentGoalCol);
       score += (curD2 - newD2) * 1.4;
     }
-    if (piece.position === "GK" && !BOARD.isInOwnGoalBox(mv.row, mv.col, team)) score -= 45;
+    // sair da casa do gol deixa a meta ABERTA (gol automático no próximo
+    // chute), não só mal posicionada — por isso a punição é bem maior que a
+    // antiga de -45, quando bastava ficar na grande área
+    if (piece.position === "GK" && !BOARD.isOnGoalSpot(mv.row, mv.col, team)) score -= 120;
 
     return score;
   }
@@ -64,7 +67,8 @@ var AI = (function () {
     for (var i = 0; i < allPieces.length; i++) {
       if (allPieces[i].team !== team.id && allPieces[i].position === "GK") { gk = allPieces[i]; break; }
     }
-    if (gk && defTeamMeta && !BOARD.isInOwnGoalBox(gk.row, gk.col, defTeamMeta)) score += 70;
+    // goleiro fora da casa do gol = gol garantido, então chutar vira prioridade
+    if (gk && defTeamMeta && !BOARD.isOnGoalSpot(gk.row, gk.col, defTeamMeta)) score += 140;
     return score;
   }
 

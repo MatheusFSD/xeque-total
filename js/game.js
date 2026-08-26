@@ -155,7 +155,7 @@ var GAME = (function () {
     return {
       colDist: info.colDist, rowOffset: info.rowOffset, totalDistance: info.totalDistance,
       blockerCount: info.blockerCount, penalty: penalty,
-      difficulty: penalty <= 8 ? "Fácil" : penalty <= 16 ? "Média" : penalty <= 24 ? "Difícil" : "Quase impossível"
+      difficulty: BOARD.difficultyForPenalty(penalty)
     };
   }
 
@@ -298,9 +298,11 @@ var GAME = (function () {
       var p = state.pieces[i];
       if (p.team === defTeamId && p.position === "GK") { gk = p; break; }
     }
-    var gkInBox = gk && BOARD.isInOwnGoalBox(gk.row, gk.col, defTeam);
-    if (!gkInBox) {
-      addLog("GOL DE PLACA! O goleiro saiu da área e " + shooter.name + " encontra o gol vazio!", "ev-goal");
+    // o goleiro só defende plantado NA casa do gol. Antes valia a grande área
+    // inteira (6 casas), então ele defendia de fora da meta — era o bug.
+    var gkNoGol = gk && BOARD.isOnGoalSpot(gk.row, gk.col, defTeam);
+    if (!gkNoGol) {
+      addLog("GOL DE PLACA! O goleiro saiu do gol e " + shooter.name + " encontra a meta vazia!", "ev-goal");
       scoreGoal(shooter.team, shooter);
       return;
     }
@@ -317,6 +319,10 @@ var GAME = (function () {
   // distância, não na pontuação — assim o número que a UI mostra antes do
   // chute ("Fácil / Difícil / Quase impossível") já sai com tudo embutido.
   function shotPenaltyWithAbilities(shooter, gk, info) {
+    // cara a cara com o goleiro: a distância deixa de ser um problema, é só
+    // o atacante contra ele. Sem isso, chegar coladinho ainda cobrava a
+    // penalidade da posição, o que não fazia sentido nenhum.
+    if (gk && Math.abs(shooter.row - gk.row) <= 1 && Math.abs(shooter.col - gk.col) <= 1) return 0;
     var penalty = info.penalty;
     if (abilityHas(shooter, "canhao")) penalty = Math.round(penalty * 0.7);
     // "de longe" = fora da grande área adversária, que é onde o Paredão pesa

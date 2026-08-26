@@ -16,8 +16,11 @@ var BOARD = (function () {
   var ROWS = 9;
   var GOAL_ROWS = [3, 4, 5];
   var MID_COL = 6;
-  var SHOT_PENALTY_PER_UNIT = 2.6;
-  var SHOT_PENALTY_PER_BLOCKER = 6;
+  // Penalidade recalibrada junto com a sorte de 3 dados (ver js/duel.js).
+  // Com os valores antigos (2,6 e 6) um chute de 8 casas caía pra 2% de
+  // chance na curva nova, e de fora da área virava inútil.
+  var SHOT_PENALTY_PER_UNIT = 1.2;
+  var SHOT_PENALTY_PER_BLOCKER = 3;
   var INTERCEPT_CHANCE = 0.16;
 
   // velocidade de voo da bola: duração proporcional à distância (não fixa),
@@ -209,6 +212,15 @@ var BOARD = (function () {
     return col === (COLS - 1) || col === (COLS - 2);
   }
 
+  // A casa do gol: a linha do meio da meta, na coluna do fundo — exatamente
+  // onde o goleiro começa a partida. É a ÚNICA posição de onde ele defende.
+  // Fora dali, mesmo dentro da grande área, o gol está aberto.
+  var GOAL_SPOT_ROW = GOAL_ROWS[Math.floor(GOAL_ROWS.length / 2)];
+
+  function isOnGoalSpot(row, col, team) {
+    return row === GOAL_SPOT_ROW && col === team.goalCol;
+  }
+
   function isInOwnGoalBox(row, col, team) {
     return isInGoalBox(row, col, team.goalCol === 0 ? "left" : "right");
   }
@@ -252,11 +264,21 @@ var BOARD = (function () {
     return distanceToGoal(piece, team).totalDistance <= spec.maxDist;
   }
 
+  // fonte única dos limiares de dificuldade — estavam copiados em board.js,
+  // game.js e ui.js, e na recalibração da penalidade os três teriam que ser
+  // mexidos junto (um esquecido = a tela mentindo sobre a chance)
+  function difficultyForPenalty(penalty) {
+    if (penalty <= 4) return "Fácil";
+    if (penalty <= 8) return "Média";
+    if (penalty <= 12) return "Difícil";
+    return "Quase impossível";
+  }
+
   function shootDistanceInfo(piece, team, allPieces) {
     var d = distanceToGoal(piece, team);
     var blockerCount = countShotBlockers(piece, team, allPieces);
     var penalty = Math.round(d.totalDistance * SHOT_PENALTY_PER_UNIT + blockerCount * SHOT_PENALTY_PER_BLOCKER);
-    var difficulty = penalty <= 8 ? "Fácil" : penalty <= 16 ? "Média" : penalty <= 24 ? "Difícil" : "Quase impossível";
+    var difficulty = difficultyForPenalty(penalty);
     return {
       colDist: d.colDist, rowOffset: d.rowOffset, totalDistance: d.totalDistance,
       blockerCount: blockerCount, penalty: penalty, difficulty: difficulty
@@ -279,6 +301,7 @@ var BOARD = (function () {
     getLegalMoves: getLegalMoves, getPassTargets: getPassTargets,
     isInGoalBox: isInGoalBox, isInOwnGoalBox: isInOwnGoalBox, isInOpponentGoalBox: isInOpponentGoalBox,
     isPastMidfield: isPastMidfield, canShootFrom: canShootFrom, shootDistanceInfo: shootDistanceInfo,
+    difficultyForPenalty: difficultyForPenalty, isOnGoalSpot: isOnGoalSpot,
     chebyshev: chebyshev, ballFlightMs: ballFlightMs
   };
 
