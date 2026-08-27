@@ -7,3 +7,6 @@ node_modules/
 
 # config local do editor
 .vscode/
+
+# zips de arte enviados pelo autor (ja extraidos em splashs_art/)
+*.zip

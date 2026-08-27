@@ -61,7 +61,7 @@ var GAME = (function () {
           position: pd.position, stats: cloneStats(pd.stats), power: pd.power,
           ability: pd.ability || null,
           maxMana: pd.maxMana, mana: pd.maxMana,
-          row: pd.start.row, col: col, quote: pd.quote,
+          row: pd.start.row, col: col, quote: pd.quote, lore: pd.lore || "",
           assetKey: pd.assetKey, assetPrefix: sq.assetPrefix,
           stunned: false, stunTurns: 0
         });

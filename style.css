@@ -491,6 +491,17 @@ button{ font-family: inherit; }
 .ability-name{ font-size: 0.92rem; font-weight: 600; color: var(--ink); }
 .ability-desc{ flex: 1 1 100%; font-size: 0.82rem; color: var(--ink-dim); line-height: 1.35; }
 
+/* pequena biografia do jogador — vem depois da frase de efeito, com um filete
+   à esquerda pra separar o que ele DIZ do que contam sobre ele */
+.detail-lore{
+  margin: 10px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--rule, var(--panel-border));
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
 /* atributo em disputa, no modal de duelo — o que decide varia conforme a
    jogada (desarme usa Defesa, drible usa Velocidade+Técnica), então precisa
    estar escrito na tela */
@@ -886,7 +897,18 @@ button{ font-family: inherit; }
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--panel-border);
 }
-.avatar-box img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+/* A splash art é quadrada e a caixa também, então `cover` sozinho não corta
+   nada: apareceria o corpo inteiro encolhido e o rosto sumiria. Ampliar e
+   ancorar no topo recorta a arte no busto, que é o que se lê num quadradinho
+   de 36px. (Antes disso o retrato pequeno vinha da pasta de ícones, que era
+   um close já pronto — ela deixou de existir junto com as referências reais.) */
+.avatar-box img{
+  position: absolute; left: 50%; top: 0;
+  width: 210%; height: 210%;
+  transform: translateX(-50%);
+  object-fit: cover; object-position: center top;
+  display: block;
+}
 .avatar-box .avatar-fallback{
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-weight: 800; color: #14100a; font-size: 0.85rem;
@@ -1228,7 +1250,6 @@ button{ font-family: inherit; }
   background: radial-gradient(circle at 0% 100%, rgba(37,27,16,0.55), transparent 70%);
   pointer-events: none;
 }
-.detail-hero .avatar-box{ position: absolute; left: 8px; bottom: 8px; width: 46px; height: 46px; border-width: 3px; box-shadow: 2px 2px 0 var(--shadow-ink); z-index: 1; }
 
 .detail-main{ flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
 

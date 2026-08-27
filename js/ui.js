@@ -376,10 +376,14 @@ var UI = (function () {
 
   /* ---------------- imagens (splash art / ícone) com fallback ---------------- */
 
-  function fillAvatarEl(el, piece, folder) {
+  // Todo retrato do jogo sai da mesma arte (splashs_art). A pasta de ícones
+  // foi removida junto com as referências a jogadores reais, então não há
+  // mais escolha de origem — o enquadramento do rosto é feito no CSS, pelo
+  // object-position de cada contexto.
+  function fillAvatarEl(el, piece) {
     el.innerHTML = "";
     var img = document.createElement("img");
-    img.src = folder + "/" + piece.assetPrefix + "_" + piece.assetKey + ".png";
+    img.src = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".png";
     img.alt = piece.name;
     img.loading = "lazy";
     var fallback = document.createElement("div");
@@ -392,10 +396,10 @@ var UI = (function () {
     el.appendChild(fallback);
   }
 
-  function buildAvatarBox(piece, folder) {
+  function buildAvatarBox(piece) {
     var box = document.createElement("div");
     box.className = "avatar-box";
-    fillAvatarEl(box, piece, folder);
+    fillAvatarEl(box, piece);
     return box;
   }
 
@@ -868,7 +872,7 @@ var UI = (function () {
     card.addEventListener("click", function () { onRosterClick(piece.id); });
     card.addEventListener("dblclick", function (e) { e.stopPropagation(); openPlayerStatsModal(piece.id); });
 
-    var avatar = buildAvatarBox(piece, "icones");
+    var avatar = buildAvatarBox(piece);
 
     var info = document.createElement("div");
     info.className = "roster-info";
@@ -952,9 +956,7 @@ var UI = (function () {
     var manaPct = Math.round((piece.mana / piece.maxMana) * 100);
 
     return '<div class="detail-hero-wrap">' +
-      '<div class="detail-hero" id="detail-hero-bg" style="background-image:' + grad + '">' +
-      '<div class="avatar-box" id="detail-hero-avatar"></div>' +
-      '</div>' +
+      '<div class="detail-hero" id="detail-hero-bg" style="background-image:' + grad + '"></div>' +
       '<span class="detail-jersey-number">' + piece.number + '</span>' +
       '</div>' +
       '<div class="detail-main">' +
@@ -976,6 +978,7 @@ var UI = (function () {
       '</div></div>' +
       abilityBoxHtml(piece) +
       (piece.quote ? '<p class="detail-quote">"' + piece.quote + '"</p>' : '') +
+      (piece.lore ? '<p class="detail-lore">' + piece.lore + '</p>' : '') +
       '</div>';
   }
 
@@ -1024,9 +1027,6 @@ var UI = (function () {
 
   function fillPlayerStatsInto(container, piece) {
     container.innerHTML = buildPlayerStatsHtml(piece);
-
-    var heroAvatarEl = container.querySelector("#detail-hero-avatar");
-    if (heroAvatarEl) fillAvatarEl(heroAvatarEl, piece, "icones");
 
     var heroBgEl = container.querySelector("#detail-hero-bg");
     if (heroBgEl) {
@@ -1107,7 +1107,7 @@ var UI = (function () {
     var actionsEl = sideKey === "left" ? els.duelLeftActions : els.duelRightActions;
     var sideEl = sideKey === "left" ? els.duelLeft : els.duelRight;
 
-    fillAvatarEl(avatarEl, piece, "splashs_art");
+    fillAvatarEl(avatarEl, piece);
     avatarEl.classList.toggle("mirror-art", state.teams[piece.team].attackDir === -1);
     nameEl.textContent = piece.name;
     nameEl.appendChild(buildDuelInfoIcon(piece));
@@ -1214,7 +1214,7 @@ var UI = (function () {
     var state = GAME.getState();
     if (els.goalWord) buildStaggeredWord(els.goalWord, "GOOOOL!");
     els.goalScorer.textContent = scorerPiece.name + " — " + state.teams[teamId].name;
-    if (els.goalScorerPortrait) fillAvatarEl(els.goalScorerPortrait, scorerPiece, "splashs_art");
+    if (els.goalScorerPortrait) fillAvatarEl(els.goalScorerPortrait, scorerPiece);
     els.goalBanner.classList.remove("hidden");
     var inner = els.goalBanner.querySelector(".goal-banner-inner");
     inner.style.animation = "none";
@@ -1855,7 +1855,7 @@ var UI = (function () {
     var token = document.createElement("div");
     token.className = "lineup-token";
     token.title = p.name;
-    var avatar = buildAvatarBox(p, "icones");
+    var avatar = buildAvatarBox(p);
     token.appendChild(avatar);
     var num = document.createElement("span");
     num.className = "lineup-token-number";
@@ -1950,7 +1950,7 @@ var UI = (function () {
       '<div class="power-box"><div class="power-name">✨ ' + p.power.name + '</div><div class="power-desc">' + p.power.desc + '</div></div>';
 
     var avatarEl = els.lineupDetail.querySelector("#lineup-detail-avatar");
-    if (avatarEl) fillAvatarEl(avatarEl, p, "icones");
+    if (avatarEl) fillAvatarEl(avatarEl, p);
   }
 
   function openCoinFlip() {
@@ -1997,7 +1997,6 @@ var UI = (function () {
       for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === squadId) sq = GAME_DATA.TEAMS[i];
       if (!sq) return;
       sq.players.forEach(function (p) {
-        urls.push("icones/" + sq.assetPrefix + "_" + p.assetKey + ".png");
         urls.push("splashs_art/" + sq.assetPrefix + "_" + p.assetKey + ".png");
       });
     });
