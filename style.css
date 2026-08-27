@@ -295,7 +295,7 @@ button{ font-family: inherit; }
 #start-screen{
   background:
     radial-gradient(900px 650px at 50% 18%, rgba(60,45,20,0.28), rgba(30,22,12,0.88)),
-    url('img/menu-bg.jpg') center 28% / cover no-repeat;
+    url('img/menu-bg.webp') center 28% / cover no-repeat;
   background-color: var(--bg-0);
   /* redeclara o fadeIn de .overlay-screen porque o shorthand `animation`
      substitui a lista inteira — e emenda o tremor do impacto da logo */
@@ -375,7 +375,7 @@ button{ font-family: inherit; }
 .logo-shine{
   position: absolute; inset: 0;
   pointer-events: none; overflow: hidden;
-  -webkit-mask-image: url("img/logo.png"); mask-image: url("img/logo.png");
+  -webkit-mask-image: url("img/logo.webp"); mask-image: url("img/logo.webp");
   -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
 }

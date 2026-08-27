@@ -383,7 +383,7 @@ var UI = (function () {
   function fillAvatarEl(el, piece) {
     el.innerHTML = "";
     var img = document.createElement("img");
-    img.src = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".png";
+    img.src = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".webp";
     img.alt = piece.name;
     img.loading = "lazy";
     var fallback = document.createElement("div");
@@ -738,7 +738,7 @@ var UI = (function () {
     artWrap.className = "token-art-wrap";
     var img = document.createElement("img");
     img.className = "token-art";
-    img.src = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".png";
+    img.src = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".webp";
     img.alt = piece.name;
     img.loading = "lazy";
     var fallback = document.createElement("div");
@@ -1030,7 +1030,7 @@ var UI = (function () {
 
     var heroBgEl = container.querySelector("#detail-hero-bg");
     if (heroBgEl) {
-      var url = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".png";
+      var url = "splashs_art/" + piece.assetPrefix + "_" + piece.assetKey + ".webp";
       loadDownscaledHeroBg(heroBgEl, url, 240);
     }
   }
@@ -1997,7 +1997,7 @@ var UI = (function () {
       for (var i = 0; i < GAME_DATA.TEAMS.length; i++) if (GAME_DATA.TEAMS[i].id === squadId) sq = GAME_DATA.TEAMS[i];
       if (!sq) return;
       sq.players.forEach(function (p) {
-        urls.push("splashs_art/" + sq.assetPrefix + "_" + p.assetKey + ".png");
+        urls.push("splashs_art/" + sq.assetPrefix + "_" + p.assetKey + ".webp");
       });
     });
     return urls;
