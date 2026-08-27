@@ -105,6 +105,13 @@ var UI = (function () {
 
   // escudo do squad: se for bandeira de país, renderiza como imagem (flagcdn) — no Windows
   // o emoji de bandeira regional vira só o código de 2 letras (ex.: "BR"), então não dá pra confiar no emoji puro.
+  // aplica o degradê da seleção sem depender de uma classe CSS por squad
+  function applySquadBadgeStyle(el, sq) {
+    el.classList.add("squad-badge");
+    el.style.background = "radial-gradient(circle at 30% 30%, var(--" +
+      sq.colorVar + "-2), var(--" + sq.colorVar + "))";
+  }
+
   function fillSquadBadgeEl(el, sq) {
     el.innerHTML = "";
     var iso2 = flagToIso2(sq.badge);
@@ -343,7 +350,8 @@ var UI = (function () {
         card.appendChild(tag);
       }
       var badge = document.createElement("span");
-      badge.className = "team-pick-badge " + sq.colorVar + "-badge";
+      badge.className = "team-pick-badge";
+      applySquadBadgeStyle(badge, sq);
       fillSquadBadgeEl(badge, sq);
       var name = document.createElement("span");
       name.className = "team-pick-name";
@@ -1537,7 +1545,8 @@ var UI = (function () {
     var row = document.createElement("div");
     row.className = "copa-squad-row" + (extraClass ? " " + extraClass : "");
     var badge = document.createElement("span");
-    badge.className = "copa-squad-badge " + sq.colorVar + "-badge";
+    badge.className = "copa-squad-badge";
+    applySquadBadgeStyle(badge, sq);
     fillSquadBadgeEl(badge, sq);
     var name = document.createElement("span");
     name.className = "copa-squad-name";
@@ -1547,31 +1556,93 @@ var UI = (function () {
     return row;
   }
 
+  var drawTimers = [];
+
+  function clearDrawTimers() {
+    drawTimers.forEach(clearTimeout);
+    drawTimers = [];
+  }
+
+  /* O sorteio revela uma selecao por vez, alternando entre os grupos, como
+     numa cerimonia de verdade. Cada linha entra com a classe .is-drawn, que
+     dispara a animacao no CSS. O botao Continuar so aparece no fim — mas
+     clicar em qualquer lugar revela tudo de uma vez, pra quem ja viu. */
   function renderCopaDraw() {
     var groups = COPA.getGroups();
     if (!groups) return;
+    clearDrawTimers();
+
     var humanId = COPA.getState().humanSquadId;
     var groupContainers = { A: els.copaDrawGroupA, B: els.copaDrawGroupB, C: els.copaDrawGroupC, D: els.copaDrawGroupD };
-    groups.groupIds.forEach(function (groupId) {
-      var container = groupContainers[groupId];
-      if (!container) return;
-      container.innerHTML = "";
-      groups[groupId].forEach(function (squadId) {
-        container.appendChild(buildCopaSquadRow(squadId, squadId === humanId ? "is-human" : ""));
-      });
+    groups.groupIds.forEach(function (gid) {
+      if (groupContainers[gid]) groupContainers[gid].innerHTML = "";
     });
-    if (els.copaDrawExcluded && els.copaDrawExcludedList) {
-      if (groups.excludedSquadIds.length) {
-        els.copaDrawExcludedList.innerHTML = "";
-        groups.excludedSquadIds.forEach(function (squadId) {
-          els.copaDrawExcludedList.appendChild(buildCopaSquadRow(squadId));
-        });
-        els.copaDrawExcluded.classList.remove("hidden");
-      } else {
-        els.copaDrawExcluded.classList.add("hidden");
-      }
+    if (els.copaDrawExcludedList) els.copaDrawExcludedList.innerHTML = "";
+    if (els.copaDrawExcluded) els.copaDrawExcluded.classList.add("hidden");
+    els.copaDrawContinueBtn.classList.add("hidden");
+
+    // ordem de revelacao: primeira vaga de cada grupo, depois a segunda, etc.
+    var ordem = [];
+    var maior = Math.max.apply(null, groups.groupIds.map(function (g) { return groups[g].length; }));
+    for (var i = 0; i < maior; i++) {
+      groups.groupIds.forEach(function (gid) {
+        if (groups[gid][i]) ordem.push({ gid: gid, squadId: groups[gid][i] });
+      });
     }
+
+    var PASSO = 260;
+    function revelar(item) {
+      var alvo = groupContainers[item.gid];
+      if (!alvo) return;
+      var linha = buildCopaSquadRow(item.squadId, item.squadId === humanId ? "is-human" : "");
+      linha.classList.add("is-drawn");
+      alvo.appendChild(linha);
+      SOUND.playSelect();
+    }
+
+    function mostrarExcluidas() {
+      if (!els.copaDrawExcluded || !els.copaDrawExcludedList) return;
+      if (!groups.excludedSquadIds.length) return;
+      els.copaDrawExcludedList.innerHTML = "";
+      groups.excludedSquadIds.forEach(function (squadId) {
+        els.copaDrawExcludedList.appendChild(buildCopaSquadRow(squadId));
+      });
+      els.copaDrawExcluded.classList.remove("hidden");
+    }
+
+    function terminar() {
+      clearDrawTimers();
+      els.copaDrawContinueBtn.classList.remove("hidden");
+      els.copaDrawModal.classList.remove("copa-draw-running");
+    }
+
+    // pular: completa o que falta sem animacao
+    function pular() {
+      clearDrawTimers();
+      groups.groupIds.forEach(function (gid) {
+        var alvo = groupContainers[gid];
+        if (!alvo) return;
+        alvo.innerHTML = "";
+        groups[gid].forEach(function (squadId) {
+          alvo.appendChild(buildCopaSquadRow(squadId, squadId === humanId ? "is-human" : ""));
+        });
+      });
+      mostrarExcluidas();
+      terminar();
+    }
+    els.copaDrawModal.onclick = function (e) {
+      if (e.target === els.copaDrawContinueBtn) return;
+      if (els.copaDrawModal.classList.contains("copa-draw-running")) pular();
+    };
+
+    els.copaDrawModal.classList.add("copa-draw-running");
     els.copaDrawModal.classList.remove("hidden");
+
+    ordem.forEach(function (item, i) {
+      drawTimers.push(setTimeout(function () { revelar(item); }, 380 + i * PASSO));
+    });
+    drawTimers.push(setTimeout(function () { mostrarExcluidas(); }, 380 + ordem.length * PASSO + 200));
+    drawTimers.push(setTimeout(terminar, 380 + ordem.length * PASSO + 500));
   }
 
   function copaStageLabel(stage) {
@@ -1606,7 +1677,8 @@ var UI = (function () {
       var nameTd = document.createElement("td");
       nameTd.className = "copa-standings-name";
       var badge = document.createElement("span");
-      badge.className = "copa-standings-badge " + sq.colorVar + "-badge";
+      badge.className = "copa-standings-badge";
+      applySquadBadgeStyle(badge, sq);
       fillSquadBadgeEl(badge, sq);
       nameTd.appendChild(badge);
       var nameSpan = document.createElement("span");
@@ -1646,6 +1718,14 @@ var UI = (function () {
 
   // se o jogador já foi eliminado, avança sozinho até sair um campeão — não faz
   // sentido pedir clique numa sequência de telas de resumo vazias pro espectador
+  function buildCopaResultLine(fx) {
+    var home = squadById(fx.homeSquadId), away = squadById(fx.awaySquadId);
+    var line = document.createElement("p");
+    line.className = "copa-round-results-line";
+    line.textContent = home.shortName + " " + fx.golsA + " - " + fx.golsB + " " + away.shortName;
+    return line;
+  }
+
   function renderCopaHub() {
     var state = COPA.getState();
     if (!state) return;
@@ -1674,17 +1754,36 @@ var UI = (function () {
     els.copaHubRoundResults.innerHTML = "";
     var simulated = state.fixtures.filter(function (f) { return f.stage === state.stage && f.status === "done" && !f.isHumanFixture; });
     if (simulated.length) {
-      var heading = document.createElement("p");
-      heading.className = "copa-round-results-heading";
-      heading.textContent = "Resultados simulados";
-      els.copaHubRoundResults.appendChild(heading);
-      simulated.forEach(function (fx) {
-        var home = squadById(fx.homeSquadId), away = squadById(fx.awaySquadId);
-        var line = document.createElement("p");
-        line.className = "copa-round-results-line";
-        line.textContent = home.shortName + " " + fx.golsA + " - " + fx.golsB + " " + away.shortName;
-        els.copaHubRoundResults.appendChild(line);
-      });
+      // Na fase de grupos os jogos vao se acumulando rodada apos rodada. Sem
+      // separar, a lista so cresce no rodape e nao da pra saber o que aconteceu
+      // em qual rodada. Cada bloco de rodada e um <details> aberto: as antigas
+      // podem ser fechadas, e a mais recente vem sempre em cima.
+      if (state.stage === "groups") {
+        var porRodada = {};
+        simulated.forEach(function (f) {
+          var k = f.roundIndex == null ? 0 : f.roundIndex;
+          (porRodada[k] = porRodada[k] || []).push(f);
+        });
+        Object.keys(porRodada).map(Number).sort(function (a, b) { return b - a; })
+          .forEach(function (idx, ordem) {
+            var bloco = document.createElement("details");
+            bloco.className = "copa-round-block";
+            bloco.open = ordem === 0; // so a rodada mais recente vem aberta
+            var titulo = document.createElement("summary");
+            titulo.className = "copa-round-results-heading";
+            titulo.textContent = "Rodada " + (idx + 1) + " · " + porRodada[idx].length + " jogo" +
+              (porRodada[idx].length > 1 ? "s" : "");
+            bloco.appendChild(titulo);
+            porRodada[idx].forEach(function (fx) { bloco.appendChild(buildCopaResultLine(fx)); });
+            els.copaHubRoundResults.appendChild(bloco);
+          });
+      } else {
+        var heading = document.createElement("p");
+        heading.className = "copa-round-results-heading";
+        heading.textContent = "Outros jogos desta fase";
+        els.copaHubRoundResults.appendChild(heading);
+        simulated.forEach(function (fx) { els.copaHubRoundResults.appendChild(buildCopaResultLine(fx)); });
+      }
     }
 
     if (step.type === "human-fixture") {
@@ -1721,7 +1820,8 @@ var UI = (function () {
       trophy.className = "copa-result-champ-trophy";
       trophy.textContent = "🏆";
       var badge = document.createElement("span");
-      badge.className = "copa-result-badge-img " + champ.colorVar + "-badge";
+      badge.className = "copa-result-badge-img";
+      applySquadBadgeStyle(badge, champ);
       fillSquadBadgeEl(badge, champ);
       var name = document.createElement("p");
       name.className = "copa-result-champ-name";

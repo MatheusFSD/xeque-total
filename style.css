@@ -256,33 +256,15 @@ button{ font-family: inherit; }
 .icon-btn svg{ width: 18px; height: 18px; display: block; }
 
 /* escudos viram "selos" impressos: cor chapada + anel de tinta grosso, sem brilho neon */
-.brasil-badge, .alemanha-badge, .franca-badge, .argentina-badge, .italia-badge, .espanha-badge,
-.colombia-badge, .croacia-badge, .holanda-badge, .mexico-badge, .noruega-badge,
-.portugal-badge, .inglaterra-badge, .uruguai-badge, .coreia-badge,
-.belgica-badge, .chile-badge, .japao-badge, .marrocos-badge, .cortomaltese-badge{
+/* Um escudo para qualquer seleção. Antes havia uma regra por squad e a
+   lista de seletores era escrita à mão — toda seleção nova entrava sem
+   borda até alguém lembrar de editar o CSS (foi o que houve com Camarões
+   e Austrália). O degradê agora vem do colorVar em runtime, via
+   applySquadBadgeStyle() em js/ui.js. */
+.squad-badge{
   border: 3px solid var(--panel-border);
   box-shadow: 2px 2px 0 var(--shadow-ink);
 }
-.brasil-badge{ background: radial-gradient(circle at 30% 30%, var(--brasil-2), var(--brasil)); }
-.alemanha-badge{ background: radial-gradient(circle at 30% 30%, var(--alemanha-2), var(--alemanha)); }
-.franca-badge{ background: radial-gradient(circle at 30% 30%, var(--franca-2), var(--franca)); }
-.argentina-badge{ background: radial-gradient(circle at 30% 30%, var(--argentina-2), var(--argentina)); }
-.italia-badge{ background: radial-gradient(circle at 30% 30%, var(--italia-2), var(--italia)); }
-.espanha-badge{ background: radial-gradient(circle at 30% 30%, var(--espanha-2), var(--espanha)); }
-.colombia-badge{ background: radial-gradient(circle at 30% 30%, var(--colombia-2), var(--colombia)); }
-.croacia-badge{ background: radial-gradient(circle at 30% 30%, var(--croacia-2), var(--croacia)); }
-.holanda-badge{ background: radial-gradient(circle at 30% 30%, var(--holanda-2), var(--holanda)); }
-.mexico-badge{ background: radial-gradient(circle at 30% 30%, var(--mexico-2), var(--mexico)); }
-.noruega-badge{ background: radial-gradient(circle at 30% 30%, var(--noruega-2), var(--noruega)); }
-.portugal-badge{ background: radial-gradient(circle at 30% 30%, var(--portugal-2), var(--portugal)); }
-.inglaterra-badge{ background: radial-gradient(circle at 30% 30%, var(--inglaterra-2), var(--inglaterra)); }
-.uruguai-badge{ background: radial-gradient(circle at 30% 30%, var(--uruguai-2), var(--uruguai)); }
-.coreia-badge{ background: radial-gradient(circle at 30% 30%, var(--coreia-2), var(--coreia)); }
-.belgica-badge{ background: radial-gradient(circle at 30% 30%, var(--belgica-2), var(--belgica)); }
-.chile-badge{ background: radial-gradient(circle at 30% 30%, var(--chile-2), var(--chile)); }
-.japao-badge{ background: radial-gradient(circle at 30% 30%, var(--japao-2), var(--japao)); }
-.marrocos-badge{ background: radial-gradient(circle at 30% 30%, var(--marrocos-2), var(--marrocos)); }
-.cortomaltese-badge{ background: radial-gradient(circle at 30% 30%, var(--cortomaltese-2), var(--cortomaltese)); }
 
 /* =========================================================
    TELAS EM OVERLAY (início / duelo / fim de jogo)
@@ -1798,6 +1780,36 @@ button{ font-family: inherit; }
 
 /* ---------------- modo Copa: sorteio / hub / resultado ---------------- */
 
+/* cada seleção entra no grupo com um baque, como bolinha saindo do pote */
+@keyframes copaDrawIn{
+  0%   { opacity: 0; transform: translateY(-14px) scale(1.12); }
+  55%  { opacity: 1; transform: translateY(2px) scale(0.98); }
+  100% { opacity: 1; transform: none; }
+}
+.copa-squad-row.is-drawn{ animation: copaDrawIn 0.32s cubic-bezier(.2,.8,.3,1.2) both; }
+
+/* durante o sorteio a tela inteira e clicavel pra pular */
+#copa-draw-modal.copa-draw-running{ cursor: pointer; }
+
+/* rodadas da fase de grupos: cada bloco fecha e abre */
+.copa-round-block{ margin-bottom: 8px; }
+.copa-round-block > summary{
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.copa-round-block > summary::-webkit-details-marker{ display: none; }
+.copa-round-block > summary::before{
+  content: '▾'; font-size: 0.7rem; color: var(--ink-faint);
+  transition: transform 0.15s ease;
+}
+.copa-round-block:not([open]) > summary::before{ transform: rotate(-90deg); }
+.copa-round-block > summary:hover{ color: var(--ink); }
+.copa-round-block[open] > summary{ margin-bottom: 4px; }
+
+@media (prefers-reduced-motion: reduce){
+  .copa-squad-row.is-drawn{ animation: none; }
+}
+
 .copa-draw-groups{ display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin: 8px 0 22px; }
 .copa-draw-group{
   flex: 1 1 220px; max-width: 260px;
@@ -1865,7 +1877,13 @@ button{ font-family: inherit; }
   font-family: var(--font-display); color: var(--ink-faint); font-size: 0.66rem;
   letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 6px;
 }
-.copa-round-results-line{ color: var(--ink-dim); font-size: 0.82rem; margin: 2px 0; }
+/* os resultados ficam indentados sob o titulo da rodada, alinhados a
+   esquerda — centralizados eles pareciam nao pertencer ao bloco */
+.copa-round-results-line{
+  color: var(--ink-dim); font-size: 0.82rem; margin: 2px 0;
+  text-align: left; padding-left: 16px;
+  font-variant-numeric: tabular-nums;
+}
 
 .copa-result-card{ position: relative; overflow: hidden; }
 .copa-result-card.is-champion{ border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold), var(--shadow-deep); }
