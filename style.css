@@ -293,7 +293,11 @@ button{ font-family: inherit; }
    applySquadBadgeStyle() em js/ui.js. */
 .squad-badge{
   border: 3px solid var(--panel-border);
-  box-shadow: 2px 2px 0 var(--shadow-ink);
+  /* Em circulo, a sombra deslocada e recortada na borda do elemento, entao
+     nunca passa por baixo dela: entre as duas curvas suavizadas sobra um fio
+     claro que parece relevo. O primeiro anel, de 1px e sem deslocamento,
+     fecha exatamente essa junta. */
+  box-shadow: 0 0 0 1px var(--shadow-ink), 2px 2px 0 0.5px var(--shadow-ink);
 }
 
 /* =========================================================
@@ -1781,7 +1785,7 @@ button{ font-family: inherit; }
   display: flex; align-items: center; justify-content: center;
   font-size: 2.1rem; backface-visibility: hidden; overflow: hidden;
   border: 4px solid var(--panel-border);
-  box-shadow: 4px 4px 0 var(--shadow-ink);
+  box-shadow: 0 0 0 1px var(--shadow-ink), 4px 4px 0 0.5px var(--shadow-ink);
 }
 .coin-front{ background: radial-gradient(circle at 30% 30%, var(--slot-a-2), var(--slot-a)); transform: rotateY(0deg); }
 .coin-back{ background: radial-gradient(circle at 30% 30%, var(--slot-b-2), var(--slot-b)); transform: rotateY(180deg); }

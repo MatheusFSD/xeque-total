@@ -118,7 +118,9 @@ var UI = (function () {
     if (iso2) {
       var img = document.createElement("img");
       img.className = "badge-flag-img";
-      img.src = "https://flagcdn.com/w80/" + iso2 + ".png";
+      // w320, e nao w80: este mesmo escudo aparece na moeda do sorteio com 96px
+      // de CSS, que numa tela 2x sao 192px fisicos — o w80 chegava esticado.
+      img.src = "https://flagcdn.com/w320/" + iso2 + ".png";
       img.alt = sq.name;
       img.onerror = function () { el.textContent = sq.badge; };
       el.appendChild(img);
@@ -135,7 +137,7 @@ var UI = (function () {
     if (iso2) {
       var img = document.createElement("img");
       img.className = "piece-flag-img";
-      img.src = "https://flagcdn.com/w40/" + iso2 + ".png";
+      img.src = "https://flagcdn.com/w160/" + iso2 + ".png";
       img.alt = piece.nationality;
       img.onerror = function () { el.textContent = piece.flag; };
       el.appendChild(img);
@@ -943,7 +945,7 @@ var UI = (function () {
   function flagHtml(piece) {
     var iso2 = flagToIso2(piece.flag);
     if (!iso2) return '<span class="detail-flag">' + piece.flag + '</span>';
-    return '<img class="detail-flag-img" src="https://flagcdn.com/w40/' + iso2 + '.png" alt="' + piece.nationality +
+    return '<img class="detail-flag-img" src="https://flagcdn.com/w160/' + iso2 + '.png" alt="' + piece.nationality +
       '" onerror="this.outerHTML=\'<span class=&quot;detail-flag&quot;>' + piece.flag + '</span>\'">';
   }
 
