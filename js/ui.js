@@ -103,7 +103,12 @@ var UI = (function () {
     return GAME_DATA.TEAMS[0];
   }
 
-  // escudo do squad: se for bandeira de país, renderiza como imagem (flagcdn) — no Windows
+  // Bandeiras locais (320px, WebP sem perdas, ~32 KB no total). Antes vinham do
+  // flagcdn: dependia de servico externo estar no ar, e o fallback e o emoji,
+  // que no Windows vira so as duas letras do pais.
+  var FLAG_DIR = "img/bandeiras/";
+
+  // escudo do squad: renderiza a bandeira como imagem — no Windows
   // o emoji de bandeira regional vira só o código de 2 letras (ex.: "BR"), então não dá pra confiar no emoji puro.
   // aplica o degradê da seleção sem depender de uma classe CSS por squad
   function applySquadBadgeStyle(el, sq) {
@@ -118,9 +123,7 @@ var UI = (function () {
     if (iso2) {
       var img = document.createElement("img");
       img.className = "badge-flag-img";
-      // w320, e nao w80: este mesmo escudo aparece na moeda do sorteio com 96px
-      // de CSS, que numa tela 2x sao 192px fisicos — o w80 chegava esticado.
-      img.src = "https://flagcdn.com/w320/" + iso2 + ".png";
+      img.src = FLAG_DIR + iso2 + ".webp";
       img.alt = sq.name;
       img.onerror = function () { el.textContent = sq.badge; };
       el.appendChild(img);
@@ -137,7 +140,7 @@ var UI = (function () {
     if (iso2) {
       var img = document.createElement("img");
       img.className = "piece-flag-img";
-      img.src = "https://flagcdn.com/w160/" + iso2 + ".png";
+      img.src = FLAG_DIR + iso2 + ".webp";
       img.alt = piece.nationality;
       img.onerror = function () { el.textContent = piece.flag; };
       el.appendChild(img);
@@ -945,7 +948,7 @@ var UI = (function () {
   function flagHtml(piece) {
     var iso2 = flagToIso2(piece.flag);
     if (!iso2) return '<span class="detail-flag">' + piece.flag + '</span>';
-    return '<img class="detail-flag-img" src="https://flagcdn.com/w160/' + iso2 + '.png" alt="' + piece.nationality +
+    return '<img class="detail-flag-img" src="' + FLAG_DIR + iso2 + '.webp" alt="' + piece.nationality +
       '" onerror="this.outerHTML=\'<span class=&quot;detail-flag&quot;>' + piece.flag + '</span>\'">';
   }
 
