@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Quadrado Mágico — Xadrez × Futebol</title>
+<title data-i18n>Quadrado Mágico — Xadrez × Futebol</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
   <div id="start-screen" class="overlay-screen">
     <div class="stars"></div>
     <div class="start-card">
-      <label class="theme-switch theme-switch-corner" title="Modo noturno">
+      <label class="theme-switch theme-switch-corner" data-i18n-title title="Modo noturno">
         <input type="checkbox" id="theme-toggle-btn-start">
         <span class="theme-switch-track">
           <span class="theme-switch-icon">☀️</span>
@@ -26,64 +26,71 @@
           <span class="theme-switch-thumb"></span>
         </span>
       </label>
-      <button type="button" class="icon-btn settings-gear-btn" id="settings-gear-btn" title="Configurações da partida">
+      <button type="button" class="icon-btn settings-gear-btn" id="settings-gear-btn" data-i18n-title title="Configurações da partida">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
       <div class="settings-menu hidden" id="settings-menu">
-        <p class="settings-menu-title">Configurações da partida</p>
+        <p class="settings-menu-title" data-i18n>Configurações da partida</p>
         <label class="turn-limit-row" for="turn-limit-input">
-          <span>Turnos por tempo (1º + 2º tempo)</span>
+          <span data-i18n>Turnos por tempo (1º + 2º tempo)</span>
           <input type="number" id="turn-limit-input" min="4" max="200" step="2" value="50">
         </label>
         <label class="no-turn-limit-row" for="no-turn-limit-checkbox">
           <input type="checkbox" id="no-turn-limit-checkbox">
-          <span>Sem limite de turnos — a partida termina quando um time fizer 3 gols</span>
+          <span data-i18n>Sem limite de turnos — a partida termina quando um time fizer 3 gols</span>
+        </label>
+        <label class="turn-limit-row" for="lang-select">
+          <span data-i18n>Idioma</span>
+          <select id="lang-select" class="lang-select">
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+          </select>
         </label>
         <label class="no-turn-limit-row" for="sound-checkbox">
           <input type="checkbox" id="sound-checkbox" checked>
-          <span>🔊 Efeitos sonoros</span>
+          <span data-i18n>🔊 Efeitos sonoros</span>
         </label>
       </div>
-      <p class="kicker">XADREZ TÁTICO DE FUTEBOL</p>
+      <p class="kicker" data-i18n>XADREZ TÁTICO DE FUTEBOL</p>
       <h1 class="logo-wrap">
         <img class="logo-img" src="img/logo.webp" alt="Quadrado Mágico">
         <span class="logo-shine" aria-hidden="true"></span>
       </h1>
-      <p class="tagline">Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
+      <p class="tagline" data-i18n>Mova pela personalidade de cada jogador. Passe, chute ou dispute um Duelo — Ação ou Poder. Marque o gol.</p>
 
       <div class="mode-select-grid" id="mode-select-grid">
         <button type="button" class="mode-card mode-card-amistoso" id="mode-select-amistoso" data-mode="amistoso">
           <img class="mode-card-img mode-card-img-a" src="img/messicr71.webp" alt="">
           <img class="mode-card-img mode-card-img-b" src="img/messicr72.webp" alt="">
-          <span class="mode-card-label">Amistoso</span>
+          <span class="mode-card-label" data-i18n>Amistoso</span>
         </button>
         <button type="button" class="mode-card mode-card-copa" id="mode-select-copa" data-mode="copa">
           <img class="mode-card-img mode-card-img-a" src="img/belini1.webp" alt="">
           <img class="mode-card-img mode-card-img-b" src="img/belini2.webp" alt="">
-          <span class="mode-card-label">Copa</span>
+          <span class="mode-card-label" data-i18n>Copa</span>
         </button>
         <button type="button" class="mode-card mode-card-duo" id="mode-select-duo" data-mode="2players">
           <img class="mode-card-img mode-card-img-a" src="img/duo1.webp" alt="">
           <img class="mode-card-img mode-card-img-b" src="img/duo2.webp" alt="">
-          <span class="mode-card-label">2 Jogadores</span>
+          <span class="mode-card-label" data-i18n>2 Jogadores</span>
         </button>
         <button type="button" class="mode-card mode-card-campanha" id="mode-select-campanha" data-mode="campaign">
           <img class="mode-card-img mode-card-img-a" src="img/campanha1.webp" alt="">
           <img class="mode-card-img mode-card-img-b" src="img/campanha2.webp" alt="">
-          <span class="mode-card-label">Campanha</span>
+          <span class="mode-card-label" data-i18n>Campanha</span>
         </button>
       </div>
 
-      <button id="how-to-play-btn" class="link-btn">Como jogar?</button>
+      <button id="how-to-play-btn" class="link-btn" data-i18n>Como jogar?</button>
 
       <div id="how-to-play" class="how-to-play hidden">
         <ul>
-          <li><strong>Movimento:</strong> não é a posição que define o passo — é a <strong>personalidade</strong>. Rápido = Bispo, Bruto = Torre, Cerebral = Dama curta, Oportunista = Cavalo. O Goleiro é sempre Rei-de-xadrez (1 casa). O <strong>Rápido</strong> tem um truque só dele: se a diagonal bater na linha lateral, ela <strong>rebate</strong> e continua em vez de acabar.</li>
-          <li><strong>Bola:</strong> pare em cima dela para dominá-la.</li>
-          <li><strong>Passe:</strong> com a bola, envie para um companheiro dentro do seu raio de movimento (destaque azul). O Goleiro é exceção: pode lançar em qualquer casa até a linha de meio-campo.</li>
-          <li><strong>Chute:</strong> depois de cruzar o meio-campo, chute de onde estiver — quanto mais longe do gol, mais difícil.</li>
-          <li><strong>Duelo:</strong> ao mover para cima de um adversário, escolha uma Ação básica (grátis) ou um Poder especial (consome Mana, mais forte).</li>
-          <li>Quem tiver mais gols quando o tempo acabar, vence!</li>
+          <li data-i18n-html><strong>Movimento:</strong> não é a posição que define o passo — é a <strong>personalidade</strong>. Rápido = Bispo, Bruto = Torre, Cerebral = Dama curta, Oportunista = Cavalo. O Goleiro é sempre Rei-de-xadrez (1 casa). O <strong>Rápido</strong> tem um truque só dele: se a diagonal bater na linha lateral, ela <strong>rebate</strong> e continua em vez de acabar.</li>
+          <li data-i18n-html><strong>Bola:</strong> pare em cima dela para dominá-la.</li>
+          <li data-i18n-html><strong>Passe:</strong> com a bola, envie para um companheiro dentro do seu raio de movimento (destaque azul). O Goleiro é exceção: pode lançar em qualquer casa até a linha de meio-campo.</li>
+          <li data-i18n-html><strong>Chute:</strong> depois de cruzar o meio-campo, chute de onde estiver — quanto mais longe do gol, mais difícil.</li>
+          <li data-i18n-html><strong>Duelo:</strong> ao mover para cima de um adversário, escolha uma Ação básica (grátis) ou um Poder especial (consome Mana, mais forte).</li>
+          <li data-i18n>Quem tiver mais gols quando o tempo acabar, vence!</li>
         </ul>
       </div>
     </div>
@@ -93,7 +100,7 @@
   <div id="squad-select-screen" class="overlay-screen hidden">
     <div class="stars"></div>
     <div class="start-card">
-      <button type="button" class="icon-btn squad-select-back-btn" id="squad-select-back-btn" title="Voltar">
+      <button type="button" class="icon-btn squad-select-back-btn" id="squad-select-back-btn" data-i18n-title title="Voltar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       </button>
       <p class="kicker" id="squad-select-kicker">AMISTOSO</p>
@@ -113,8 +120,8 @@
     <main id="main-grid">
       <div class="side-column" id="side-column-left">
         <div class="ad-billboard ad-billboard-1" aria-hidden="true">
-          <span class="ad-billboard-brand">TORRE SEGUROS</span>
-          <span class="ad-billboard-tag">Proteção Total</span>
+          <span class="ad-billboard-brand" data-i18n>TORRE SEGUROS</span>
+          <span class="ad-billboard-tag" data-i18n>Proteção Total</span>
         </div>
         <aside class="roster-panel print-texture" id="roster-left">
           <div class="roster-toggle" id="roster-toggle">
@@ -128,7 +135,7 @@
       <section id="board-wrap">
         <div id="stadium">
           <div class="stadium-topbar">
-            <label class="theme-switch" title="Modo noturno">
+            <label class="theme-switch" data-i18n-title title="Modo noturno">
               <input type="checkbox" id="theme-toggle-btn">
               <span class="theme-switch-track">
                 <span class="theme-switch-icon">☀️</span>
@@ -139,7 +146,7 @@
             <div class="tv-scoreboard" id="tv-scoreboard">
               <div class="tv-accent tv-accent-a"></div>
               <div class="tv-team tv-team-a" id="tv-team-a">
-                <span class="tv-you-mark" id="tv-you-a" title="Seu time">★</span>
+                <span class="tv-you-mark" id="tv-you-a" data-i18n-title title="Seu time">★</span>
                 <span class="tv-flag" id="tv-badge-a"></span>
                 <span class="tv-abbr" id="tv-abbr-a">BRA</span>
               </div>
@@ -148,7 +155,7 @@
               <div class="tv-team tv-team-b" id="tv-team-b">
                 <span class="tv-abbr" id="tv-abbr-b">ALE</span>
                 <span class="tv-flag" id="tv-badge-b"></span>
-                <span class="tv-you-mark" id="tv-you-b" title="Seu time">★</span>
+                <span class="tv-you-mark" id="tv-you-b" data-i18n-title title="Seu time">★</span>
               </div>
               <div class="tv-clock-seg">
                 <span class="tv-clock-time" id="score-clock">1ºT 0'</span>
@@ -156,7 +163,7 @@
               </div>
               <div class="tv-accent tv-accent-b"></div>
             </div>
-            <button id="menu-btn" class="icon-btn" title="Menu">☰</button>
+            <button id="menu-btn" class="icon-btn" data-i18n-title title="Menu">☰</button>
           </div>
           <div id="pitch">
             <div class="pitch-goal pitch-goal-left"><div class="pitch-net"></div><div class="pitch-post-back"></div></div>
@@ -181,13 +188,13 @@
 
       <div class="side-column" id="side-column-right">
         <div class="ad-billboard ad-billboard-2" aria-hidden="true">
-          <span class="ad-billboard-brand">CAVALO ENERGIA</span>
-          <span class="ad-billboard-tag">Salta na Frente</span>
+          <span class="ad-billboard-brand" data-i18n>CAVALO ENERGIA</span>
+          <span class="ad-billboard-tag" data-i18n>Salta na Frente</span>
         </div>
         <aside class="roster-panel print-texture" id="roster-right">
-          <h2 class="roster-title">Ficha do Jogador</h2>
+          <h2 class="roster-title" data-i18n>Ficha do Jogador</h2>
           <div id="player-detail-panel" class="player-detail-panel">
-            <p class="detail-empty">Selecione um jogador no time ou no campo pra ver a ficha completa.</p>
+            <p class="detail-empty" data-i18n>Selecione um jogador no time ou no campo pra ver a ficha completa.</p>
           </div>
         </aside>
       </div>
@@ -197,7 +204,7 @@
   <!-- ============ ESTATÍSTICAS DO JOGADOR (duplo-clique) ============ -->
   <div id="player-stats-modal" class="overlay-screen hidden">
     <div class="player-stats-card">
-      <button id="player-stats-close" class="icon-btn player-stats-close" title="Fechar">✕</button>
+      <button id="player-stats-close" class="icon-btn player-stats-close" data-i18n-title title="Fechar">✕</button>
       <div id="player-stats-body" class="detail-card"></div>
     </div>
   </div>
@@ -238,14 +245,14 @@
         </div>
       </div>
       <p class="duel-result" id="duel-result"></p>
-      <button id="duel-continue-btn" class="btn btn-primary hidden">Continuar</button>
+      <button id="duel-continue-btn" class="btn btn-primary hidden" data-i18n>Continuar</button>
     </div>
   </div>
 
   <!-- ============ BANNER DE GOL ============ -->
   <div id="goal-banner" class="hidden">
     <div class="goal-banner-inner">
-      <p class="goal-word" id="goal-word" aria-label="GOOOOL!"></p>
+      <p class="goal-word" id="goal-word" data-i18n-aria aria-label="GOOOOL!"></p>
       <div class="goal-sticker">
         <div class="goal-sticker-portrait" id="goal-scorer-portrait"></div>
         <p class="goal-scorer" id="goal-scorer"></p>
@@ -256,8 +263,8 @@
   <!-- ============ INTERVALO (2º TEMPO) ============ -->
   <div id="halftime-banner" class="hidden">
     <div class="halftime-banner-inner">
-      <p class="halftime-word">FIM DO 1º TEMPO</p>
-      <p class="halftime-sub">Os times trocam de lado...</p>
+      <p class="halftime-word" data-i18n>FIM DO 1º TEMPO</p>
+      <p class="halftime-sub" data-i18n>Os times trocam de lado...</p>
     </div>
   </div>
 
@@ -269,19 +276,19 @@
       <div class="gameover-score" id="gameover-score">0 — 0</div>
       <p class="gameover-sub" id="gameover-sub"></p>
       <button id="rematch-btn" class="btn btn-primary btn-start">🔄 Jogar Novamente</button>
-      <button id="gameover-menu-btn" class="link-btn">Voltar ao Menu Principal</button>
+      <button id="gameover-menu-btn" class="link-btn" data-i18n>Voltar ao Menu Principal</button>
     </div>
   </div>
 
   <!-- ============ PERGUNTA DE ESCALAÇÃO ============ -->
   <div id="lineup-ask-modal" class="overlay-screen hidden">
     <div class="start-card">
-      <p class="kicker">ANTES DE COMEÇAR</p>
-      <h1 class="logo lineup-title">ESCALAÇÃO</h1>
+      <p class="kicker" data-i18n>ANTES DE COMEÇAR</p>
+      <h1 class="logo lineup-title" data-i18n>ESCALAÇÃO</h1>
       <p class="tagline" id="lineup-ask-text">Quer ajustar as posições iniciais do seu time em campo?</p>
       <div class="lineup-ask-actions">
-        <button id="lineup-ask-yes" class="btn btn-primary">📋 Sim, editar escalação</button>
-        <button id="lineup-ask-no" class="btn btn-ghost">Não, começar direto</button>
+        <button id="lineup-ask-yes" class="btn btn-primary" data-i18n>📋 Sim, editar escalação</button>
+        <button id="lineup-ask-no" class="btn btn-ghost" data-i18n>Não, começar direto</button>
       </div>
     </div>
   </div>
@@ -289,18 +296,18 @@
   <!-- ============ EDITOR DE ESCALAÇÃO ============ -->
   <div id="lineup-editor-modal" class="overlay-screen hidden">
     <div class="lineup-editor-card">
-      <p class="kicker">ESCALAÇÃO</p>
+      <p class="kicker" data-i18n>ESCALAÇÃO</p>
       <h2 class="lineup-editor-title" id="lineup-editor-title">Monte seu time</h2>
-      <p class="lineup-editor-hint">Toque num jogador e depois numa casa do seu campo para reposicioná-lo — ou em outro jogador para trocar de lugar.</p>
+      <p class="lineup-editor-hint" data-i18n>Toque num jogador e depois numa casa do seu campo para reposicioná-lo — ou em outro jogador para trocar de lugar.</p>
       <div class="lineup-editor-body">
         <div id="lineup-grid" class="lineup-grid"></div>
         <div id="lineup-detail" class="lineup-detail">
-          <p class="detail-empty">Toque num jogador para ver os detalhes.</p>
+          <p class="detail-empty" data-i18n>Toque num jogador para ver os detalhes.</p>
         </div>
       </div>
       <div class="lineup-editor-actions">
-        <button id="lineup-reset-btn" class="btn btn-ghost">↺ Restaurar Padrão</button>
-        <button id="lineup-confirm-btn" class="btn btn-primary">✅ Confirmar Escalação</button>
+        <button id="lineup-reset-btn" class="btn btn-ghost" data-i18n>↺ Restaurar Padrão</button>
+        <button id="lineup-confirm-btn" class="btn btn-primary" data-i18n>✅ Confirmar Escalação</button>
       </div>
     </div>
   </div>
@@ -308,8 +315,8 @@
   <!-- ============ CARA OU COROA ============ -->
   <div id="coinflip-modal" class="overlay-screen hidden">
     <div class="start-card">
-      <p class="kicker">SORTEIO</p>
-      <h1 class="logo lineup-title">CARA OU COROA</h1>
+      <p class="kicker" data-i18n>SORTEIO</p>
+      <h1 class="logo lineup-title" data-i18n>CARA OU COROA</h1>
       <div class="coin-wrap">
         <div id="coin" class="coin">
           <div class="coin-face coin-front" id="coin-face-a">🛡️</div>
@@ -317,14 +324,14 @@
         </div>
       </div>
       <p class="coinflip-result" id="coinflip-result">Girando a moeda...</p>
-      <button id="coinflip-continue-btn" class="btn btn-primary btn-start hidden">⚽ Começar Partida</button>
+      <button id="coinflip-continue-btn" class="btn btn-primary btn-start hidden" data-i18n>⚽ Começar Partida</button>
     </div>
   </div>
 
   <div id="loading-modal" class="overlay-screen hidden">
     <div class="start-card loading-card">
-      <p class="kicker">PREPARANDO O CAMPO</p>
-      <h1 class="logo lineup-title">CARREGANDO...</h1>
+      <p class="kicker" data-i18n>PREPARANDO O CAMPO</p>
+      <h1 class="logo lineup-title" data-i18n>CARREGANDO...</h1>
       <div class="loading-spinner" aria-hidden="true"></div>
       <div class="loading-track"><div class="loading-fill" id="loading-fill"></div></div>
       <p class="loading-count" id="loading-count">0 / 0 imagens</p>
@@ -333,42 +340,42 @@
 
   <div id="copa-draw-modal" class="overlay-screen hidden">
     <div class="start-card">
-      <p class="kicker">SORTEIO DA COPA</p>
-      <h1 class="logo lineup-title">GRUPOS DEFINIDOS</h1>
+      <p class="kicker" data-i18n>SORTEIO DA COPA</p>
+      <h1 class="logo lineup-title" data-i18n>GRUPOS DEFINIDOS</h1>
       <div class="copa-draw-groups">
         <div class="copa-draw-group">
-          <p class="copa-draw-group-title">Grupo A</p>
+          <p class="copa-draw-group-title" data-i18n>Grupo A</p>
           <div class="copa-draw-group-list" id="copa-draw-group-a"></div>
         </div>
         <div class="copa-draw-group">
-          <p class="copa-draw-group-title">Grupo B</p>
+          <p class="copa-draw-group-title" data-i18n>Grupo B</p>
           <div class="copa-draw-group-list" id="copa-draw-group-b"></div>
         </div>
         <div class="copa-draw-group">
-          <p class="copa-draw-group-title">Grupo C</p>
+          <p class="copa-draw-group-title" data-i18n>Grupo C</p>
           <div class="copa-draw-group-list" id="copa-draw-group-c"></div>
         </div>
         <div class="copa-draw-group">
-          <p class="copa-draw-group-title">Grupo D</p>
+          <p class="copa-draw-group-title" data-i18n>Grupo D</p>
           <div class="copa-draw-group-list" id="copa-draw-group-d"></div>
         </div>
       </div>
       <div class="copa-draw-excluded hidden" id="copa-draw-excluded">
-        <p class="copa-draw-excluded-title">De fora desta Copa</p>
+        <p class="copa-draw-excluded-title" data-i18n>De fora desta Copa</p>
         <div class="copa-draw-excluded-list" id="copa-draw-excluded-list"></div>
       </div>
-      <button id="copa-draw-continue-btn" class="btn btn-primary btn-start">Continuar</button>
+      <button id="copa-draw-continue-btn" class="btn btn-primary btn-start" data-i18n>Continuar</button>
     </div>
   </div>
 
   <div id="copa-hub-modal" class="overlay-screen hidden">
     <div class="start-card copa-hub-card">
       <p class="kicker" id="copa-hub-stage-label">FASE DE GRUPOS</p>
-      <h1 class="logo lineup-title">COPA</h1>
+      <h1 class="logo lineup-title" data-i18n>COPA</h1>
       <div class="copa-standings" id="copa-hub-standings"></div>
       <div class="copa-round-results" id="copa-hub-round-results"></div>
       <button id="copa-hub-fixture-btn" class="btn btn-primary btn-start">⚽ Jogar Partida</button>
-      <button id="copa-hub-menu-btn" class="link-btn">Sair da Copa</button>
+      <button id="copa-hub-menu-btn" class="link-btn" data-i18n>Sair da Copa</button>
     </div>
   </div>
 
@@ -379,60 +386,60 @@
       <div class="copa-result-badge-wrap" id="copa-result-badge"></div>
       <p class="copa-result-detail" id="copa-result-detail"></p>
       <p class="copa-result-final-score hidden" id="copa-result-final-score"></p>
-      <button id="copa-result-menu-btn" class="btn btn-primary btn-start">Voltar ao Menu</button>
+      <button id="copa-result-menu-btn" class="btn btn-primary btn-start" data-i18n>Voltar ao Menu</button>
     </div>
   </div>
 
   <!-- ============ CAMPANHA: SENHA ============ -->
   <div id="campaign-password-modal" class="overlay-screen hidden">
     <div class="start-card">
-      <button type="button" class="icon-btn squad-select-back-btn" id="campaign-password-back-btn" title="Voltar">
+      <button type="button" class="icon-btn squad-select-back-btn" id="campaign-password-back-btn" data-i18n-title title="Voltar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       </button>
-      <p class="kicker">MODO CAMPANHA</p>
+      <p class="kicker" data-i18n>MODO CAMPANHA</p>
       <h1 class="logo lineup-title">⚓ CORTO MALTESE</h1>
-      <p class="tagline campaign-password-tagline">Comece como a pior seleção da Copa e transforme o time treinando jogadores e comprando reforços com as fichas que ganhar jogando. Sua campanha fica salva neste navegador — escolha uma senha pra começar, e digite a mesma senha aqui pra continuar de onde parou.</p>
-      <input type="text" id="campaign-password-input" class="campaign-password-input" placeholder="Digite sua senha" maxlength="40" autocomplete="off">
-      <button id="campaign-password-continue-btn" class="btn btn-primary btn-start" disabled>Continuar</button>
+      <p class="tagline campaign-password-tagline" data-i18n>Comece como a pior seleção da Copa e transforme o time treinando jogadores e comprando reforços com as fichas que ganhar jogando. Sua campanha fica salva neste navegador — escolha uma senha pra começar, e digite a mesma senha aqui pra continuar de onde parou.</p>
+      <input type="text" id="campaign-password-input" class="campaign-password-input" data-i18n-ph placeholder="Digite sua senha" maxlength="40" autocomplete="off">
+      <button id="campaign-password-continue-btn" class="btn btn-primary btn-start" data-i18n disabled>Continuar</button>
     </div>
   </div>
 
   <!-- ============ CAMPANHA: LOJA ============ -->
   <div id="campaign-shop-modal" class="overlay-screen hidden">
     <div class="start-card campaign-shop-card">
-      <p class="kicker">LOJA DO CORTO MALTESE</p>
+      <p class="kicker" data-i18n>LOJA DO CORTO MALTESE</p>
       <h1 class="logo lineup-title campaign-shop-fichas" id="campaign-shop-fichas">🪙 0 FICHAS</h1>
       <p class="campaign-shop-award" id="campaign-shop-award"></p>
 
       <div class="campaign-shop-section">
-        <p class="campaign-shop-section-title">Treinar elenco</p>
+        <p class="campaign-shop-section-title" data-i18n>Treinar elenco</p>
         <div class="campaign-shop-roster" id="campaign-shop-roster"></div>
       </div>
 
       <div class="campaign-shop-section">
-        <p class="campaign-shop-section-title">Comprar figurinha</p>
+        <p class="campaign-shop-section-title" data-i18n>Comprar figurinha</p>
         <div class="campaign-shop-packs">
           <button type="button" class="campaign-pack-btn" id="campaign-pack-medianos">
             <span class="campaign-pack-emoji">🎴</span>
-            <span class="campaign-pack-label">Pacote Mediano</span>
+            <span class="campaign-pack-label" data-i18n>Pacote Mediano</span>
             <span class="campaign-pack-cost" id="campaign-pack-medianos-cost">60 fichas</span>
           </button>
           <button type="button" class="campaign-pack-btn campaign-pack-elite" id="campaign-pack-elite">
             <span class="campaign-pack-emoji">🌟</span>
-            <span class="campaign-pack-label">Pacote Elite</span>
+            <span class="campaign-pack-label" data-i18n>Pacote Elite</span>
             <span class="campaign-pack-cost" id="campaign-pack-elite-cost">150 fichas</span>
           </button>
         </div>
       </div>
 
-      <button id="campaign-shop-continue-btn" class="btn btn-primary btn-start">Continuar ➜</button>
+      <button id="campaign-shop-continue-btn" class="btn btn-primary btn-start" data-i18n>Continuar ➜</button>
     </div>
   </div>
 
   <!-- ============ CAMPANHA: FIGURINHA SORTEADA ============ -->
   <div id="campaign-recruit-modal" class="overlay-screen hidden">
     <div class="start-card">
-      <p class="kicker">NOVA FIGURINHA</p>
+      <p class="kicker" data-i18n>NOVA FIGURINHA</p>
       <h1 class="logo lineup-title" id="campaign-recruit-name">Jogador</h1>
       <p class="campaign-recruit-sub" id="campaign-recruit-sub"></p>
       <div class="campaign-recruit-slots" id="campaign-recruit-slots"></div>
@@ -441,6 +448,7 @@
 
 </div>
 
+<script src="js/i18n.js"></script>
 <script src="js/data.js"></script>
 <script src="js/board.js"></script>
 <script src="js/duel.js"></script>

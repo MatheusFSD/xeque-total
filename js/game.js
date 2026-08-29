@@ -130,8 +130,8 @@ var GAME = (function () {
     state.firstHalfKickoffTeamId = state.currentTeamId;
     var teamName = state.teams[state.humanTeamId].name;
     var kickoffName = state.teams[state.currentTeamId].name;
-    addLog(state.twoPlayerLocal ? ("Apito inicial! " + teamName + " x " + state.teams.B.name + ".") : ("Apito inicial! Você comanda o " + teamName + "."), "ev-info");
-    addLog("🪙 " + kickoffName + " venceu o sorteio e começa com a bola!", "ev-info");
+    addLog(state.twoPlayerLocal ? (T("Apito inicial!") + " " + T(teamName) + " x " + T(state.teams.B.name) + ".") : T("Apito inicial! Você comanda o {0}.", T(teamName)), "ev-info");
+    addLog("🪙 " + T("{0} venceu o sorteio e começa com a bola!", T(kickoffName)), "ev-info");
     render();
     if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
   }
@@ -248,7 +248,7 @@ var GAME = (function () {
     if (interceptor) {
       state.ball.carrierId = interceptor.id;
       state.ball.row = interceptor.row; state.ball.col = interceptor.col;
-      addLog("⚠️ " + interceptor.name + " INTERCEPTA o passe de " + passer.name + "!", "ev-" + interceptor.team.toLowerCase());
+      addLog("⚠️ " + T("{0} INTERCEPTA o passe de {1}!", interceptor.name, passer.name), "ev-" + interceptor.team.toLowerCase());
       clearActionOptions();
       render();
       // treme só quando a bola chega de fato (fim da animação de voo), não quando sai do pé
@@ -257,7 +257,7 @@ var GAME = (function () {
     } else {
       state.ball.carrierId = receiver.id;
       state.ball.row = receiver.row; state.ball.col = receiver.col;
-      addLog(passer.name + " lança para " + receiver.name + "!", "ev-" + passer.team.toLowerCase());
+      addLog(T("{0} lança para {1}.", passer.name, receiver.name), "ev-" + passer.team.toLowerCase());
       clearActionOptions();
       render();
       var flightMs2 = BOARD.ballFlightMs(fromRow, fromCol, receiver.row, receiver.col);
@@ -279,7 +279,7 @@ var GAME = (function () {
     piece.row = row; piece.col = col;
     if (!state.ball.carrierId && state.ball.row === row && state.ball.col === col) {
       state.ball.carrierId = piece.id;
-      addLog(piece.name + " dominou a bola!", "ev-" + piece.team.toLowerCase());
+      addLog(T("{0} dominou a bola!", piece.name), "ev-" + piece.team.toLowerCase());
     } else if (state.ball.carrierId === piece.id) {
       state.ball.row = row; state.ball.col = col;
     }
@@ -302,12 +302,12 @@ var GAME = (function () {
     // inteira (6 casas), então ele defendia de fora da meta — era o bug.
     var gkNoGol = gk && BOARD.isOnGoalSpot(gk.row, gk.col, defTeam);
     if (!gkNoGol) {
-      addLog("GOL DE PLACA! O goleiro saiu do gol e " + shooter.name + " encontra a meta vazia!", "ev-goal");
+      addLog(T("GOL DE PLACA! O goleiro saiu do gol e {0}", T("{0} encontra a meta vazia!", shooter.name)), "ev-goal");
       scoreGoal(shooter.team, shooter);
       return;
     }
     if (gk.stunned) {
-      addLog("GOL DE PLACA! " + gk.name + " está atordoado e não consegue reagir ao chute de " + shooter.name + "!", "ev-goal");
+      addLog(T("GOL DE PLACA!") + " " + T("{0} está atordoado e não consegue reagir ao chute de {1}.", gk.name, shooter.name), "ev-goal");
       scoreGoal(shooter.team, shooter);
       return;
     }
@@ -438,32 +438,32 @@ var GAME = (function () {
 
   function narrateDuel(ctx, result) {
     var c = ctx.challenger, h = ctx.holder;
-    var cLabel = result.challengerUsedPower ? (" usando " + c.power.name) : "";
-    var hLabel = result.holderUsedPower ? (" usando " + h.power.name) : "";
+    var cLabel = result.challengerUsedPower ? (" " + T("usando {0}", T(c.power.name))) : "";
+    var hLabel = result.holderUsedPower ? (" " + T("usando {0}", T(h.power.name))) : "";
     // sem esse aviso o jogador vê a mana sumir e o poder não fazer efeito,
     // e parece bug em vez de habilidade do adversário
     if (result.shadowed) {
-      addLog("🌑 " + h.name + " é Sombra: o " + c.power.name + " de " + c.name + " não teve efeito.", "ev-info");
+      addLog("🌑 " + T("{0} é Sombra: o {1} de {2} não teve efeito.", h.name, T(c.power.name), c.name), "ev-info");
     }
     if (ctx.isShoot) {
       if (result.winnerSide === "challenger") {
-        addLog(c.name + " chuta de longe" + cLabel + "... e é GOL!", "ev-goal");
+        addLog(T("{0} chuta de longe", c.name) + cLabel + T("... e é GOL!"), "ev-goal");
       } else {
-        addLog(h.name + " defende o chute de " + c.name + hLabel + "!", "ev-" + h.team.toLowerCase());
+        addLog(T("{0} defende o chute de {1}!", h.name + hLabel, c.name), "ev-" + h.team.toLowerCase());
       }
       return;
     }
     if (ctx.isDribble) {
       if (result.winnerSide === "challenger") {
-        addLog(c.name + " dribla " + h.name + cLabel + " e passa por cima!", "ev-" + c.team.toLowerCase());
+        addLog(T("{0} dribla {1} e fica com a bola!", c.name + cLabel, h.name), "ev-" + c.team.toLowerCase());
       } else {
-        addLog(h.name + " para o drible de " + c.name + hLabel + " e fica com a bola!", "ev-" + h.team.toLowerCase());
+        addLog(T("{0} para o drible de {1}.", h.name + hLabel, c.name), "ev-" + h.team.toLowerCase());
       }
     } else {
       if (result.winnerSide === "challenger") {
-        addLog(c.name + " rouba a bola de " + h.name + cLabel + "!", "ev-" + c.team.toLowerCase());
+        addLog(T("{0} rouba a bola de {1}!", c.name + cLabel, h.name), "ev-" + c.team.toLowerCase());
       } else {
-        addLog(h.name + " protege a bola e afasta " + c.name + hLabel + "!", "ev-" + h.team.toLowerCase());
+        addLog(T("{0} protege a bola e afasta {1}.", h.name + hLabel, c.name), "ev-" + h.team.toLowerCase());
       }
     }
   }
@@ -511,11 +511,11 @@ var GAME = (function () {
 
     var loser = winnerSide === "challenger" ? ctx.holder : ctx.challenger;
     if (abilityHas(loser, "inabalavel")) {
-      addLog(loser.name + " perdeu a disputa, mas é Inabalável e segue de pé.", "ev-info");
+      addLog(T("{0} perdeu a disputa, mas é Inabalável e segue de pé.", loser.name), "ev-info");
     } else {
       loser.stunned = true;
       loser.stunTurns = 1;
-      addLog(loser.name + " ficou atordoado e não age no próximo turno do time!", "ev-" + loser.team.toLowerCase());
+      addLog(T("{0} ficou atordoado e não age no próximo turno do time!", loser.name), "ev-" + loser.team.toLowerCase());
     }
 
     state.duelContext = null;
@@ -537,19 +537,19 @@ var GAME = (function () {
   function scoreGoal(teamId, scorerPiece) {
     state.score[teamId]++;
     state.scorers[teamId].push({ name: scorerPiece.name, minute: matchMinute() });
-    addLog("⚽ GOL de " + scorerPiece.name + "! Placar: " + state.score.A + " x " + state.score.B, "ev-goal");
+    addLog(T("⚽ GOL de {0}! Placar: {1}", scorerPiece.name, state.score.A + " x " + state.score.B), "ev-goal");
     state.phase = "goal-pause";
     var routed = state.noTurnLimit && state.score[teamId] >= 3;
     var suddenDeathWin = state.suddenDeath;
-    if (routed) addLog("🏁 " + state.teams[teamId].name + " fez 3 gols! A partida termina aqui.", "ev-goal");
-    if (suddenDeathWin) addLog("🥇 GOL DE OURO! " + state.teams[teamId].name + " vence na prorrogação!", "ev-goal");
+    if (routed) addLog("🏁 " + T("{0} fez 3 gols! A partida termina aqui.", T(state.teams[teamId].name)), "ev-goal");
+    if (suddenDeathWin) addLog(T("🥇 GOL DE OURO!") + " " + T("{0} vence na prorrogação!", T(state.teams[teamId].name)), "ev-goal");
     render();
     UI.showGoalBanner(scorerPiece, teamId);
     setTimeout(function () {
       if (routed || suddenDeathWin) { finishGame(); return; }
       var concedingTeamId = teamId === "A" ? "B" : "A";
       resetForKickoff(concedingTeamId);
-      addLog("🔄 Jogadores voltam à formação inicial. " + state.teams[concedingTeamId].name + " repõe a bola do centro.", "ev-info");
+      addLog(T("🔄 Jogadores voltam à formação inicial.") + " " + T("{0} repõe a bola do centro.", T(state.teams[concedingTeamId].name)), "ev-info");
       advanceToTeamTurn(concedingTeamId);
     }, 2600);
   }
@@ -565,7 +565,7 @@ var GAME = (function () {
       swapSides();
       var kickoffTeamId = state.firstHalfKickoffTeamId === "A" ? "B" : "A";
       resetForKickoff(kickoffTeamId);
-      addLog("🔔 Fim do 1º tempo! Os times trocam de lado — " + state.teams[kickoffTeamId].name + " repõe a bola.", "ev-info");
+      addLog(T("🔔 Fim do 1º tempo! Os times trocam de lado — {0}", T("{0} repõe a bola.", T(state.teams[kickoffTeamId].name))), "ev-info");
       state.phase = "playing";
       render();
       if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
@@ -582,7 +582,7 @@ var GAME = (function () {
 
   function enterSuddenDeath() {
     state.suddenDeath = true;
-    addLog("⏱️ Prorrogação! Gol de ouro — o próximo gol decide a partida.", "ev-info");
+    addLog(T("⏱️ Prorrogação! Gol de ouro — o próximo gol decide a partida."), "ev-info");
   }
 
   function advanceToTeamTurn(teamId) {
@@ -623,7 +623,7 @@ var GAME = (function () {
     if (state.ball.gkHoldTurns >= 2) {
       state.ball.carrierId = null;
       state.ball.gkHoldTurns = 0;
-      addLog("⏱️ " + carrier.name + " segurou a bola por turnos demais e ela escapou!", "ev-info");
+      addLog("⏱️ " + T("{0} segurou a bola por turnos demais e ela escapou!", carrier.name), "ev-info");
     }
   }
 

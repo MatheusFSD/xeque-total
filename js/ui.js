@@ -49,7 +49,7 @@ var UI = (function () {
     var ids = [
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
-      "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "mode-select-campanha", "sound-checkbox",
+      "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "mode-select-campanha", "sound-checkbox", "lang-select",
       "squad-select-screen", "squad-select-back-btn", "squad-select-kicker",
       "campaign-password-modal", "campaign-password-back-btn", "campaign-password-input", "campaign-password-continue-btn",
       "campaign-shop-modal", "campaign-shop-fichas", "campaign-shop-award", "campaign-shop-roster",
@@ -124,7 +124,7 @@ var UI = (function () {
       var img = document.createElement("img");
       img.className = "badge-flag-img";
       img.src = FLAG_DIR + iso2 + ".webp";
-      img.alt = sq.name;
+      img.alt = T(sq.name);
       img.onerror = function () { el.textContent = sq.badge; };
       el.appendChild(img);
     } else {
@@ -186,8 +186,8 @@ var UI = (function () {
     gameMode = mode;
     chosenHomeSquadId = null;
     chosenAwaySquadId = null;
-    if (els.squadSelectKicker) els.squadSelectKicker.textContent = MODE_KICKER_LABEL[mode] || "";
-    if (els.startBtn) els.startBtn.textContent = mode === "copa" ? "🏆 Ir pro Sorteio" : "⚽ Iniciar Partida";
+    if (els.squadSelectKicker) els.squadSelectKicker.textContent = T(MODE_KICKER_LABEL[mode] || "");
+    if (els.startBtn) els.startBtn.textContent = mode === "copa" ? T("🏆 Ir pro Sorteio") : T("⚽ Iniciar Partida");
     renderSquadPickList();
     applySlotColors();
   }
@@ -244,7 +244,7 @@ var UI = (function () {
   function renderCampaignShop(awardText) {
     if (!els.campaignShopModal) return;
     var fichas = CAMPAIGN.getFichas();
-    els.campaignShopFichas.textContent = "🪙 " + fichas + " FICHAS";
+    els.campaignShopFichas.textContent = "🪙 " + fichas + " " + T("FICHAS");
     if (els.campaignShopAward) els.campaignShopAward.textContent = awardText || "";
 
     els.campaignShopRoster.innerHTML = "";
@@ -259,7 +259,7 @@ var UI = (function () {
       name.textContent = p.number + ". " + p.name;
       var meta = document.createElement("p");
       meta.className = "campaign-shop-player-meta";
-      meta.textContent = GAME_DATA.POSITIONS[p.position].short + " · " + p.temperament + " · " + statSumOf(p) + " pts";
+      meta.textContent = T(GAME_DATA.POSITIONS[p.position].short) + " · " + T(p.temperament) + " · " + statSumOf(p) + " " + T("pts");
       info.appendChild(name);
       info.appendChild(meta);
 
@@ -267,13 +267,13 @@ var UI = (function () {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "campaign-shop-train-btn";
-      btn.textContent = "Treinar (" + cost + ")";
+      btn.textContent = T("Treinar ({0} fichas)", cost);
       btn.disabled = fichas < cost;
       btn.addEventListener("click", function () {
         SOUND.playClick();
         var res = CAMPAIGN.trainPlayer(p.id);
         if (!res) return;
-        renderCampaignShop(res.playerName + " subiu " + GAME_DATA.STATS[res.statKey] + " +" + res.gain + "!");
+        renderCampaignShop(T("{0} subiu {1} +{2}!", res.playerName, T(GAME_DATA.STATS[res.statKey]), res.gain));
       });
 
       row.appendChild(info);
@@ -286,7 +286,7 @@ var UI = (function () {
       var costEl = tier === "medianos" ? els.campaignPackMedianosCost : els.campaignPackEliteCost;
       var cost = CAMPAIGN.figurinhaCost(tier);
       var left = CAMPAIGN.availableRecruits(tier).length;
-      if (costEl) costEl.textContent = left ? (cost + " fichas") : "esgotado";
+      if (costEl) costEl.textContent = left ? (cost + " " + T("fichas")) : T("esgotado");
       if (btnEl) btnEl.disabled = !left || fichas < cost;
     });
 
@@ -299,7 +299,7 @@ var UI = (function () {
     if (!pack) { renderCampaignShop(); return; }
     if (pack.candidateSlots.length === 1) {
       CAMPAIGN.signRecruit(pack.recruit, pack.candidateSlots[0].index);
-      renderCampaignShop(pack.recruit.name + " assinou com o Corto Maltese!");
+      renderCampaignShop(T("{0} assinou com o Corto Maltese!", pack.recruit.name));
     } else {
       showCampaignRecruitChoice(pack);
     }
@@ -308,18 +308,18 @@ var UI = (function () {
   function showCampaignRecruitChoice(pack) {
     els.campaignShopModal.classList.add("hidden");
     els.campaignRecruitName.textContent = pack.recruit.name;
-    els.campaignRecruitSub.textContent = "Escolha quem sai do time pra abrir espaço no elenco:";
+    els.campaignRecruitSub.textContent = T("Escolha quem sai do time pra abrir espaço no elenco:");
     els.campaignRecruitSlots.innerHTML = "";
     pack.candidateSlots.forEach(function (slot) {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "campaign-recruit-slot-btn";
-      btn.textContent = "Substituir " + slot.player.number + ". " + slot.player.name;
+      btn.textContent = T("Substituir") + " " + slot.player.number + ". " + slot.player.name;
       btn.addEventListener("click", function () {
         SOUND.playClick();
         CAMPAIGN.signRecruit(pack.recruit, slot.index);
         els.campaignRecruitModal.classList.add("hidden");
-        renderCampaignShop(pack.recruit.name + " assinou com o Corto Maltese!");
+        renderCampaignShop(T("{0} assinou com o Corto Maltese!", pack.recruit.name));
       });
       els.campaignRecruitSlots.appendChild(btn);
     });
@@ -329,12 +329,12 @@ var UI = (function () {
   function renderSquadPickList() {
     if (els.squadPickHint) {
       if (gameMode === "copa") {
-        els.squadPickHint.textContent = chosenHomeSquadId === null ? "Escolha sua seleção pra Copa" : "Tudo pronto — toque em outra seleção pra trocar";
+        els.squadPickHint.textContent = chosenHomeSquadId === null ? T("Escolha sua seleção pra Copa") : T("Tudo pronto — toque em outra seleção pra trocar");
       } else if (gameMode === "2players") {
-        els.squadPickHint.textContent = chosenHomeSquadId === null ? "Jogador 1, escolha seu time" : (chosenAwaySquadId === null ? "Jogador 2, escolha seu time" : "Tudo pronto — toque em outro time pra trocar");
-      } else if (chosenHomeSquadId === null) els.squadPickHint.textContent = "Toque num time pra ser o seu";
-      else if (chosenAwaySquadId === null) els.squadPickHint.textContent = "Agora toque no time do adversário";
-      else els.squadPickHint.textContent = "Tudo pronto — toque em outro time pra trocar";
+        els.squadPickHint.textContent = chosenHomeSquadId === null ? T("Jogador 1, escolha seu time") : (chosenAwaySquadId === null ? T("Jogador 2, escolha seu time") : T("Tudo pronto — toque em outro time pra trocar"));
+      } else if (chosenHomeSquadId === null) els.squadPickHint.textContent = T("Toque num time pra ser o seu");
+      else if (chosenAwaySquadId === null) els.squadPickHint.textContent = T("Agora toque no time do adversário");
+      else els.squadPickHint.textContent = T("Tudo pronto — toque em outro time pra trocar");
     }
     if (els.startBtn) els.startBtn.disabled = gameMode === "copa" ? !chosenHomeSquadId : !(chosenHomeSquadId && chosenAwaySquadId);
 
@@ -351,7 +351,7 @@ var UI = (function () {
         var roleText = role === "is-home"
           ? (gameMode === "copa" ? "SUA SELEÇÃO" : (gameMode === "2players" ? "JOGADOR 1" : "SEU TIME"))
           : (gameMode === "2players" ? "JOGADOR 2" : "ADVERSÁRIO");
-        tag.textContent = roleText;
+        tag.textContent = T(roleText);
         card.appendChild(tag);
       }
       var badge = document.createElement("span");
@@ -360,10 +360,10 @@ var UI = (function () {
       fillSquadBadgeEl(badge, sq);
       var name = document.createElement("span");
       name.className = "team-pick-name";
-      name.textContent = sq.name;
+      name.textContent = T(sq.name);
       var sub = document.createElement("span");
       sub.className = "team-pick-sub";
-      sub.textContent = sq.kit;
+      sub.textContent = T(sq.kit);
       card.appendChild(badge); card.appendChild(name); card.appendChild(sub);
       card.addEventListener("click", function () { pickSquad(sq.id); });
       els.squadPickList.appendChild(card);
@@ -536,8 +536,8 @@ var UI = (function () {
     var shootFab = document.createElement("button");
     shootFab.id = "shoot-fab";
     shootFab.type = "button";
-    shootFab.title = "Chutar";
-    shootFab.setAttribute("aria-label", "Chutar");
+    shootFab.title = T("Chutar");
+    shootFab.setAttribute("aria-label", T("Chutar"));
     shootFab.textContent = "🎯";
     shootFab.classList.add("hidden");
     shootFab.addEventListener("click", function (e) {
@@ -665,22 +665,22 @@ var UI = (function () {
     if (els.tvScoreboxB) els.tvScoreboxB.classList.toggle("active-turn", bTurn);
 
     if (state.phase === "gameover") {
-      els.scoreTurn.textContent = "Fim de jogo";
+      els.scoreTurn.textContent = T("Fim de jogo");
     } else if (state.twoPlayerLocal) {
-      els.scoreTurn.textContent = "Vez: " + state.teams[state.currentTeamId].name;
+      els.scoreTurn.textContent = T("Vez:") + " " + T(state.teams[state.currentTeamId].name);
     } else {
-      els.scoreTurn.textContent = state.currentTeamId === state.humanTeamId ? "Sua vez" : "Vez do adversário";
+      els.scoreTurn.textContent = state.currentTeamId === state.humanTeamId ? T("Sua vez") : T("Vez do adversário");
     }
 
     if (state.suddenDeath) {
-      els.scoreClock.textContent = "🥇 GOL DE OURO";
+      els.scoreClock.textContent = T("🥇 GOL DE OURO");
     } else if (state.noTurnLimit) {
-      els.scoreClock.textContent = "⚡ 3 GOLS";
+      els.scoreClock.textContent = T("⚡ 3 GOLS");
     } else {
       var base = state.half === 2 ? 45 : 0;
       var progress = Math.min(1, state.turnCount / state.maxTurns);
       var minute = state.phase === "gameover" ? 90 : Math.min(base + 45, Math.floor(base + progress * 45));
-      els.scoreClock.textContent = (state.half === 2 ? "2ºT " : "1ºT ") + minute + "'";
+      els.scoreClock.textContent = (state.half === 2 ? T("2ºT") : T("1ºT")) + " " + minute + "'";
     }
   }
 
@@ -742,7 +742,7 @@ var UI = (function () {
   function createPieceToken(piece) {
     var outer = document.createElement("div");
     outer.className = "piece-token team-" + piece.team.toLowerCase();
-    outer.title = piece.name + " — " + GAME_DATA.POSITIONS[piece.position].label;
+    outer.title = piece.name + " — " + T(GAME_DATA.POSITIONS[piece.position].label);
 
     var visual = document.createElement("div");
     visual.className = "token-visual";
@@ -765,7 +765,7 @@ var UI = (function () {
 
     var postag = document.createElement("span");
     postag.className = "piece-pos-tag";
-    postag.textContent = GAME_DATA.POSITIONS[piece.position].short;
+    postag.textContent = T(GAME_DATA.POSITIONS[piece.position].short);
     var num = document.createElement("span");
     num.className = "piece-number";
     num.textContent = piece.number;
@@ -894,7 +894,7 @@ var UI = (function () {
     name.textContent = piece.number + ". " + piece.name;
     var pos = document.createElement("div");
     pos.className = "roster-pos";
-    pos.textContent = GAME_DATA.POSITIONS[piece.position].label + " · " + piece.temperament;
+    pos.textContent = T(GAME_DATA.POSITIONS[piece.position].label) + " · " + T(piece.temperament);
     var manaTrack = document.createElement("div");
     manaTrack.className = "mini-mana";
     var manaFill = document.createElement("div");
@@ -921,11 +921,11 @@ var UI = (function () {
     var viewTeamId = rosterViewAway ? (state.humanTeamId === "A" ? "B" : "A") : state.humanTeamId;
     if (els.rosterToggleOwn) {
       els.rosterToggleOwn.classList.toggle("active", !rosterViewAway);
-      els.rosterToggleOwn.textContent = state.twoPlayerLocal ? state.teams.A.shortName : "Seu time";
+      els.rosterToggleOwn.textContent = state.twoPlayerLocal ? state.teams.A.shortName : T("Seu time");
     }
     if (els.rosterToggleAway) {
       els.rosterToggleAway.classList.toggle("active", rosterViewAway);
-      els.rosterToggleAway.textContent = state.twoPlayerLocal ? state.teams.B.shortName : "Adversário";
+      els.rosterToggleAway.textContent = state.twoPlayerLocal ? state.teams.B.shortName : T("Adversário");
     }
     els.rosterList.innerHTML = "";
     state.pieces.forEach(function (p) {
@@ -956,13 +956,13 @@ var UI = (function () {
     var pos = GAME_DATA.POSITIONS[piece.position];
     var grad = teamGradient(piece.team);
     var moveLabel = piece.position === "GK"
-      ? "Rei (1 casa, em qualquer direção)"
-      : (GAME_DATA.TEMPERAMENTS[piece.temperament] ? GAME_DATA.TEMPERAMENTS[piece.temperament].moveLabel : "—");
+      ? T("Rei (1 casa, em qualquer direção)")
+      : (GAME_DATA.TEMPERAMENTS[piece.temperament] ? T(GAME_DATA.TEMPERAMENTS[piece.temperament].moveLabel) : "—");
 
     var statOrder = ["velocidade", "chute", "tecnica", "defesa", "espirito"];
     var statsHtml = statOrder.map(function (k) {
       var val = piece.stats[k];
-      return '<div class="stat-row"><span class="stat-label">' + GAME_DATA.STATS[k] + '</span>' +
+      return '<div class="stat-row"><span class="stat-label">' + T(GAME_DATA.STATS[k]) + '</span>' +
         '<div class="stat-track"><div class="stat-fill" style="width:' + val + '%; background:' + grad + '"></div></div>' +
         '<span class="stat-value">' + val + '</span></div>';
     }).join("");
@@ -975,18 +975,18 @@ var UI = (function () {
       '<div class="detail-main">' +
       '<div class="detail-name-row"><span class="detail-name">' + piece.name + '</span>' + flagHtml(piece) + '</div>' +
       '<div class="detail-meta">' +
-      '<span class="tag tag-pos" style="background:' + grad + '">' + pos.label + '</span>' +
-      '<span class="tag">' + piece.temperament + '</span>' +
-      '<span class="tag">' + piece.nationality + '</span>' +
+      '<span class="tag tag-pos" style="background:' + grad + '">' + T(pos.label) + '</span>' +
+      '<span class="tag">' + T(piece.temperament) + '</span>' +
+      '<span class="tag">' + T(piece.nationality) + '</span>' +
       '</div>' +
       '<div class="detail-body">' +
       '<div class="stat-list">' + statsHtml +
-      '<div class="detail-move-label">Movimento: <strong>' + moveLabel + '</strong></div>' +
+      '<div class="detail-move-label">' + T("Movimento:") + ' <strong>' + moveLabel + '</strong></div>' +
       '</div>' +
       '<div class="power-box">' +
-      '<div class="power-name">✨ ' + piece.power.name + '</div>' +
-      '<div class="power-desc">' + piece.power.desc + '</div>' +
-      '<div class="power-meta"><span>Custo: ' + piece.power.manaCost + ' mana</span><span>Bônus: +' + piece.power.bonus + '</span></div>' +
+      '<div class="power-name">✨ ' + T(piece.power.name) + '</div>' +
+      '<div class="power-desc">' + T(piece.power.desc) + '</div>' +
+      '<div class="power-meta"><span>' + T("Custo: {0} mana", piece.power.manaCost) + '</span><span>' + T("Bônus:") + ' +' + piece.power.bonus + '</span></div>' +
       '<div class="mana-track"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
       '</div></div>' +
       abilityBoxHtml(piece) +
@@ -1002,9 +1002,9 @@ var UI = (function () {
     var ab = piece.ability && GAME_DATA.ABILITIES[piece.ability];
     if (!ab) return "";
     return '<div class="ability-box">' +
-      '<span class="ability-tag">Habilidade</span>' +
-      '<strong class="ability-name">' + ab.name + '</strong>' +
-      '<span class="ability-desc">' + ab.desc + '</span>' +
+      '<span class="ability-tag">' + T("Habilidade") + '</span>' +
+      '<strong class="ability-name">' + T(ab.name) + '</strong>' +
+      '<span class="ability-desc">' + T(ab.desc) + '</span>' +
       '</div>';
   }
 
@@ -1060,7 +1060,7 @@ var UI = (function () {
     var id = state.selectedPieceId || inspectedId;
     var piece = id ? GAME.findPieceById(id) : null;
     if (!piece) {
-      els.playerDetailPanel.innerHTML = '<p class="detail-empty">Selecione um jogador no time ou no campo pra ver a ficha completa.</p>';
+      els.playerDetailPanel.innerHTML = '<p class="detail-empty">' + T("Selecione um jogador no time ou no campo pra ver a ficha completa.") + '</p>';
       return;
     }
     fillPlayerStatsInto(els.playerDetailPanel, piece);
@@ -1078,11 +1078,11 @@ var UI = (function () {
     els.duelModal.classList.remove("hidden");
 
     var labels = DUEL.roleLabels(ctx.isShoot, ctx.isDribble);
-    els.duelTitle.innerHTML = (ctx.isShoot ? icon("target") : icon("sword")) + (ctx.isShoot ? " CHANCE DE GOL!" : " DUELO NO CAMPO!");
+    els.duelTitle.innerHTML = (ctx.isShoot ? icon("target") : icon("sword")) + " " + (ctx.isShoot ? T("CHANCE DE GOL!") : T("DUELO NO CAMPO!"));
 
     var stats = DUEL.statLabels(ctx.isShoot, ctx.isDribble);
-    fillDuelSide(state, "left", ctx.challenger, labels.challenger, ctx, "challenger", stats.challenger);
-    fillDuelSide(state, "right", ctx.holder, labels.holder, ctx, "holder", stats.holder);
+    fillDuelSide(state, "left", ctx.challenger, T(labels.challenger), ctx, "challenger", T(stats.challenger));
+    fillDuelSide(state, "right", ctx.holder, T(labels.holder), ctx, "holder", T(stats.holder));
 
     if (ctx.revealed) {
       if (!duelImpactSoundPlayed) { duelImpactSoundPlayed = true; SOUND.playDuelImpact(); }
@@ -1148,8 +1148,8 @@ var UI = (function () {
       var diff = difficultyFromPenalty(ctx.distancePenalty);
       var distEl = document.createElement("div");
       distEl.className = "duel-distance";
-      var distTxt = "Chute de longe — dificuldade " + diff.label + " (−" + ctx.distancePenalty + ")";
-      if (ctx.shootBlockerCount > 0) distTxt += " · " + ctx.shootBlockerCount + " marcador" + (ctx.shootBlockerCount > 1 ? "es" : "") + " na frente";
+      var distTxt = T("Chute de longe — dificuldade") + " " + T(diff.label) + " (−" + ctx.distancePenalty + ")";
+      if (ctx.shootBlockerCount > 0) distTxt += " · " + (ctx.shootBlockerCount > 1 ? T("{0} marcadores na frente", ctx.shootBlockerCount) : T("{0} marcador na frente", ctx.shootBlockerCount));
       distEl.textContent = distTxt;
       roleEl.parentNode.insertBefore(distEl, roleEl.nextSibling);
     }
@@ -1164,7 +1164,7 @@ var UI = (function () {
 
       var choiceLabel = document.createElement("div");
       choiceLabel.className = "duel-choice-label" + (choice === "poder" ? " is-poder" : "");
-      choiceLabel.innerHTML = choice === "poder" ? (icon("bolt") + " " + piece.power.name) : (icon("sword") + " Ação Básica");
+      choiceLabel.innerHTML = choice === "poder" ? (icon("bolt") + " " + T(piece.power.name)) : (icon("sword") + " " + T("Ação Básica"));
       actionsEl.appendChild(choiceLabel);
       return;
     }
@@ -1174,13 +1174,13 @@ var UI = (function () {
     if (controller === "human" && !choice) {
       var btnAcao = document.createElement("button");
       btnAcao.className = "duel-btn btn-acao";
-      btnAcao.innerHTML = icon("sword") + " Ação Básica<small>Sem custo de mana</small>";
+      btnAcao.innerHTML = icon("sword") + " " + T("Ação Básica") + "<small>" + T("Sem custo de mana") + "</small>";
       btnAcao.addEventListener("click", function () { GAME.chooseDuelAction(side, "acao"); });
 
       var btnPoder = document.createElement("button");
       var canAfford = DUEL.canUsePower(piece);
       btnPoder.className = "duel-btn btn-poder";
-      btnPoder.innerHTML = icon("bolt") + " " + piece.power.name + "<small>Custo: " + piece.power.manaCost + " mana</small>";
+      btnPoder.innerHTML = icon("bolt") + " " + T(piece.power.name) + "<small>" + T("Custo: {0} mana", piece.power.manaCost) + "</small>";
       btnPoder.disabled = !canAfford;
       btnPoder.addEventListener("click", function () { GAME.chooseDuelAction(side, "poder"); });
 
@@ -1189,12 +1189,12 @@ var UI = (function () {
     } else if (controller === "human" && choice) {
       var chosen = document.createElement("div");
       chosen.className = "duel-choice-label" + (choice === "poder" ? " is-poder" : "");
-      chosen.innerHTML = "Escolhido: " + (choice === "poder" ? (icon("bolt") + " " + piece.power.name) : (icon("sword") + " Ação Básica"));
+      chosen.innerHTML = T("Escolhido:") + " " + (choice === "poder" ? (icon("bolt") + " " + T(piece.power.name)) : (icon("sword") + " " + T("Ação Básica")));
       actionsEl.appendChild(chosen);
     } else {
       var thinking = document.createElement("div");
       thinking.className = "duel-thinking";
-      thinking.innerHTML = icon("dots") + " Pensando...";
+      thinking.innerHTML = icon("dots") + " " + T("Pensando...");
       actionsEl.appendChild(thinking);
     }
   }
@@ -1252,8 +1252,8 @@ var UI = (function () {
     if (state.twoPlayerLocal) {
       var result2p = state.score.A === state.score.B ? "draw" : "win";
       var color2p = result2p === "draw" ? "var(--gold)" : "var(--success)";
-      els.gameoverKicker.textContent = "FIM DE JOGO";
-      els.gameoverTitle.textContent = result2p === "draw" ? "EMPATE" : (state.teams[state.score.A > state.score.B ? "A" : "B"].name.toUpperCase() + " VENCEU!");
+      els.gameoverKicker.textContent = T("FIM DE JOGO");
+      els.gameoverTitle.textContent = result2p === "draw" ? T("EMPATE") : (T(state.teams[state.score.A > state.score.B ? "A" : "B"].name).toUpperCase() + " " + T("VENCEU!"));
       els.gameoverTitle.style.background = "none";
       els.gameoverTitle.style.webkitTextFillColor = color2p;
       els.gameoverTitle.style.color = color2p;
@@ -1267,8 +1267,8 @@ var UI = (function () {
     var result = humanScore > cpuScore ? "win" : (humanScore < cpuScore ? "lose" : "draw");
     var color = result === "win" ? "var(--success)" : (result === "lose" ? "var(--danger)" : "var(--gold)");
 
-    els.gameoverKicker.textContent = "FIM DE JOGO";
-    els.gameoverTitle.textContent = result === "win" ? "VITÓRIA" : (result === "lose" ? "DERROTA" : "EMPATE");
+    els.gameoverKicker.textContent = T("FIM DE JOGO");
+    els.gameoverTitle.textContent = result === "win" ? T("VITÓRIA") : (result === "lose" ? T("DERROTA") : T("EMPATE"));
     els.gameoverTitle.style.background = "none";
     els.gameoverTitle.style.webkitTextFillColor = color;
     els.gameoverTitle.style.color = color;
@@ -1279,14 +1279,14 @@ var UI = (function () {
   function showGameOver(state) {
     if (gameMode === "copa" && COPA.isActive()) { showCopaGameOver(state); return; }
     SOUND.playWhistle();
-    els.rematchBtn.textContent = "🔄 Jogar Novamente";
+    els.rematchBtn.textContent = T("🔄 Jogar Novamente");
     var result = fillGameoverModal(state);
     if (state.twoPlayerLocal) {
-      els.gameoverSub.textContent = result === "draw" ? "Um empate emocionante até o apito final!" : "Parabéns aos vencedores!";
+      els.gameoverSub.textContent = result === "draw" ? T("Um empate emocionante até o apito final!") : T("Parabéns aos vencedores!");
     } else {
       els.gameoverSub.textContent = result === "win"
-        ? "Você dominou o campo do início ao fim!"
-        : (result === "lose" ? "O adversário levou a melhor desta vez. Revanche?" : "Um empate emocionante até o apito final!");
+        ? T("Você dominou o campo do início ao fim!")
+        : (result === "lose" ? T("O adversário levou a melhor desta vez. Revanche?") : T("Um empate emocionante até o apito final!"));
     }
     els.gameoverModal.classList.remove("hidden");
   }
@@ -1359,6 +1359,14 @@ var UI = (function () {
       if (els.startScreen) els.startScreen.classList.remove("hidden");
     });
 
+    if (els.langSelect) {
+      els.langSelect.value = I18N.get();
+      els.langSelect.addEventListener("change", function () {
+        SOUND.playClick();
+        I18N.set(els.langSelect.value);
+      });
+    }
+
     if (els.soundCheckbox) {
       els.soundCheckbox.checked = !SOUND.isMuted();
       els.soundCheckbox.addEventListener("change", function () {
@@ -1406,8 +1414,8 @@ var UI = (function () {
 
     if (els.copaHubMenuBtn) els.copaHubMenuBtn.addEventListener("click", function () {
       var exitMsg = campaignActive
-        ? "Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois."
-        : "Sair da Copa? O progresso do torneio será perdido.";
+        ? T("Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois.")
+        : T("Sair da Copa? O progresso do torneio será perdido.");
       if (window.confirm(exitMsg)) {
         els.copaHubModal.classList.add("hidden");
         returnToMenuFromCopa();
@@ -1437,10 +1445,10 @@ var UI = (function () {
 
     els.menuBtn.addEventListener("click", function () {
       var msg = campaignActive
-        ? "Voltar ao menu inicial? A partida atual (ainda não concluída) será perdida, mas sua Campanha salva continua de onde parou."
+        ? T("Voltar ao menu inicial? A partida atual (ainda não concluída) será perdida, mas sua Campanha salva continua de onde parou.")
         : (gameMode === "copa"
-          ? "Voltar ao menu inicial? O progresso da partida e da Copa serão perdidos."
-          : "Voltar ao menu inicial? O progresso da partida atual será perdido.");
+          ? T("Voltar ao menu inicial? O progresso da partida e da Copa serão perdidos.")
+          : T("Voltar ao menu inicial? O progresso da partida atual será perdido."));
       if (window.confirm(msg)) {
         els.gameRoot.classList.add("hidden");
         els.duelModal.classList.add("hidden");
@@ -1473,7 +1481,7 @@ var UI = (function () {
         if (campaignActive) {
           var humanGoals = pending.state.score[pending.state.humanTeamId];
           var gained = CAMPAIGN.awardFichas(pending.result, humanGoals);
-          renderCampaignShop("Você ganhou " + gained + " fichas!");
+          renderCampaignShop(T("Você ganhou {0} fichas!", gained));
           return;
         }
         renderCopaHub();
@@ -1487,8 +1495,8 @@ var UI = (function () {
       SOUND.playClick();
       if (gameMode === "copa" && COPA.isActive()) {
         var exitMsg = campaignActive
-          ? "Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois."
-          : "Voltar ao menu inicial? O progresso da Copa será perdido.";
+          ? T("Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois.")
+          : T("Voltar ao menu inicial? O progresso da Copa será perdido.");
         if (!window.confirm(exitMsg)) return;
         if (campaignActive && copaMatchResultPending) {
           var pending = copaMatchResultPending;
@@ -1555,7 +1563,7 @@ var UI = (function () {
     fillSquadBadgeEl(badge, sq);
     var name = document.createElement("span");
     name.className = "copa-squad-name";
-    name.textContent = sq.name;
+    name.textContent = T(sq.name);
     row.appendChild(badge);
     row.appendChild(name);
     return row;
@@ -1663,7 +1671,7 @@ var UI = (function () {
     wrap.className = "copa-standings-group";
     var title = document.createElement("p");
     title.className = "copa-standings-title";
-    title.textContent = "Grupo " + groupId;
+    title.textContent = T("Grupo") + " " + groupId;
     wrap.appendChild(title);
 
     var table = document.createElement("table");
@@ -1746,7 +1754,7 @@ var UI = (function () {
       return;
     }
 
-    els.copaHubStageLabel.textContent = copaStageLabel(state.stage);
+    els.copaHubStageLabel.textContent = T(copaStageLabel(state.stage));
 
     els.copaHubStandings.innerHTML = "";
     if (state.stage === "groups") {
@@ -1776,8 +1784,8 @@ var UI = (function () {
             bloco.open = ordem === 0; // so a rodada mais recente vem aberta
             var titulo = document.createElement("summary");
             titulo.className = "copa-round-results-heading";
-            titulo.textContent = "Rodada " + (idx + 1) + " · " + porRodada[idx].length + " jogo" +
-              (porRodada[idx].length > 1 ? "s" : "");
+            titulo.textContent = T("Rodada") + " " + (idx + 1) + " · " +
+              (porRodada[idx].length > 1 ? T("{0} jogos", porRodada[idx].length) : T("{0} jogo", porRodada[idx].length));
             bloco.appendChild(titulo);
             porRodada[idx].forEach(function (fx) { bloco.appendChild(buildCopaResultLine(fx)); });
             els.copaHubRoundResults.appendChild(bloco);
@@ -1785,17 +1793,17 @@ var UI = (function () {
       } else {
         var heading = document.createElement("p");
         heading.className = "copa-round-results-heading";
-        heading.textContent = "Outros jogos desta fase";
+        heading.textContent = T("Outros jogos desta fase");
         els.copaHubRoundResults.appendChild(heading);
         simulated.forEach(function (fx) { els.copaHubRoundResults.appendChild(buildCopaResultLine(fx)); });
       }
     }
 
     if (step.type === "human-fixture") {
-      els.copaHubFixtureBtn.textContent = "⚽ Jogar Partida";
+      els.copaHubFixtureBtn.textContent = T("⚽ Jogar Partida");
       els.copaHubFixtureBtn.classList.remove("hidden");
     } else if (step.type === "stage-summary") {
-      els.copaHubFixtureBtn.textContent = "Continuar ➜";
+      els.copaHubFixtureBtn.textContent = T("Continuar ➜");
       els.copaHubFixtureBtn.classList.remove("hidden");
     } else {
       els.copaHubFixtureBtn.classList.add("hidden");
@@ -1813,8 +1821,8 @@ var UI = (function () {
     var isChampion = step.championSquadId === humanId;
 
     if (els.copaResultInner) els.copaResultInner.classList.toggle("is-champion", isChampion);
-    els.copaResultKicker.textContent = isChampion ? "CAMPEÃO DA COPA" : "FIM DA SUA JORNADA";
-    els.copaResultTitle.textContent = isChampion ? "CAMPEÃO!" : "ELIMINADO";
+    els.copaResultKicker.textContent = isChampion ? T("CAMPEÃO DA COPA") : T("FIM DA SUA JORNADA");
+    els.copaResultTitle.textContent = isChampion ? T("CAMPEÃO!") : T("ELIMINADO");
     els.copaResultTitle.style.background = "none";
     els.copaResultTitle.style.webkitTextFillColor = isChampion ? "var(--gold)" : "var(--danger)";
     els.copaResultTitle.style.color = isChampion ? "var(--gold)" : "var(--danger)";
@@ -1838,12 +1846,12 @@ var UI = (function () {
 
     var detail;
     if (isChampion) {
-      detail = "Vitória com o " + champ.name + " — nenhuma seleção resistiu à sua caminhada na Copa!";
+      detail = T("Vitória com o {0}", T(champ.name)) + " " + T("— nenhuma seleção resistiu à sua caminhada na Copa!");
     } else {
       var stageLabel = step.humanEliminatedAt === "groups" ? "na fase de grupos"
         : step.humanEliminatedAt === "quartas" ? "nas quartas de final"
         : step.humanEliminatedAt === "semis" ? "na semifinal" : "na final";
-      detail = "Sua jornada terminou " + stageLabel + ".";
+      detail = T("Sua jornada terminou") + " " + T(stageLabel) + ".";
     }
     els.copaResultDetail.textContent = detail;
 
@@ -1851,7 +1859,7 @@ var UI = (function () {
       var finalFx = st.fixtures.filter(function (f) { return f.stage === "final"; })[0];
       if (finalFx && finalFx.status === "done") {
         var home = squadById(finalFx.homeSquadId), away = squadById(finalFx.awaySquadId);
-        els.copaResultFinalScore.textContent = "Final: " + home.shortName + " " + finalFx.golsA + " - " + finalFx.golsB + " " + away.shortName;
+        els.copaResultFinalScore.textContent = T("Final:") + " " + home.shortName + " " + finalFx.golsA + " - " + finalFx.golsB + " " + away.shortName;
         els.copaResultFinalScore.classList.remove("hidden");
       } else {
         els.copaResultFinalScore.classList.add("hidden");
@@ -1869,12 +1877,12 @@ var UI = (function () {
     var scorersA = state.scorers.A.map(function (s) { return s.name; });
     var scorersB = state.scorers.B.map(function (s) { return s.name; });
 
-    els.rematchBtn.textContent = "Continuar ➜";
+    els.rematchBtn.textContent = T("Continuar ➜");
     var result = fillGameoverModal(state);
     copaMatchResultPending = { state: state, scorersA: scorersA, scorersB: scorersB, result: result };
     els.gameoverSub.textContent = result === "win"
-      ? "Vitória na Copa! Vamos ver o resto da rodada."
-      : (result === "lose" ? "Não foi dessa vez... mas a Copa continua." : "Empate! Fica pra classificação geral.");
+      ? T("Vitória na Copa! Vamos ver o resto da rodada.")
+      : (result === "lose" ? T("Não foi dessa vez... mas a Copa continua.") : T("Empate! Fica pra classificação geral."));
     els.gameoverModal.classList.remove("hidden");
   }
 
@@ -1892,7 +1900,7 @@ var UI = (function () {
     if (els.campaignShopModal) els.campaignShopModal.classList.add("hidden");
     if (els.campaignRecruitModal) els.campaignRecruitModal.classList.add("hidden");
     if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
-    if (els.startBtn) els.startBtn.textContent = "⚽ Iniciar Partida";
+    if (els.startBtn) els.startBtn.textContent = T("⚽ Iniciar Partida");
     renderSquadPickList();
     els.startScreen.classList.remove("hidden");
   }
@@ -1901,7 +1909,7 @@ var UI = (function () {
 
   function beginPreGameFlow() {
     var teamName = squadForSlot("A").name;
-    els.lineupAskText.textContent = "Quer ajustar as posições iniciais do " + teamName + " em campo?";
+    els.lineupAskText.textContent = T("Quer ajustar as posições iniciais do {0} em campo?", T(teamName));
     els.lineupAskModal.classList.remove("hidden");
   }
 
@@ -1927,7 +1935,7 @@ var UI = (function () {
     lineupWorking = buildDefaultLineup(chosenHomeSquadId);
     lineupSelectedId = null;
     var teamName = squadForSlot("A").name;
-    els.lineupEditorTitle.textContent = "Monte o " + teamName;
+    els.lineupEditorTitle.textContent = T("Monte o {0}", T(teamName));
     renderLineupEditor();
     els.lineupEditorModal.classList.remove("hidden");
   }
@@ -1984,7 +1992,7 @@ var UI = (function () {
     goalbox.style.width = boxWidthPct + "%";
     var goalboxLabel = document.createElement("span");
     goalboxLabel.className = "lineup-field-label";
-    goalboxLabel.textContent = "ÁREA";
+    goalboxLabel.textContent = T("ÁREA");
     goalbox.appendChild(goalboxLabel);
     frag.appendChild(goalbox);
 
@@ -1996,7 +2004,7 @@ var UI = (function () {
     midline.className = "lineup-midline " + (isLeftGoal ? "side-right" : "side-left");
     var midlineLabel = document.createElement("span");
     midlineLabel.className = "lineup-field-label";
-    midlineLabel.textContent = "MEIO-CAMPO";
+    midlineLabel.textContent = T("MEIO-CAMPO");
     midline.appendChild(midlineLabel);
     frag.appendChild(midline);
 
@@ -2032,7 +2040,7 @@ var UI = (function () {
   function renderLineupDetail() {
     var p = lineupWorking ? lineupWorking.find(function (x) { return x.id === lineupSelectedId; }) : null;
     if (!p) {
-      els.lineupDetail.innerHTML = '<p class="detail-empty">Toque num jogador para ver os detalhes.</p>';
+      els.lineupDetail.innerHTML = '<p class="detail-empty">' + T("Toque num jogador para ver os detalhes.") + '</p>';
       return;
     }
     var grad = teamGradient(p.team);
@@ -2041,7 +2049,7 @@ var UI = (function () {
     var statOrder = ["velocidade", "chute", "tecnica", "defesa", "espirito"];
     var statsHtml = statOrder.map(function (k) {
       var val = p.stats[k];
-      return '<div class="stat-row"><span class="stat-label">' + GAME_DATA.STATS[k] + '</span>' +
+      return '<div class="stat-row"><span class="stat-label">' + T(GAME_DATA.STATS[k]) + '</span>' +
         '<div class="stat-track"><div class="stat-fill" style="width:' + val + '%; background:' + grad + '"></div></div>' +
         '<span class="stat-value">' + val + '</span></div>';
     }).join("");
@@ -2049,10 +2057,10 @@ var UI = (function () {
     els.lineupDetail.innerHTML =
       '<div class="lineup-detail-head"><div class="avatar-box" id="lineup-detail-avatar"></div><div>' +
       '<div class="lineup-detail-name">' + p.number + '. ' + p.name + ' ' + p.flag + '</div>' +
-      '<div class="lineup-detail-pos">' + pos.label + ' · ' + p.temperament + '</div>' +
+      '<div class="lineup-detail-pos">' + T(pos.label) + ' · ' + T(p.temperament) + '</div>' +
       '</div></div>' +
-      '<div class="stat-list">' + statsHtml + '<div class="detail-move-label">Movimento: <strong>' + moveLabel + '</strong></div></div>' +
-      '<div class="power-box"><div class="power-name">✨ ' + p.power.name + '</div><div class="power-desc">' + p.power.desc + '</div></div>';
+      '<div class="stat-list">' + statsHtml + '<div class="detail-move-label">' + T("Movimento:") + ' <strong>' + moveLabel + '</strong></div></div>' +
+      '<div class="power-box"><div class="power-name">✨ ' + T(p.power.name) + '</div><div class="power-desc">' + T(p.power.desc) + '</div></div>';
 
     var avatarEl = els.lineupDetail.querySelector("#lineup-detail-avatar");
     if (avatarEl) fillAvatarEl(avatarEl, p);
@@ -2060,7 +2068,7 @@ var UI = (function () {
 
   function openCoinFlip() {
     els.coinflipModal.classList.remove("hidden");
-    els.coinflipResult.textContent = "Girando a moeda...";
+    els.coinflipResult.textContent = T("Girando a moeda...");
     els.coinflipContinueBtn.classList.add("hidden");
     if (els.coinFaceA) fillSquadBadgeEl(els.coinFaceA, squadForSlot("A"));
     if (els.coinFaceB) fillSquadBadgeEl(els.coinFaceB, squadForSlot("B"));
@@ -2088,7 +2096,7 @@ var UI = (function () {
       clearInterval(spinInterval);
       SOUND.playCoinLand();
       var winnerData = squadForSlot(winnerId);
-      els.coinflipResult.innerHTML = "<strong>" + winnerData.name + "</strong> venceu o sorteio e começa com a bola!";
+      els.coinflipResult.innerHTML = T("<strong>{0}</strong> venceu o sorteio e começa com a bola!", T(winnerData.name));
       els.coinflipContinueBtn.classList.remove("hidden");
     }, 1850);
   }
@@ -2130,11 +2138,11 @@ var UI = (function () {
     var urls = collectMatchImageUrls();
     els.loadingModal.classList.remove("hidden");
     els.loadingFill.style.width = "0%";
-    els.loadingCount.textContent = "0 / " + urls.length + " imagens";
+    els.loadingCount.textContent = T("{0} / {1} imagens", 0, urls.length);
     preloadImages(urls, function (done, total) {
       var pct = total === 0 ? 100 : Math.round((done / total) * 100);
       els.loadingFill.style.width = pct + "%";
-      els.loadingCount.textContent = done + " / " + total + " imagens";
+      els.loadingCount.textContent = T("{0} / {1} imagens", done, total);
     }).then(function () {
       els.loadingModal.classList.add("hidden");
       launchMatch();
@@ -2195,6 +2203,17 @@ var UI = (function () {
     var savedTheme = null;
     try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) { /* ignora */ }
     if (savedTheme === "dark") applyTheme("dark");
+
+    // o texto fixo do HTML o proprio I18N reaplica; o que e montado aqui em JS
+    // (lista de times, placar, ficha do jogador, elenco) precisa ser refeito
+    I18N.applyStatic(document);
+    I18N.onChange(function () {
+      if (els.squadSelectKicker && gameMode) els.squadSelectKicker.textContent = T(MODE_KICKER_LABEL[gameMode] || "");
+      if (els.startBtn) els.startBtn.textContent = gameMode === "copa" ? T("🏆 Ir pro Sorteio") : T("⚽ Iniciar Partida");
+      renderSquadPickList();
+      var st = GAME.getState && GAME.getState();
+      if (st && st.pieces && st.pieces.length) render();
+    });
   }
 
   return {
