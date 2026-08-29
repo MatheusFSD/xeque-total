@@ -72,6 +72,9 @@
   --gana: #e2a20a;
   --gana-2: #046a38;
 
+  --paraguai: #d52b1e;
+  --paraguai-2: #0038a8;
+
   --ira: #239f40;
   --ira-2: #da0000;
 
@@ -420,10 +423,16 @@ button{ font-family: inherit; }
    propósito: ele esconde o elemento durante o delay, mas devolve o controle
    ao CSS normal quando a animação acaba. Com `both` o último keyframe ficaria
    grudado pra sempre e o `transform` do :hover dos cartões pararia de
-   funcionar — o hover perderia a briga contra o preenchimento da animação. */
-.start-card .kicker{ animation: menuPartIn 0.35s ease-out 0.1s backwards; }
-.start-card .tagline{ animation: menuPartIn 0.45s ease-out 1.05s backwards; }
-.start-card #how-to-play-btn{ animation: menuPartIn 0.4s ease-out 1.62s backwards; }
+   funcionar — o hover perderia a briga contra o preenchimento da animação.
+
+   Escopo em #start-screen, e nao em .start-card: outros 12 modais reusam
+   .start-card, e ali a cascata nao faz sentido nenhum — como `.hidden` e
+   display:none, reabrir o modal REINICIA a animacao, e a tagline (1,05s de
+   atraso, fill-mode backwards) ficava invisivel por um segundo toda vez.
+   Pegava a pergunta da escalacao, o texto da campanha e o fim de jogo. */
+#start-screen .kicker{ animation: menuPartIn 0.35s ease-out 0.1s backwards; }
+#start-screen .tagline{ animation: menuPartIn 0.45s ease-out 1.05s backwards; }
+#start-screen #how-to-play-btn{ animation: menuPartIn 0.4s ease-out 1.62s backwards; }
 
 .mode-card{ animation: modeCardIn 0.4s cubic-bezier(.2,.8,.3,1.25) backwards; }
 .mode-select-grid .mode-card:nth-child(1){ animation-delay: 1.22s; }
@@ -1690,6 +1699,75 @@ button{ font-family: inherit; }
 ========================================================= */
 
 .lineup-title{ font-size: 2.2rem; }
+
+/* Acima de todos os outros .overlay-screen (z-index 100): a confirmacao pode
+   ser aberta POR CIMA do hub da Copa ou do fim de jogo, e como ela vem antes
+   deles no DOM, sem isso os cliques iriam parar no overlay de baixo. */
+/* ---------------- abertura do estudio ----------------
+   Vem antes de tudo, entao fica acima ate do modal de confirmacao (200).
+   A logo tem contorno proprio e le bem nos dois temas; o fundo usa os mesmos
+   tokens do resto, entao acompanha o modo noturno sem tratamento especial. */
+#boot-screen{
+  position: fixed; inset: 0; z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px;
+  background: var(--bg-0);
+  background-image:
+    radial-gradient(circle at 50% 38%, rgba(255,255,255,0.10), transparent 55%),
+    linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 100%);
+  transition: opacity 0.45s ease;
+}
+#boot-screen.saindo{ opacity: 0; pointer-events: none; }
+
+.boot-inner{
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  width: 100%; max-width: 420px;
+}
+.boot-logo{
+  width: 100%; max-width: 250px; height: auto; display: block;
+  animation: bootLogoIn 0.8s cubic-bezier(.2,.8,.3,1) both;
+}
+/* mesmo tratamento dos .kicker do jogo: caixa alta, pequena e bem espacada */
+.boot-apresenta{
+  margin: -8px 0 0;
+  font-family: var(--font-body); font-weight: 500; font-size: 0.78rem;
+  letter-spacing: 0.42em; text-transform: uppercase; text-indent: 0.42em;
+  color: var(--ink-dim);
+  animation: bootLogoIn 0.5s ease-out 0.5s both;
+}
+@keyframes bootLogoIn{
+  from{ opacity: 0; transform: scale(0.9); }
+  to{ opacity: 1; transform: none; }
+}
+
+.boot-track{
+  width: 100%; height: 12px;
+  background: var(--panel-soft);
+  border: 3px solid var(--panel-border);
+  border-radius: 99px;
+  overflow: hidden;
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  animation: bootLogoIn 0.5s ease-out 0.75s both;
+}
+.boot-fill{
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--danger) 100%);
+  transition: width 0.28s ease-out;
+}
+.boot-count{
+  margin: 0; font-size: 0.76rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 500;
+  animation: bootLogoIn 0.5s ease-out 0.95s both;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .boot-logo, .boot-apresenta, .boot-track, .boot-count{ animation: none; }
+  #boot-screen{ transition: none; }
+}
+
+#confirm-modal{ z-index: 200; }
+.confirm-card{ max-width: 460px; }
+.confirm-text{ margin-bottom: 4px; }
 
 .lineup-ask-actions{ display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .lineup-ask-actions .btn{ width: 100%; max-width: 320px; }

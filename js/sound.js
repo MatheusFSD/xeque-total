@@ -10,7 +10,7 @@ var SOUND = (function () {
   var ctx = null;
   var muted = false;
 
-  try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch (e) { /* modo privado etc — ignora */ }
+  try { muted = STORAGE.getItem(MUTE_KEY) === "1"; } catch (e) { /* modo privado etc — ignora */ }
 
   // o AudioContext só pode nascer (ou sair de "suspended") dentro de um
   // gesto do usuário (clique) — por isso nunca é criado no load da página,
@@ -27,7 +27,7 @@ var SOUND = (function () {
 
   function setMuted(v) {
     muted = !!v;
-    try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) { /* ignora */ }
+    try { STORAGE.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) { /* ignora */ }
   }
   function isMuted() { return muted; }
 

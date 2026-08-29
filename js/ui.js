@@ -10,6 +10,58 @@ var UI = (function () {
   var chosenAwaySquadId = null;
   var chosenMaxTurns = 50;
   var chosenNoTurnLimit = false;
+
+  /* Copa avulsa salva entre sessoes. A Campanha tem persistencia propria
+     (js/campaign.js guarda o copaState dentro do save dela, indexado pela
+     senha), entao aqui so entra a Copa fora do modo Campanha — senao os dois
+     brigariam pelo mesmo torneio. */
+  var COPA_SAVE_KEY = "xequeTotalCopaSave";
+
+  function salvarCopa() {
+    if (campaignActive || gameMode !== "copa" || !COPA.isActive()) return;
+    try {
+      STORAGE.setItem(COPA_SAVE_KEY, JSON.stringify({
+        copaState: COPA.getState(),
+        homeSquadId: chosenHomeSquadId,
+        maxTurns: chosenMaxTurns,
+        noTurnLimit: chosenNoTurnLimit
+      }));
+    } catch (e) { /* sem storage, o torneio so nao sobrevive ao recarregar */ }
+  }
+
+  function lerCopaSalva() {
+    try {
+      var raw = STORAGE.getItem(COPA_SAVE_KEY);
+      if (!raw) return null;
+      var save = JSON.parse(raw);
+      return (save && save.copaState && save.homeSquadId) ? save : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function apagarCopaSalva() {
+    try { STORAGE.removeItem(COPA_SAVE_KEY); } catch (e) { /* ignora */ }
+  }
+
+  function retomarCopaSalva(save) {
+    COPA.loadState(save.copaState);
+    campaignActive = false;
+    gameMode = "copa";
+    chosenHomeSquadId = save.homeSquadId;
+    chosenAwaySquadId = null;
+    chosenMaxTurns = save.maxTurns || 50;
+    chosenNoTurnLimit = !!save.noTurnLimit;
+    if (els.turnLimitInput) els.turnLimitInput.value = chosenMaxTurns;
+    if (els.noTurnLimitCheckbox) {
+      els.noTurnLimitCheckbox.checked = chosenNoTurnLimit;
+      els.turnLimitInput.disabled = chosenNoTurnLimit;
+    }
+    els.startScreen.classList.add("hidden");
+    if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
+    applySlotColors();
+    renderCopaHub();
+  }
   var gameMode = "amistoso"; // "amistoso" | "copa"
   var campaignActive = false; // true = a partida/torneio "copa" em andamento é na verdade o modo Campanha (squad fixo CTM)
   var copaPendingFixtureId = null; // fixture da Copa em andamento (enquanto uma partida real está rolando)
@@ -47,6 +99,7 @@ var UI = (function () {
 
   function cacheEls() {
     var ids = [
+      "boot-screen", "boot-fill", "boot-count",
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
       "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "mode-select-campanha", "sound-checkbox", "lang-select",
@@ -55,6 +108,7 @@ var UI = (function () {
       "campaign-shop-modal", "campaign-shop-fichas", "campaign-shop-award", "campaign-shop-roster",
       "campaign-pack-medianos", "campaign-pack-medianos-cost", "campaign-pack-elite", "campaign-pack-elite-cost", "campaign-shop-continue-btn",
       "campaign-recruit-modal", "campaign-recruit-name", "campaign-recruit-sub", "campaign-recruit-slots",
+      "confirm-modal", "confirm-text", "confirm-yes", "confirm-no",
       "copa-draw-modal", "copa-draw-group-a", "copa-draw-group-b", "copa-draw-group-c", "copa-draw-group-d", "copa-draw-excluded", "copa-draw-excluded-list", "copa-draw-continue-btn",
       "copa-hub-modal", "copa-hub-stage-label", "copa-hub-standings", "copa-hub-round-results", "copa-hub-fixture-btn", "copa-hub-menu-btn",
       "copa-result-modal", "copa-result-inner", "copa-result-kicker", "copa-result-title", "copa-result-badge",
@@ -1313,7 +1367,19 @@ var UI = (function () {
     });
 
     if (els.modeSelectAmistoso) els.modeSelectAmistoso.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("amistoso"); });
-    if (els.modeSelectCopa) els.modeSelectCopa.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("copa"); });
+    if (els.modeSelectCopa) els.modeSelectCopa.addEventListener("click", function () {
+      SOUND.playClick();
+      var save = lerCopaSalva();
+      if (save) {
+        confirmar(T("Você tem uma Copa em andamento. Quer continuar de onde parou?")).then(function (sim) {
+          if (sim) { retomarCopaSalva(save); return; }
+          apagarCopaSalva(); // recusou: o torneio antigo morre aqui
+          goToSquadSelect("copa");
+        });
+        return;
+      }
+      goToSquadSelect("copa");
+    });
     if (els.modeSelectDuo) els.modeSelectDuo.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("2players"); });
     if (els.modeSelectCampanha) els.modeSelectCampanha.addEventListener("click", function () { SOUND.playClick(); goToCampaignPassword(); });
 
@@ -1382,6 +1448,7 @@ var UI = (function () {
       if (gameMode === "copa") {
         if (!chosenHomeSquadId) return;
         COPA.startTournament(chosenHomeSquadId);
+        salvarCopa();
         els.squadSelectScreen.classList.add("hidden");
         renderCopaDraw();
         return;
@@ -1408,6 +1475,7 @@ var UI = (function () {
         beginPreGameFlow();
       } else if (step.type === "stage-summary") {
         COPA.advance();
+        salvarCopa();
         renderCopaHub();
       }
     });
@@ -1415,11 +1483,12 @@ var UI = (function () {
     if (els.copaHubMenuBtn) els.copaHubMenuBtn.addEventListener("click", function () {
       var exitMsg = campaignActive
         ? T("Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois.")
-        : T("Sair da Copa? O progresso do torneio será perdido.");
-      if (window.confirm(exitMsg)) {
+        : T("Sair da Copa? O torneio fica salvo — é só entrar na Copa de novo pra continuar.");
+      confirmar(exitMsg).then(function (sim) {
+        if (!sim) return;
         els.copaHubModal.classList.add("hidden");
         returnToMenuFromCopa();
-      }
+      });
     });
 
     if (els.copaResultMenuBtn) els.copaResultMenuBtn.addEventListener("click", function () {
@@ -1447,9 +1516,10 @@ var UI = (function () {
       var msg = campaignActive
         ? T("Voltar ao menu inicial? A partida atual (ainda não concluída) será perdida, mas sua Campanha salva continua de onde parou.")
         : (gameMode === "copa"
-          ? T("Voltar ao menu inicial? O progresso da partida e da Copa serão perdidos.")
+          ? T("Voltar ao menu inicial? A partida atual será perdida, mas o torneio fica salvo.")
           : T("Voltar ao menu inicial? O progresso da partida atual será perdido."));
-      if (window.confirm(msg)) {
+      confirmar(msg).then(function (sim) {
+        if (!sim) return;
         els.gameRoot.classList.add("hidden");
         els.duelModal.classList.add("hidden");
         els.gameoverModal.classList.add("hidden");
@@ -1459,7 +1529,7 @@ var UI = (function () {
           if (els.squadSelectScreen) els.squadSelectScreen.classList.add("hidden");
           els.startScreen.classList.remove("hidden");
         }
-      }
+      });
     });
 
     els.playerStatsClose.addEventListener("click", closePlayerStatsModal);
@@ -1477,6 +1547,7 @@ var UI = (function () {
         copaMatchResultPending = null;
         COPA.reportHumanResult(copaPendingFixtureId, pending.state.score.A, pending.state.score.B, pending.scorersA, pending.scorersB);
         copaPendingFixtureId = null;
+        salvarCopa();
         els.gameRoot.classList.add("hidden");
         if (campaignActive) {
           var humanGoals = pending.state.score[pending.state.humanTeamId];
@@ -1496,17 +1567,20 @@ var UI = (function () {
       if (gameMode === "copa" && COPA.isActive()) {
         var exitMsg = campaignActive
           ? T("Sair da Campanha? Seu progresso fica salvo — digite a mesma senha pra continuar depois.")
-          : T("Voltar ao menu inicial? O progresso da Copa será perdido.");
-        if (!window.confirm(exitMsg)) return;
-        if (campaignActive && copaMatchResultPending) {
-          var pending = copaMatchResultPending;
-          COPA.reportHumanResult(copaPendingFixtureId, pending.state.score.A, pending.state.score.B, pending.scorersA, pending.scorersB);
-          CAMPAIGN.awardFichas(pending.result, pending.state.score[pending.state.humanTeamId]);
-        }
-        copaMatchResultPending = null;
-        els.gameoverModal.classList.add("hidden");
-        els.gameRoot.classList.add("hidden");
-        returnToMenuFromCopa();
+          : T("Voltar ao menu inicial? O torneio fica salvo — é só entrar na Copa de novo pra continuar.");
+        confirmar(exitMsg).then(function (sim) {
+          if (!sim) return;
+          if (copaMatchResultPending) {
+            var pending = copaMatchResultPending;
+            COPA.reportHumanResult(copaPendingFixtureId, pending.state.score.A, pending.state.score.B, pending.scorersA, pending.scorersB);
+            if (campaignActive) CAMPAIGN.awardFichas(pending.result, pending.state.score[pending.state.humanTeamId]);
+            else salvarCopa();
+          }
+          copaMatchResultPending = null;
+          els.gameoverModal.classList.add("hidden");
+          els.gameRoot.classList.add("hidden");
+          returnToMenuFromCopa();
+        });
         return;
       }
       els.gameoverModal.classList.add("hidden");
@@ -1815,6 +1889,7 @@ var UI = (function () {
   function renderCopaResult() {
     var step = COPA.getNextStep();
     if (step.type !== "tournament-over") return;
+    if (!campaignActive) apagarCopaSalva(); // acabou: nao ha o que retomar
     var champ = squadById(step.championSquadId);
     var st = COPA.getState();
     var humanId = st.humanSquadId;
@@ -1884,6 +1959,39 @@ var UI = (function () {
       ? T("Vitória na Copa! Vamos ver o resto da rodada.")
       : (result === "lose" ? T("Não foi dessa vez... mas a Copa continua.") : T("Empate! Fica pra classificação geral."));
     els.gameoverModal.classList.remove("hidden");
+  }
+
+  /* Pergunta de sim/nao em modal proprio, no lugar do window.confirm().
+     O confirm() nativo e bloqueado pelo Chrome dentro de iframe de origem
+     diferente (v92+) — é assim que o CrazyGames embute o jogo, e la ele
+     devolveria false calado, fazendo os botoes de sair nao responderem e,
+     pior, descartando a Copa salva como se o jogador tivesse recusado.
+     Devolve uma Promise que resolve com true/false. */
+  function confirmar(mensagem) {
+    return new Promise(function (resolve) {
+      if (!els.confirmModal) { resolve(window.confirm(mensagem)); return; }
+      els.confirmText.textContent = mensagem;
+      els.confirmModal.classList.remove("hidden");
+      els.confirmYes.focus();
+
+      function fechar(resposta) {
+        els.confirmModal.classList.add("hidden");
+        els.confirmYes.removeEventListener("click", aoSim);
+        els.confirmNo.removeEventListener("click", aoNao);
+        els.confirmModal.removeEventListener("click", aoFundo);
+        document.removeEventListener("keydown", aoTeclado);
+        resolve(resposta);
+      }
+      function aoSim() { SOUND.playClick(); fechar(true); }
+      function aoNao() { SOUND.playClick(); fechar(false); }
+      function aoFundo(e) { if (e.target === els.confirmModal) fechar(false); }
+      function aoTeclado(e) { if (e.key === "Escape") fechar(false); }
+
+      els.confirmYes.addEventListener("click", aoSim);
+      els.confirmNo.addEventListener("click", aoNao);
+      els.confirmModal.addEventListener("click", aoFundo);
+      document.addEventListener("keydown", aoTeclado);
+    });
   }
 
   function returnToMenuFromCopa() {
@@ -2191,7 +2299,95 @@ var UI = (function () {
     var source = (ev && ev.target) || els.themeToggleBtn;
     var next = source && source.checked ? "dark" : "light";
     applyTheme(next);
-    try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch (e) { /* modo privado etc — ignora */ }
+    try { STORAGE.setItem(THEME_STORAGE_KEY, next); } catch (e) { /* modo privado etc — ignora */ }
+  }
+
+  /* ---------------- abertura do estudio ----------------
+     A logo da Itacoa fica no ar enquanto as imagens carregam, e some so
+     depois de BOOT_MIN_MS mesmo que o carregamento acabe antes — a marca
+     precisa de um tempo minimo de tela pra ser lida.
+
+     PRE_CARREGAR_TUDO decide o que entra na barra:
+       false (padrao) — as 42 imagens do menu e das bandeiras, ~3 MB. E o que
+              deixa o menu instantaneo. As artes dos jogadores continuam sendo
+              carregadas por partida, pelo #loading-modal que ja existia.
+       true  — soma as 385 splash arts, ~131 MB. A barra vira uma barra de
+              verdade, mas sao uns 55s numa conexao de 20 Mbps, e estoura o
+              limite de download inicial do CrazyGames (50 MB, 20 MB pra home
+              mobile). Ver [[project-crazygames]].
+  --------------------------------------------------------- */
+  var BOOT_MIN_MS = 3000;
+  var PRE_CARREGAR_TUDO = false;
+
+  function collectBootImageUrls() {
+    var urls = [
+      "img/logo.webp", "img/menu-bg.webp",
+      "img/messicr71.webp", "img/messicr72.webp",
+      "img/belini1.webp", "img/belini2.webp",
+      "img/duo1.webp", "img/duo2.webp",
+      "img/campanha1.webp", "img/campanha2.webp"
+    ];
+    // bandeiras: uma por seleçao, deduzidas do emoji como no resto do jogo
+    GAME_DATA.TEAMS.forEach(function (sq) {
+      var iso2 = flagToIso2(sq.badge);
+      if (iso2) urls.push(FLAG_DIR + iso2 + ".webp");
+      if (PRE_CARREGAR_TUDO) {
+        sq.players.forEach(function (p) {
+          urls.push("splashs_art/" + sq.assetPrefix + "_" + p.assetKey + ".webp");
+        });
+      }
+    });
+    // tira repetidas (duas seleçoes podem cair na mesma bandeira por engano)
+    var vistas = {}, unicas = [];
+    for (var i = 0; i < urls.length; i++) {
+      if (!vistas[urls[i]]) { vistas[urls[i]] = 1; unicas.push(urls[i]); }
+    }
+    return unicas;
+  }
+
+  function runBootScreen() {
+    if (!els.bootScreen) { els.startScreen.classList.remove("hidden"); return; }
+    var urls = collectBootImageUrls();
+    var comeco = Date.now();
+    var fracaoCarregada = 0;
+
+    /* A barra anda pelo que estiver MAIS LENTO: o carregamento ou o relogio.
+       Numa conexao boa as 42 imagens entram em milissegundos, e uma barra que
+       crava 100% e fica parada os 3 segundos restantes parece travada. */
+    var totalImagens = urls.length;
+
+    function pintarBarra() {
+      var porTempo = Math.min(1, (Date.now() - comeco) / BOOT_MIN_MS);
+      var fracao = Math.min(fracaoCarregada, porTempo);
+      if (els.bootFill) els.bootFill.style.width = Math.round(fracao * 100) + "%";
+      // a contagem anda junto com a barra: dizer "42 / 42" com a barra pela
+      // metade parece bug, ainda que as imagens ja tenham chegado
+      if (els.bootCount) {
+        els.bootCount.textContent = T("{0} / {1} imagens", Math.round(fracao * totalImagens), totalImagens);
+      }
+    }
+
+    function progresso(feito, total) {
+      fracaoCarregada = total === 0 ? 1 : feito / total;
+      totalImagens = total;
+      pintarBarra();
+    }
+
+    var relogio = setInterval(pintarBarra, 60);
+    var carregando = preloadImages(urls, progresso);
+    var minimo = new Promise(function (resolve) { setTimeout(resolve, BOOT_MIN_MS); });
+
+    Promise.all([carregando, minimo]).then(function () {
+      clearInterval(relogio);
+      if (els.bootFill) els.bootFill.style.width = "100%";
+      els.bootScreen.classList.add("saindo");
+      els.startScreen.classList.remove("hidden");
+      setTimeout(function () {
+        if (els.bootScreen && els.bootScreen.parentNode) {
+          els.bootScreen.parentNode.removeChild(els.bootScreen);
+        }
+      }, 500);
+    });
   }
 
   function init() {
@@ -2201,7 +2397,7 @@ var UI = (function () {
     applySlotColors();
     wireStaticEvents();
     var savedTheme = null;
-    try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) { /* ignora */ }
+    try { savedTheme = STORAGE.getItem(THEME_STORAGE_KEY); } catch (e) { /* ignora */ }
     if (savedTheme === "dark") applyTheme("dark");
 
     // o texto fixo do HTML o proprio I18N reaplica; o que e montado aqui em JS
@@ -2214,6 +2410,8 @@ var UI = (function () {
       var st = GAME.getState && GAME.getState();
       if (st && st.pieces && st.pieces.length) render();
     });
+
+    runBootScreen();
   }
 
   return {

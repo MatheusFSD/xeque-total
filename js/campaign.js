@@ -59,7 +59,7 @@ var CAMPAIGN = (function () {
 
   function readAllSaves() {
     try {
-      var raw = localStorage.getItem(SAVE_KEY);
+      var raw = STORAGE.getItem(SAVE_KEY);
       return raw ? JSON.parse(raw) : {};
     } catch (e) {
       return {};
@@ -67,7 +67,7 @@ var CAMPAIGN = (function () {
   }
 
   function writeAllSaves(all) {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(all)); } catch (e) { /* sem localStorage, segue sem persistir */ }
+    try { STORAGE.setItem(SAVE_KEY, JSON.stringify(all)); } catch (e) { /* sem storage, segue sem persistir */ }
   }
 
   function save() {

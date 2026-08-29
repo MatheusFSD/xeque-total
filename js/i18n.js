@@ -100,6 +100,9 @@ var I18N = (function () {
     "DUELO!": "DUEL!",
     "DUELO NO CAMPO!": "DUEL ON THE PITCH!",
     "CHANCE DE GOL!": "GOAL CHANCE!",
+    "TEM CERTEZA?": "ARE YOU SURE?",
+    "Sim": "Yes",
+    "Cancelar": "Cancel",
     "Continuar": "Continue",
     "Continuar ➜": "Continue ➜",
     "Ação Básica": "Basic Action",
@@ -131,10 +134,6 @@ var I18N = (function () {
     "Voltar ao Menu": "Back to Menu",
     "Voltar ao menu inicial? O progresso da partida atual será perdido.":
       "Back to the main menu? The current match progress will be lost.",
-    "Voltar ao menu inicial? O progresso da Copa será perdido.":
-      "Back to the main menu? Your World Cup progress will be lost.",
-    "Voltar ao menu inicial? O progresso da partida e da Copa serão perdidos.":
-      "Back to the main menu? Both the match and the World Cup progress will be lost.",
     "Voltar ao menu inicial? A partida atual (ainda não concluída) será perdida, mas sua Campanha salva continua de onde parou.":
       "Back to the main menu? The current (unfinished) match will be lost, but your saved Campaign carries on where it left off.",
     "Você dominou o campo do início ao fim!": "You owned the pitch from first whistle to last!",
@@ -166,6 +165,7 @@ var I18N = (function () {
     "⚽ Começar Partida": "⚽ Start Match",
     "PREPARANDO O CAMPO": "PREPARING THE PITCH",
     "CARREGANDO...": "LOADING...",
+    "Apresenta": "Presents",
     "imagens": "images",
 
     /* ---------- copa ---------- */
@@ -185,8 +185,14 @@ var I18N = (function () {
     "Copa do Mundo": "World Cup",
     "⚽ Jogar Partida": "⚽ Play Match",
     "Sair da Copa": "Leave the World Cup",
-    "Sair da Copa? O progresso do torneio será perdido.":
-      "Leave the World Cup? The tournament progress will be lost.",
+    "Você tem uma Copa em andamento. Quer continuar de onde parou?":
+      "You have a World Cup in progress. Want to pick up where you left off?",
+    "Sair da Copa? O torneio fica salvo — é só entrar na Copa de novo pra continuar.":
+      "Leave the World Cup? The tournament is saved — just enter the World Cup again to carry on.",
+    "Voltar ao menu inicial? O torneio fica salvo — é só entrar na Copa de novo pra continuar.":
+      "Back to the main menu? The tournament is saved — just enter the World Cup again to carry on.",
+    "Voltar ao menu inicial? A partida atual será perdida, mas o torneio fica salvo.":
+      "Back to the main menu? The current match will be lost, but the tournament stays saved.",
     "FIM DA COPA": "END OF THE CUP",
     "CAMPEÃO!": "CHAMPION!",
     "CAMPEÃO DA COPA": "WORLD CUP CHAMPION",
@@ -407,6 +413,7 @@ var I18N = (function () {
     "Suíça": "Switzerland",
     "Senegal": "Senegal",
     "Gana": "Ghana",
+    "Paraguai": "Paraguay",
     "Corto Maltese": "Corto Maltese",
 
     /* ---------- uniformes (campo `kit`: sigla da federação + apelido) ---------- */
@@ -441,13 +448,14 @@ var I18N = (function () {
     "ASF · Vermelhos dos Alpes": "ASF · Reds of the Alps",
     "FSF · Leões do Oeste": "FSF · Lions of the West",
     "GFA · Estrelas do Golfo": "GFA · Stars of the Gulf",
+    "APF · Garra Guarani": "APF · Guarani Grit",
     "Clube Corto Maltese · Zebra da Copa": "Corto Maltese Club · Cup Underdogs"
   };
 
   var DICT = { pt: {}, en: EN };
 
   var stored = null;
-  try { stored = localStorage.getItem(STORAGE_KEY); } catch (e) { stored = null; }
+  try { stored = STORAGE.getItem(STORAGE_KEY); } catch (e) { stored = null; }
   var lang = LANGS.indexOf(stored) >= 0 ? stored : "pt";
 
   var listeners = [];
@@ -513,7 +521,7 @@ var I18N = (function () {
   function set(next) {
     if (LANGS.indexOf(next) < 0 || next === lang) return;
     lang = next;
-    try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) { /* modo privado */ }
+    try { STORAGE.setItem(STORAGE_KEY, lang); } catch (e) { /* modo privado */ }
     applyStatic(document);
     for (var i = 0; i < listeners.length; i++) {
       try { listeners[i](lang); } catch (e) { console.error(e); }

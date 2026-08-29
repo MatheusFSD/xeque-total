@@ -14,8 +14,21 @@
 
 <div id="app">
 
+  <!-- ============ ABERTURA DO ESTUDIO ============ -->
+  <!-- Primeira coisa que aparece: a logo da Itacoa Indie enquanto as imagens
+       do menu carregam. Fica no ar por no minimo BOOT_MIN_MS (js/ui.js), mesmo
+       que o carregamento acabe antes. -->
+  <div id="boot-screen">
+    <div class="boot-inner">
+      <img class="boot-logo" src="img/logo-itacoa.svg" alt="Itacoa Indie">
+      <p class="boot-apresenta" data-i18n>Apresenta</p>
+      <div class="boot-track"><div class="boot-fill" id="boot-fill"></div></div>
+      <p class="boot-count" id="boot-count"></p>
+    </div>
+  </div>
+
   <!-- ============ TELA DE ABERTURA ============ -->
-  <div id="start-screen" class="overlay-screen">
+  <div id="start-screen" class="overlay-screen hidden">
     <div class="stars"></div>
     <div class="start-card">
       <label class="theme-switch theme-switch-corner" data-i18n-title title="Modo noturno">
@@ -206,6 +219,23 @@
     <div class="player-stats-card">
       <button id="player-stats-close" class="icon-btn player-stats-close" data-i18n-title title="Fechar">✕</button>
       <div id="player-stats-body" class="detail-card"></div>
+    </div>
+  </div>
+
+  <!-- ============ CONFIRMACAO ============ -->
+  <!-- Substitui window.confirm(): o Chrome bloqueia alert/confirm/prompt em
+       iframe de origem diferente desde a v92, e portais como o CrazyGames
+       embutem o jogo exatamente assim. La o confirm() nativo devolveria false
+       na hora, sem mostrar nada, e os botoes de sair simplesmente nao
+       funcionariam. -->
+  <div id="confirm-modal" class="overlay-screen hidden">
+    <div class="start-card confirm-card">
+      <p class="kicker" id="confirm-kicker" data-i18n>TEM CERTEZA?</p>
+      <p class="tagline confirm-text" id="confirm-text"></p>
+      <div class="lineup-ask-actions">
+        <button id="confirm-yes" class="btn btn-primary" data-i18n>Sim</button>
+        <button id="confirm-no" class="btn btn-ghost" data-i18n>Cancelar</button>
+      </div>
     </div>
   </div>
 
@@ -448,6 +478,7 @@
 
 </div>
 
+<script src="js/storage.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/data.js"></script>
 <script src="js/board.js"></script>
@@ -459,5 +490,20 @@
 <script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
+
+<!-- ============================================================
+     PARA PUBLICAR NO CRAZYGAMES — descomente as duas linhas abaixo.
+
+     O <script> traz o SDK deles; a chamada liga o modulo `data`, que salva o
+     progresso na conta do jogador e sincroniza entre aparelhos. Sem isso o
+     jogo continua funcionando normalmente, salvando em localStorage (que o
+     Automatic Progress Save deles ja faz backup sozinho, sem codigo nenhum).
+
+     Nao esqueca de marcar "o jogo salva progresso?" no formulario de
+     submissao — sem esse toggle, o modulo `data` vem desativado.
+
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+<script>STORAGE.conectarCrazyGames();</script>
+     ============================================================ -->
 </body>
 </html>
