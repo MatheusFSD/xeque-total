@@ -256,6 +256,44 @@ var I18N = (function () {
     "Defensor": "Defender",
     "Marcador": "Marker",
 
+    /* ---------- tutorial da primeira partida ---------- */
+    "Pular tutorial": "Skip tutorial",
+    "Passo {0} de {1}": "Step {0} of {1}",
+    "Toque no seu jogador": "Tap your player",
+    "Você comanda o Brasil e ataca para a direita. Este jogador está com a bola — toque nele.":
+      "You're in charge of Brazil, attacking to the right. This player has the ball — tap him.",
+    "Mova pelas casas azuis": "Move through the blue squares",
+    "As casas azuis são o alcance dele. Quem desenha esse formato é a personalidade, não a posição: Rápido anda como Bispo, Bruto como Torre, Cerebral como Dama curta e Oportunista salta como Cavalo. Toque numa casa azul.":
+      "The blue squares are his range. What shapes it is the personality, not the position: Quick moves like a Bishop, Brute like a Rook, Cerebral like a short Queen, and Opportunist jumps like a Knight. Tap a blue square.",
+    "Passe para um companheiro": "Pass to a team-mate",
+    "Com a bola no pé, os companheiros ao alcance acendem com uma seta. Toque num deles para passar.":
+      "With the ball at his feet, team-mates in range light up with an arrow. Tap one of them to pass.",
+    "Agora chute": "Now shoot",
+    "Quem recebeu já está no campo do adversário — só de lá dá para finalizar. O alvo vermelho é o chute: quanto mais longe do gol e mais marcadores na frente, mais difícil. Toque no alvo.":
+      "Whoever received it is already in the opponent's half — that's the only place you can finish from. The red target is the shot: the farther from goal and the more men in the way, the harder it gets. Tap the target.",
+    "Ação ou Poder": "Action or Power",
+    "Todo confronto vira um duelo. A Ação Básica é de graça; o Poder custa mana e soma um bônus à disputa. Escolha uma das duas.":
+      "Every clash becomes a duel. The Basic Action is free; the Power costs mana and adds a bonus to the contest. Pick one of the two.",
+    "Tutorial concluído": "Tutorial complete",
+    "É isso!": "That's it!",
+    "O resto você aprende jogando. A partida continua — boa sorte.":
+      "You'll pick up the rest as you play. The match carries on — good luck.",
+    "Seu time": "Your team",
+    "Você comanda o Brasil, que ataca para a direita. Toque em qualquer jogador seu para ver por onde ele anda.":
+      "You're in charge of Brazil, attacking to the right. Tap any of your players to see where he can go.",
+    "Movimento": "Movement",
+    "As casas azuis são o alcance dele. Quem desenha isso é a personalidade, não a posição: Rápido anda como Bispo, Bruto como Torre, Cerebral como Dama curta e Oportunista salta como Cavalo. Toque numa casa azul.":
+      "The blue squares are his range. What shapes it is the personality, not the position: Quick moves like a Bishop, Brute like a Rook, Cerebral like a short Queen, and Opportunist jumps like a Knight. Tap a blue square.",
+    "Passe": "Pass",
+    "Toque no seu jogador que está com a bola. Os companheiros ao alcance acendem com uma seta — toque num deles para passar.":
+      "Tap your player who has the ball. Team-mates in range light up with an arrow — tap one of them to pass.",
+    "Chute": "Shot",
+    "Depois de cruzar o meio-campo aparece o alvo de chute. Quanto mais longe do gol e mais marcadores na frente, mais difícil. Leve a bola até lá e chute.":
+      "Once past the halfway line the shot target appears. The farther from goal and the more men in the way, the harder it gets. Take the ball up there and shoot.",
+    "Duelo e poder": "Duel and power",
+    "Mover para cima de um adversário abre um duelo. A Ação Básica é de graça; o Poder custa mana e soma um bônus à disputa. Escolha uma das duas.":
+      "Moving onto an opponent opens a duel. The Basic Action is free; the Power costs mana and adds a bonus to the contest. Pick one of the two.",
+
     /* ---------- posições ---------- */
     "Goleiro": "Goalkeeper",
     "Zagueiro": "Centre-back",
@@ -530,13 +568,27 @@ var I18N = (function () {
 
   function onChange(fn) { if (typeof fn === "function") listeners.push(fn); }
 
+  /* Junta mais traduçoes ao dicionario depois que ele ja existe. Usado pelo
+     js/i18n-elenco.js, que carrega os ~1.500 textos do elenco (nome e
+     descriçao do poder, frase e lore) num arquivo separado — aqui ficam so as
+     strings de interface, senao este arquivo triplicaria de tamanho. */
+  function merge(lang, extras) {
+    if (!DICT[lang] || !extras) return 0;
+    var n = 0;
+    for (var k in extras) {
+      if (Object.prototype.hasOwnProperty.call(extras, k)) { DICT[lang][k] = extras[k]; n++; }
+    }
+    return n;
+  }
+
   return {
     t: t,
     get: function () { return lang; },
     set: set,
     langs: LANGS,
     applyStatic: applyStatic,
-    onChange: onChange
+    onChange: onChange,
+    merge: merge
   };
 })();
 

@@ -5,102 +5,135 @@
 :root{
   --brasil: #e0b400;
   --brasil-2: #fff2b8;
+  --brasil-3: #009c3b;   /* verde da bandeira */
 
   --alemanha: #201c16;
   --alemanha-2: #c9971f;
+  --alemanha-3: #c8102e;   /* vermelho da bandeira */
 
   --franca: #17418f;
   --franca-2: #4d78c4;
+  --franca-3: #ef4135;   /* vermelho da bandeira */
 
   --argentina: #5aa9dd;
   --argentina-2: #eaf6ff;
+  --argentina-3: #f6b40e;   /* dourado do sol */
 
   --italia: #1e5fae;
   --italia-2: #7ab3e8;
+  --italia-3: #008c45;   /* verde da bandeira */
 
   --espanha: #c60b1e;
   --espanha-2: #ffb400;
+  --espanha-3: #8b0d18;   /* vermelho escuro */
 
   --colombia: #1e3f8f;
   --colombia-2: #f6d34d;
+  --colombia-3: #ce1126;   /* vermelho da bandeira */
 
   --croacia: #c8102e;
   --croacia-2: #f4e9c9;
+  --croacia-3: #171796;   /* azul da bandeira */
 
   --holanda: #ff6b1a;
   --holanda-2: #ffd9a8;
+  --holanda-3: #21468b;   /* azul da bandeira */
 
   --mexico: #146b3a;
   --mexico-2: #ffcb05;
+  --mexico-3: #ce1126;   /* vermelho da bandeira */
 
   --noruega: #1c3fa0;
   --noruega-2: #cfe8ff;
+  --noruega-3: #ef2b2d;   /* vermelho da bandeira */
 
   --portugal: #046a38;
   --portugal-2: #e8b923;
+  --portugal-3: #da291c;   /* vermelho da bandeira */
 
   --inglaterra: #1e3a5f;
   --inglaterra-2: #c8102e;
+  --inglaterra-3: #f2f2f2;   /* branco da cruz */
 
   --uruguai: #4a90c2;
   --uruguai-2: #fdd835;
+  --uruguai-3: #eef4fa;   /* branco da bandeira */
 
   --coreia: #0b3d91;
   --coreia-2: #ff5b6a;
+  --coreia-3: #1a1a1a;   /* preto dos trigramas */
 
   --belgica: #111111;
   --belgica-2: #c8102e;
+  --belgica-3: #fdda24;   /* amarelo da bandeira */
 
   --chile: #0039a6;
   --chile-2: #d52b1e;
+  --chile-3: #f2f2f2;   /* branco da bandeira */
 
   --japao: #1c2b4a;
   --japao-2: #f2f2f2;
+  --japao-3: #bc002d;   /* vermelho do disco */
 
   --suecia: #f0c419;
   --suecia-2: #12508f;
+  --suecia-3: #004b87;   /* azul escuro */
 
   --dinamarca: #c60c30;
   --dinamarca-2: #f2ddd8;
+  --dinamarca-3: #8e0a22;   /* vermelho escuro */
 
   --suica: #d52b1e;
   --suica-2: #e8ded8;
+  --suica-3: #8f1d15;   /* vermelho escuro */
 
   --senegal: #00853f;
   --senegal-2: #e8d84a;
+  --senegal-3: #e31b23;   /* vermelho da bandeira */
 
   --gana: #e2a20a;
   --gana-2: #046a38;
+  --gana-3: #ce1126;   /* vermelho da bandeira */
 
   --paraguai: #d52b1e;
   --paraguai-2: #0038a8;
+  --paraguai-3: #f2f2f2;   /* branco da bandeira */
 
   --ira: #239f40;
   --ira-2: #da0000;
+  --ira-3: #f2f2f2;   /* branco da bandeira */
 
   --arabiasaudita: #006c35;
   --arabiasaudita-2: #d8ead9;
+  --arabiasaudita-3: #00512a;   /* verde escuro */
 
   --eua: #1b2f6b;
   --eua-2: #b31942;
+  --eua-3: #f2f2f2;   /* branco das barras */
 
   --nigeria: #008751;
   --nigeria-2: #cfe8d8;
+  --nigeria-3: #005c37;   /* verde escuro */
 
   --costarica: #ce1126;
   --costarica-2: #21386e;
+  --costarica-3: #f2f2f2;   /* branco da bandeira */
 
   --camaroes: #007a5e;
   --camaroes-2: #ce1126;
+  --camaroes-3: #fcd116;   /* amarelo da bandeira */
 
   --australia: #f0b310;
   --australia-2: #0a5c36;
+  --australia-3: #00247d;   /* azul da bandeira */
 
   --marrocos: #c1272d;
   --marrocos-2: #4c9a5b;
+  --marrocos-3: #006233;   /* verde da estrela */
 
   --cortomaltese: #5c6b47;
   --cortomaltese-2: #cbb994;
+  --cortomaltese-3: #6b4d8f;   /* roxo do uniforme */
 
   /* roxo decorativo do logo — não tem relação com nenhum squad (era var(--raptor) antes de Tecos/Raptors sair do jogo) */
   --logo-accent: #7b2fb0;
@@ -110,6 +143,8 @@
   --slot-a-2: var(--brasil-2);
   --slot-b: var(--alemanha);
   --slot-b-2: var(--alemanha-2);
+  --borda-a: var(--brasil);
+  --borda-b: var(--alemanha-3);
 
   --bg-0: #e6d6ac;
   --bg-1: #d5bd8a;
@@ -1154,8 +1189,8 @@ button{ font-family: inherit; }
   background: var(--panel-soft);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.piece-token.team-a .token-visual{ border-color: var(--slot-a); }
-.piece-token.team-b .token-visual{ border-color: var(--slot-b-2); }
+.piece-token.team-a .token-visual{ border-color: var(--borda-a, var(--slot-a)); }
+.piece-token.team-b .token-visual{ border-color: var(--borda-b, var(--slot-b-2)); }
 
 .token-art-wrap{ position: absolute; inset: 0; border-radius: var(--radius-token); overflow: hidden; }
 .token-art-wrap img.token-art{ width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
@@ -1703,6 +1738,132 @@ button{ font-family: inherit; }
 /* Acima de todos os outros .overlay-screen (z-index 100): a confirmacao pode
    ser aberta POR CIMA do hub da Copa ou do fim de jogo, e como ela vem antes
    deles no DOM, sem isso os cliques iriam parar no overlay de baixo. */
+/* ---------------- foco do tutorial roteirizado ----------------
+   Enquanto a trava vale, tudo apaga menos o objetivo. O apagamento fica na
+   OPACIDADE, e nao num veu por cima: veu exigiria acertar o empilhamento de
+   cada camada (tabuleiro, peças, botao de chute, modal) e qualquer uma que
+   escapasse ficaria acesa por engano. */
+#game-root.tutorial-guiando .roster-panel,
+#game-root.tutorial-guiando .ad-billboard,
+#game-root.tutorial-guiando .stadium-topbar{
+  opacity: 0.25;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+#game-root.tutorial-guiando #pitch{ transition: opacity 0.35s ease; }
+#game-root.tutorial-guiando .cell{ opacity: 0.45; transition: opacity 0.3s ease; }
+#game-root.tutorial-guiando .piece-token{ opacity: 0.3; transition: opacity 0.3s ease; }
+
+#game-root.tutorial-guiando .cell.tutorial-alvo,
+#game-root.tutorial-guiando .piece-token.tutorial-alvo{ opacity: 1; }
+
+/* anel pulsante em volta do que pode ser tocado */
+#game-root.tutorial-guiando .cell.tutorial-alvo{
+  box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 18px rgba(201,151,31,0.5);
+  animation: tutorialPulsa 1.3s ease-in-out infinite;
+}
+#game-root.tutorial-guiando .piece-token.tutorial-alvo{
+  animation: tutorialPulsa 1.3s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px var(--gold)) drop-shadow(0 0 4px var(--gold));
+}
+@keyframes tutorialPulsa{
+  0%, 100%{ transform: scale(1); }
+  50%{ transform: scale(1.06); }
+}
+/* a peça ja usa transform pra se posicionar no campo — animar `transform` aqui
+   jogaria ela pro canto. Nela o pulso vai no brilho. */
+#game-root.tutorial-guiando .piece-token.tutorial-alvo{ animation-name: tutorialBrilha; }
+@keyframes tutorialBrilha{
+  0%, 100%{ filter: drop-shadow(0 0 6px var(--gold)); }
+  50%{ filter: drop-shadow(0 0 16px var(--gold)) drop-shadow(0 0 6px var(--gold)); }
+}
+
+#shoot-fab.tutorial-alvo{
+  animation: tutorialPulsa 1.1s ease-in-out infinite;
+  box-shadow: 0 0 0 6px rgba(201,151,31,0.55), 0 6px 16px rgba(255,77,106,0.55);
+}
+.duel-card.tutorial-alvo{ box-shadow: 0 0 0 4px var(--gold), 10px 10px 0 var(--shadow-ink); }
+
+/* ---------------- tutorial da primeira partida ----------------
+   Canto inferior esquerdo, acima do tabuleiro mas SEM cobrir o campo nem
+   bloquear clique: o jogador precisa conseguir jogar com ele na tela. */
+.tutorial-painel{
+  /* acima dos .overlay-screen (100): a liçao sobre o Poder so faz sentido com
+     o modal de duelo aberto, e atras dele o painel sumiria — e ficaria
+     inclicavel. Abaixo da confirmaçao (200) e da abertura (300). */
+  position: fixed; left: 18px; bottom: 18px; z-index: 150;
+  width: min(320px, calc(100vw - 36px));
+  background: var(--panel);
+  border: 3px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 5px 5px 0 var(--shadow-ink);
+  padding: 14px 16px 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  animation: tutorialEntra 0.4s cubic-bezier(.2,.8,.3,1) both;
+  transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.3s ease;
+}
+@keyframes tutorialEntra{
+  from{ opacity: 0; transform: translateY(14px); }
+  to{ opacity: 1; transform: none; }
+}
+.tutorial-painel.saindo{ opacity: 0; transform: translateY(14px); pointer-events: none; }
+
+/* Encostado no alvo: `left`/`top` vem do js (posicionarBalao). A classe
+   `solto` devolve o balao pro canto — usada no fim do roteiro. */
+.tutorial-painel:not(.solto){ left: 0; bottom: auto; right: auto; }
+.tutorial-painel.solto{ left: 18px; bottom: 18px; top: auto !important; }
+.tutorial-painel::after{
+  content: ''; position: absolute; width: 14px; height: 14px;
+  background: var(--panel);
+  border-right: 3px solid var(--panel-border);
+  border-bottom: 3px solid var(--panel-border);
+  left: 50%; margin-left: -7px;
+  display: none;
+}
+.tutorial-painel.aponta-baixo::after{ display: block; bottom: -9px; transform: rotate(45deg); }
+.tutorial-painel.aponta-cima::after{ display: block; top: -9px; transform: rotate(225deg); }
+.tutorial-painel.solto::after{ display: none; }
+.tutorial-painel.acertou{ border-color: var(--success); }
+.tutorial-painel.concluido{ border-color: var(--gold); }
+
+.tutorial-contador{
+  margin: 0; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600;
+}
+.tutorial-titulo{
+  margin: 0; font-family: var(--font-display); font-weight: 400;
+  font-size: 1.15rem; text-transform: uppercase; line-height: 1.05;
+  color: var(--ink);
+}
+.tutorial-texto{
+  margin: 0; font-size: 0.86rem; line-height: 1.45; color: var(--ink-dim); font-weight: 300;
+}
+.tutorial-pular{
+  align-self: flex-start; margin-top: 4px;
+  background: none; border: none; padding: 2px 0;
+  font-family: var(--font-body); font-size: 0.74rem; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-faint); cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tutorial-pular:hover, .tutorial-pular:focus-visible{
+  color: var(--ink); border-bottom-color: var(--gold); outline: none;
+}
+
+/* em tela estreita o painel deita no rodape, pra nao comer o campo */
+@media (max-width: 860px){
+  .tutorial-painel{ padding: 11px 13px 10px; }
+  /* ancorado no alvo, `right:auto` faz a largura encolher pro conteudo (deu
+     144px num celular) — entao aqui a largura e explicita. Solto no rodape,
+     ele ocupa a linha inteira. */
+  .tutorial-painel:not(.solto){ width: min(300px, calc(100vw - 24px)); }
+  .tutorial-painel.solto{ left: 10px; right: 10px; bottom: 10px; width: auto; }
+  .tutorial-texto{ font-size: 0.8rem; }
+}
+@media (prefers-reduced-motion: reduce){
+  .tutorial-painel{ animation: none; transition: none; }
+}
+
 /* ---------------- abertura do estudio ----------------
    Vem antes de tudo, entao fica acima ate do modal de confirmacao (200).
    A logo tem contorno proprio e le bem nos dois temas; o fundo usa os mesmos

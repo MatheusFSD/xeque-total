@@ -73,8 +73,8 @@
 
       <div class="mode-select-grid" id="mode-select-grid">
         <button type="button" class="mode-card mode-card-amistoso" id="mode-select-amistoso" data-mode="amistoso">
-          <img class="mode-card-img mode-card-img-a" src="img/messicr71.webp" alt="">
-          <img class="mode-card-img mode-card-img-b" src="img/messicr72.webp" alt="">
+          <img class="mode-card-img mode-card-img-a" src="img/vs_ia.webp" alt="">
+          <img class="mode-card-img mode-card-img-b" src="img/vs_ia2.webp" alt="">
           <span class="mode-card-label" data-i18n>Amistoso</span>
         </button>
         <button type="button" class="mode-card mode-card-copa" id="mode-select-copa" data-mode="copa">
@@ -83,8 +83,8 @@
           <span class="mode-card-label" data-i18n>Copa</span>
         </button>
         <button type="button" class="mode-card mode-card-duo" id="mode-select-duo" data-mode="2players">
-          <img class="mode-card-img mode-card-img-a" src="img/duo1.webp" alt="">
-          <img class="mode-card-img mode-card-img-b" src="img/duo2.webp" alt="">
+          <img class="mode-card-img mode-card-img-a" src="img/2jogadores.webp" alt="">
+          <img class="mode-card-img mode-card-img-b" src="img/2jogadores2.webp" alt="">
           <span class="mode-card-label" data-i18n>2 Jogadores</span>
         </button>
         <button type="button" class="mode-card mode-card-campanha" id="mode-select-campanha" data-mode="campaign">
@@ -212,6 +212,16 @@
         </aside>
       </div>
     </main>
+  </div>
+
+  <!-- ============ TUTORIAL DA PRIMEIRA PARTIDA ============ -->
+  <!-- Aviso lateral, nunca modal: o tutorial explica sem travar o jogo, e o
+       botao de pular fica sempre a mao. -->
+  <div id="tutorial-painel" class="tutorial-painel hidden">
+    <p class="tutorial-contador" id="tutorial-contador"></p>
+    <p class="tutorial-titulo" id="tutorial-titulo"></p>
+    <p class="tutorial-texto" id="tutorial-texto"></p>
+    <button type="button" class="tutorial-pular" id="tutorial-pular" data-i18n>Pular tutorial</button>
   </div>
 
   <!-- ============ ESTATÍSTICAS DO JOGADOR (duplo-clique) ============ -->
@@ -480,6 +490,7 @@
 
 <script src="js/storage.js"></script>
 <script src="js/i18n.js"></script>
+<script src="js/i18n-elenco.js"></script>
 <script src="js/data.js"></script>
 <script src="js/board.js"></script>
 <script src="js/duel.js"></script>
@@ -488,6 +499,7 @@
 <script src="js/copa.js"></script>
 <script src="js/campaign.js"></script>
 <script src="js/sound.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 

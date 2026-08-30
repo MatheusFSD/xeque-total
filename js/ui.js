@@ -100,6 +100,7 @@ var UI = (function () {
   function cacheEls() {
     var ids = [
       "boot-screen", "boot-fill", "boot-count",
+      "tutorial-painel", "tutorial-contador", "tutorial-titulo", "tutorial-texto", "tutorial-pular",
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
       "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "mode-select-campanha", "sound-checkbox", "lang-select",
@@ -203,6 +204,72 @@ var UI = (function () {
     }
   }
 
+  /* ---------------- cor da borda de cada time ----------------
+     Cada seleçao tem tres cores da bandeira, em ordem de preferencia
+     (--<cor>, --<cor>-2, --<cor>-3, em style.css). O time do JOGADOR tem
+     prioridade e sempre fica com a primeira. O adversario percorre a PROPRIA
+     ordem e para na primeira que contraste o bastante — respeitando a
+     preferencia dele, e so descendo na lista quando precisa.
+
+     Sem isso Brasil (#e0b400) e Alemanha (#c9971f) entravam em campo com
+     bordas praticamente iguais.
+
+     O contraste e medido em Lab (CIE76), nao em RGB: distancia em RGB acha
+     que amarelo e verde-limao sao bem diferentes, e o olho nao acha. */
+  var CONTRASTE_MINIMO = 30;   // ~30 de dE ja e "da pra distinguir de longe"
+
+  function lerVar(nome) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(nome);
+    return (v || "").trim();
+  }
+
+  function coresDoSquad(squad) {
+    var base = "--" + squad.colorVar;
+    var lista = [lerVar(base), lerVar(base + "-2"), lerVar(base + "-3")];
+    var out = [];
+    for (var i = 0; i < lista.length; i++) if (lista[i]) out.push(lista[i]);
+    return out.length ? out : ["#888888"];
+  }
+
+  function hexParaRgb(hex) {
+    var h = String(hex).replace("#", "").trim();
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+
+  function rgbParaLab(rgb) {
+    var c = rgb.map(function (v) {
+      v = v / 255;
+      return v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92;
+    });
+    // sRGB -> XYZ (D65) -> Lab
+    var x = (c[0] * 0.4124 + c[1] * 0.3576 + c[2] * 0.1805) / 0.95047;
+    var y = (c[0] * 0.2126 + c[1] * 0.7152 + c[2] * 0.0722);
+    var z = (c[0] * 0.0193 + c[1] * 0.1192 + c[2] * 0.9505) / 1.08883;
+    function f(t) { return t > 0.008856 ? Math.pow(t, 1 / 3) : (7.787 * t) + 16 / 116; }
+    x = f(x); y = f(y); z = f(z);
+    return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)];
+  }
+
+  function distanciaCor(a, b) {
+    var la = rgbParaLab(hexParaRgb(a)), lb = rgbParaLab(hexParaRgb(b));
+    var dl = la[0] - lb[0], da = la[1] - lb[1], db = la[2] - lb[2];
+    return Math.sqrt(dl * dl + da * da + db * db);
+  }
+
+  /* Primeira cor da propria ordem que contraste o bastante com `contra`.
+     Se nenhuma alcança o minimo, devolve a que mais se afasta — melhor uma
+     borda parecida do que duas identicas. */
+  function corQueContrasta(cores, contra) {
+    var i, d, melhor = cores[0], melhorD = -1;
+    for (i = 0; i < cores.length; i++) {
+      d = distanciaCor(cores[i], contra);
+      if (d >= CONTRASTE_MINIMO) return cores[i];
+      if (d > melhorD) { melhorD = d; melhor = cores[i]; }
+    }
+    return melhor;
+  }
+
   function applySlotColors() {
     var home = squadForSlot("A"), away = squadForSlot("B");
     var root = document.documentElement.style;
@@ -210,6 +277,13 @@ var UI = (function () {
     root.setProperty("--slot-a-2", "var(--" + home.colorVar + "-2)");
     root.setProperty("--slot-b", "var(--" + away.colorVar + ")");
     root.setProperty("--slot-b-2", "var(--" + away.colorVar + "-2)");
+
+    // o slot A e sempre o time do jogador (ver SLOT_META em js/game.js), entao
+    // ele fica com a primeira cor e o adversario se adapta
+    var bordaA = coresDoSquad(home)[0];
+    var bordaB = corQueContrasta(coresDoSquad(away), bordaA);
+    root.setProperty("--borda-a", bordaA);
+    root.setProperty("--borda-b", bordaB);
   }
 
   // lista única: 1º clique define seu time, 2º define o adversário (não repete time).
@@ -596,6 +670,7 @@ var UI = (function () {
     shootFab.classList.add("hidden");
     shootFab.addEventListener("click", function (e) {
       e.stopPropagation();
+      if (typeof TUTORIAL !== "undefined" && !TUTORIAL.permite("chutar")) return;
       var state = GAME.getState();
       if (state && state.selectedPieceId) { SOUND.playKick(); GAME.attemptShoot(state.selectedPieceId); }
     });
@@ -634,6 +709,8 @@ var UI = (function () {
   function handleSquareInteraction(row, col) {
     var state = GAME.getState();
     if (!state) return;
+    // no roteiro do tutorial so a casa indicada responde
+    if (typeof TUTORIAL !== "undefined" && !TUTORIAL.permite("quadrado", { row: row, col: col })) return;
     var piece = pieceAtCell(state, row, col);
     if (piece) inspectedId = piece.id;
 
@@ -670,6 +747,7 @@ var UI = (function () {
   }
 
   function onRosterClick(pieceId) {
+    if (typeof TUTORIAL !== "undefined" && !TUTORIAL.permite("elenco")) return;
     inspectedId = pieceId;
     var state = GAME.getState();
     if (!state) return;
@@ -696,6 +774,7 @@ var UI = (function () {
     renderRosters(state);
     renderPlayerDetailPanel(state);
     renderDuelModal(state);
+    if (typeof TUTORIAL !== "undefined") TUTORIAL.observar(state);
   }
 
   // placar estilo transmissão de TV — uma barra só, sigla+bandeira de cada
@@ -890,6 +969,9 @@ var UI = (function () {
     lastPositions[piece.id] = { row: piece.row, col: piece.col };
 
     token.style.transform = "translate(" + (piece.col * 100) + "%, " + (piece.row * 100) + "%)" + PITCH_UPRIGHT;
+    token.dataset.row = piece.row;      // usado pelo foco do tutorial (js/tutorial.js)
+    token.dataset.col = piece.col;
+    token.dataset.pieceId = piece.id;
     token.classList.toggle("selected", state.selectedPieceId === piece.id);
     token.classList.toggle("has-ball", state.ball.carrierId === piece.id);
     token.classList.toggle("low-mana", piece.mana < piece.power.manaCost);
@@ -1044,8 +1126,8 @@ var UI = (function () {
       '<div class="mana-track"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
       '</div></div>' +
       abilityBoxHtml(piece) +
-      (piece.quote ? '<p class="detail-quote">"' + piece.quote + '"</p>' : '') +
-      (piece.lore ? '<p class="detail-lore">' + piece.lore + '</p>' : '') +
+      (piece.quote ? '<p class="detail-quote">"' + T(piece.quote) + '"</p>' : '') +
+      (piece.lore ? '<p class="detail-lore">' + T(piece.lore) + '</p>' : '') +
       '</div>';
   }
 
@@ -1229,14 +1311,20 @@ var UI = (function () {
       var btnAcao = document.createElement("button");
       btnAcao.className = "duel-btn btn-acao";
       btnAcao.innerHTML = icon("sword") + " " + T("Ação Básica") + "<small>" + T("Sem custo de mana") + "</small>";
-      btnAcao.addEventListener("click", function () { GAME.chooseDuelAction(side, "acao"); });
+      btnAcao.addEventListener("click", function () {
+        if (typeof TUTORIAL !== "undefined" && !TUTORIAL.permite("duelo")) return;
+        GAME.chooseDuelAction(side, "acao");
+      });
 
       var btnPoder = document.createElement("button");
       var canAfford = DUEL.canUsePower(piece);
       btnPoder.className = "duel-btn btn-poder";
       btnPoder.innerHTML = icon("bolt") + " " + T(piece.power.name) + "<small>" + T("Custo: {0} mana", piece.power.manaCost) + "</small>";
       btnPoder.disabled = !canAfford;
-      btnPoder.addEventListener("click", function () { GAME.chooseDuelAction(side, "poder"); });
+      btnPoder.addEventListener("click", function () {
+        if (typeof TUTORIAL !== "undefined" && !TUTORIAL.permite("duelo")) return;
+        GAME.chooseDuelAction(side, "poder");
+      });
 
       actionsEl.appendChild(btnAcao);
       actionsEl.appendChild(btnPoder);
@@ -2268,6 +2356,9 @@ var UI = (function () {
   }
 
   function launchMatch() {
+    // aqui o confronto ja e definitivo. Na Copa o adversario vem do sorteio,
+    // nao do seletor, entao sem isso as cores ficavam as da ultima escolha
+    applySlotColors();
     inspectedId = null;
     tokenEls = {};
     lastPositions = {};
@@ -2322,11 +2413,23 @@ var UI = (function () {
   function collectBootImageUrls() {
     var urls = [
       "img/logo.webp", "img/menu-bg.webp",
-      "img/messicr71.webp", "img/messicr72.webp",
+      "img/vs_ia.webp", "img/vs_ia2.webp",
       "img/belini1.webp", "img/belini2.webp",
-      "img/duo1.webp", "img/duo2.webp",
+      "img/2jogadores.webp", "img/2jogadores2.webp",
       "img/campanha1.webp", "img/campanha2.webp"
     ];
+    // na estreia o jogador cai direto num Brasil x Alemanha, entao essas artes
+    // precisam estar prontas quando a barra terminar — senao a partida abre com
+    // os jogadores aparecendo aos poucos
+    if (typeof TUTORIAL !== "undefined" && !TUTORIAL.jaFez()) {
+      GAME_DATA.TEAMS.forEach(function (sq) {
+        if (sq.id !== "BRA" && sq.id !== "ALE") return;
+        sq.players.forEach(function (p) {
+          urls.push("splashs_art/" + sq.assetPrefix + "_" + p.assetKey + ".webp");
+        });
+      });
+    }
+
     // bandeiras: uma por seleçao, deduzidas do emoji como no resto do jogo
     GAME_DATA.TEAMS.forEach(function (sq) {
       var iso2 = flagToIso2(sq.badge);
@@ -2381,12 +2484,37 @@ var UI = (function () {
       clearInterval(relogio);
       if (els.bootFill) els.bootFill.style.width = "100%";
       els.bootScreen.classList.add("saindo");
-      els.startScreen.classList.remove("hidden");
+
+      var estreia = (typeof TUTORIAL !== "undefined") && !TUTORIAL.jaFez();
+      if (estreia) comecarPartidaTutorial();
+      else els.startScreen.classList.remove("hidden");
+
       setTimeout(function () {
         if (els.bootScreen && els.bootScreen.parentNode) {
           els.bootScreen.parentNode.removeChild(els.bootScreen);
         }
       }, 500);
+    });
+  }
+
+  /* Estreia: pula menu, escolha de time, escalaçao e cara-ou-coroa e joga
+     direto — a CrazyGames pede que a pessoa caia no jogo o quanto antes. O
+     Brasil começa com a bola de proposito, senao o primeiro passo do tutorial
+     (passar) so ficaria disponivel depois de tomar a bola da IA. */
+  function comecarPartidaTutorial() {
+    gameMode = "amistoso";
+    campaignActive = false;
+    chosenHomeSquadId = "BRA";
+    chosenAwaySquadId = "ALE";
+    chosenMaxTurns = 50;
+    chosenNoTurnLimit = false;
+    formationOverrides = null;
+    coinWinnerTeamId = "A";
+    applySlotColors();
+    launchMatch();
+    TUTORIAL.iniciar({
+      painel: els.tutorialPainel, contador: els.tutorialContador,
+      titulo: els.tutorialTitulo, texto: els.tutorialTexto, pular: els.tutorialPular
     });
   }
 
@@ -2408,7 +2536,7 @@ var UI = (function () {
       if (els.startBtn) els.startBtn.textContent = gameMode === "copa" ? T("🏆 Ir pro Sorteio") : T("⚽ Iniciar Partida");
       renderSquadPickList();
       var st = GAME.getState && GAME.getState();
-      if (st && st.pieces && st.pieces.length) render();
+      if (st && st.pieces && st.pieces.length) render(st); // render() sem estado e no-op
     });
 
     runBootScreen();

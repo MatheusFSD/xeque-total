@@ -75,7 +75,9 @@ var GAME = (function () {
       timeUpPending: null, suddenDeath: false, goldenGoalOnDraw: !!goldenGoalOnDraw, twoPlayerLocal: !!twoPlayerLocal,
       score: { A: 0, B: 0 }, scorers: { A: [], B: [] }, selectedPieceId: null,
       legalMoves: [], passTargets: [], canShoot: false, shootInfo: null,
-      log: [], duelContext: null
+      log: [], duelContext: null,
+      aiPausada: false,          // tutorial roteirizado segura a IA (ver js/tutorial.js)
+      semInterceptacao: false    // e desliga o azar do passe enquanto ensina
     };
   }
 
@@ -133,7 +135,7 @@ var GAME = (function () {
     addLog(state.twoPlayerLocal ? (T("Apito inicial!") + " " + T(teamName) + " x " + T(state.teams.B.name) + ".") : T("Apito inicial! Você comanda o {0}.", T(teamName)), "ev-info");
     addLog("🪙 " + T("{0} venceu o sorteio e começa com a bola!", T(kickoffName)), "ev-info");
     render();
-    if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
+    if (!isHumanControlled(state.currentTeamId) && !state.aiPausada) setTimeout(runAITurn, 800);
   }
 
   function getState() { return state; }
@@ -234,6 +236,9 @@ var GAME = (function () {
   }
 
   function rollInterception(blockerIds) {
+    // no roteiro do tutorial o passe nao e interceptado: a liçao e COMO passar,
+    // e um azar de 16% deixaria o roteiro sem saida com a IA pausada
+    if (state && state.semInterceptacao) return null;
     if (!blockerIds || !blockerIds.length) return null;
     for (var i = 0; i < blockerIds.length; i++) {
       if (Math.random() < BOARD.INTERCEPT_CHANCE) return findPieceById(blockerIds[i]);
@@ -568,7 +573,7 @@ var GAME = (function () {
       addLog(T("🔔 Fim do 1º tempo! Os times trocam de lado — {0}", T("{0} repõe a bola.", T(state.teams[kickoffTeamId].name))), "ev-info");
       state.phase = "playing";
       render();
-      if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
+      if (!isHumanControlled(state.currentTeamId) && !state.aiPausada) setTimeout(runAITurn, 800);
     }, 1900);
   }
 
@@ -608,7 +613,7 @@ var GAME = (function () {
     clearActionOptions();
     state.phase = "playing";
     render();
-    if (!isHumanControlled(state.currentTeamId)) setTimeout(runAITurn, 800);
+    if (!isHumanControlled(state.currentTeamId) && !state.aiPausada) setTimeout(runAITurn, 800);
   }
 
   // o goleiro só pode segurar a bola por 2 turnos do próprio time — no 3º, ela escapa sozinha
@@ -652,6 +657,7 @@ var GAME = (function () {
 
   function runAITurn() {
     if (!state || state.phase !== "playing") return;
+    if (state.aiPausada) return;
     if (isHumanControlled(state.currentTeamId)) return;
     var team = state.teams[state.currentTeamId];
     var action = AI.chooseAction(team, state.pieces, state.ball);
@@ -682,9 +688,21 @@ var GAME = (function () {
     UI.showGameOver(state);
   }
 
+  /* Liga/desliga o turno automatico do adversario. So o tutorial usa. */
+  function pausarIA(pausar) {
+    if (state) state.aiPausada = !!pausar;
+  }
+
+  /* Desliga o azar da interceptaçao. So o tutorial roteirizado usa. */
+  function semInterceptacao(desligar) {
+    if (state) state.semInterceptacao = !!desligar;
+  }
+
   return {
     start: start,
     getState: getState,
+    pausarIA: pausarIA,
+    semInterceptacao: semInterceptacao,
     selectPiece: selectPiece,
     clearSelection: clearSelection,
     attemptMove: attemptMove,
