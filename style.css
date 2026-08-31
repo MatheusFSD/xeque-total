@@ -1738,6 +1738,83 @@ button{ font-family: inherit; }
 /* Acima de todos os outros .overlay-screen (z-index 100): a confirmacao pode
    ser aberta POR CIMA do hub da Copa ou do fim de jogo, e como ela vem antes
    deles no DOM, sem isso os cliques iriam parar no overlay de baixo. */
+/* ---------------- abertura do lance (tutorial) ----------------
+   Fica acima da confirmacao (200) e abaixo da abertura do estudio (300): e
+   uma cena cheia, nao pode ter nada por cima. */
+.tutorial-intro{
+  position: fixed; inset: 0; z-index: 250;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: #0d0a07;
+  animation: introEntra 0.5s ease both;
+}
+.tutorial-intro.saindo{ animation: introSai 0.75s cubic-bezier(.5,0,.75,0) both; }
+
+/* a arte empurra pra frente o tempo todo — o lance "comecando" */
+.tutorial-intro-arte{
+  position: absolute; inset: -4%;
+  background: url('img/arte-jogada-perspectiva-brasil-alemanha.webp') center 42% / cover no-repeat;
+  transform: scale(1.16);
+  animation: introEmpurra 3.4s cubic-bezier(.16,.6,.3,1) both;
+}
+/* escurece embaixo pro texto ter contraste sem tapar a arte */
+.tutorial-intro-veu{
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(13,10,7,0.10) 0%, rgba(13,10,7,0.15) 45%, rgba(13,10,7,0.88) 100%);
+}
+
+.tutorial-intro-texto{
+  position: relative; z-index: 2;
+  align-self: flex-end;
+  width: 100%; text-align: center;
+  padding: 0 24px 9vh;
+}
+.tutorial-intro-kicker{
+  margin: 0 0 6px;
+  font-family: var(--font-body); font-weight: 600; font-size: 0.8rem;
+  letter-spacing: 0.46em; text-indent: 0.46em; text-transform: uppercase;
+  color: var(--gold);
+  animation: introSobe 0.55s cubic-bezier(.2,.8,.3,1) 0.45s both;
+}
+.tutorial-intro-titulo{
+  margin: 0;
+  font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(2rem, 6.5vw, 4rem); line-height: 1;
+  text-transform: uppercase; color: var(--paper-fixed);
+  text-shadow: 4px 4px 0 rgba(0,0,0,0.55);
+}
+/* cada parte do titulo entra em sequencia: time, x, time */
+.tutorial-intro-titulo span{
+  display: inline-block;
+  animation: introSobe 0.6s cubic-bezier(.2,.8,.3,1) both;
+}
+.tutorial-intro-titulo span:nth-child(1){ animation-delay: 0.62s; }
+.tutorial-intro-titulo span:nth-child(2){ animation-delay: 0.74s; color: var(--gold); margin: 0 0.28em; }
+.tutorial-intro-titulo span:nth-child(3){ animation-delay: 0.86s; }
+
+@keyframes introEntra{ from{ opacity: 0; } to{ opacity: 1; } }
+@keyframes introSai{
+  from{ opacity: 1; transform: scale(1); }
+  to{ opacity: 0; transform: scale(1.08); }
+}
+@keyframes introEmpurra{
+  from{ transform: scale(1.16) translateY(1.5%); }
+  to{ transform: scale(1.01) translateY(0); }
+}
+@keyframes introSobe{
+  from{ opacity: 0; transform: translateY(26px); }
+  to{ opacity: 1; transform: none; }
+}
+
+/* sem animacao: mostra a cena parada, sem movimento nenhum */
+@media (prefers-reduced-motion: reduce){
+  .tutorial-intro, .tutorial-intro.saindo,
+  .tutorial-intro-arte, .tutorial-intro-kicker, .tutorial-intro-titulo span{
+    animation: none;
+  }
+  .tutorial-intro-arte{ transform: scale(1.02); }
+}
+
 /* ---------------- foco do tutorial roteirizado ----------------
    Enquanto a trava vale, tudo apaga menos o objetivo. O apagamento fica na
    OPACIDADE, e nao num veu por cima: veu exigiria acertar o empilhamento de

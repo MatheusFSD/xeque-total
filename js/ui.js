@@ -101,6 +101,7 @@ var UI = (function () {
     var ids = [
       "boot-screen", "boot-fill", "boot-count",
       "tutorial-painel", "tutorial-contador", "tutorial-titulo", "tutorial-texto", "tutorial-pular",
+      "tutorial-intro", "tutorial-intro-kicker", "tutorial-intro-titulo",
       "start-screen", "squad-pick-list", "squad-pick-hint", "turn-limit-input", "no-turn-limit-checkbox", "start-btn", "how-to-play-btn", "how-to-play",
       "settings-gear-btn", "settings-menu",
       "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "mode-select-campanha", "sound-checkbox", "lang-select",
@@ -2422,6 +2423,7 @@ var UI = (function () {
     // precisam estar prontas quando a barra terminar — senao a partida abre com
     // os jogadores aparecendo aos poucos
     if (typeof TUTORIAL !== "undefined" && !TUTORIAL.jaFez()) {
+      urls.push("img/arte-jogada-perspectiva-brasil-alemanha.webp");
       GAME_DATA.TEAMS.forEach(function (sq) {
         if (sq.id !== "BRA" && sq.id !== "ALE") return;
         sq.players.forEach(function (p) {
@@ -2501,6 +2503,41 @@ var UI = (function () {
      direto — a CrazyGames pede que a pessoa caia no jogo o quanto antes. O
      Brasil começa com a bola de proposito, senao o primeiro passo do tutorial
      (passar) so ficaria disponivel depois de tomar a bola da IA. */
+  /* ---------------- abertura do lance ----------------
+     Antes do primeiro passo do tutorial, uma cena cheia: a arte empurra pra
+     frente, o titulo sobe em tres tempos e o conjunto sai. A partida ja e
+     montada por tras, entao quando a cena levanta o tabuleiro esta pronto e
+     nao ha espera nenhuma.
+
+     Os tempos batem com o CSS (ver .tutorial-intro em style.css): a arte anda
+     por 3,4s e o titulo termina de entrar em ~1,5s. */
+  var INTRO_TEMPO = 3000;   // quanto a cena fica no ar antes de comecar a sair
+  var INTRO_SAIDA = 750;    // duracao da saida, igual a animacao introSai
+
+  function mostrarAberturaDoLance(aoTerminar) {
+    var caixa = els.tutorialIntro;
+    if (!caixa) { aoTerminar(); return; }
+
+    // o titulo vem dos times de verdade, entao acompanha o idioma
+    if (els.tutorialIntroTitulo) {
+      var casa = squadForSlot("A"), fora = squadForSlot("B");
+      els.tutorialIntroTitulo.innerHTML =
+        '<span>' + T(casa.name) + '</span><span>\u00d7</span><span>' + T(fora.name) + '</span>';
+    }
+
+    caixa.classList.remove("hidden", "saindo");
+    // reinicia as animacoes caso a cena ja tenha rodado antes nesta sessao
+    void caixa.offsetWidth;
+
+    setTimeout(function () {
+      caixa.classList.add("saindo");
+      setTimeout(function () {
+        caixa.classList.add("hidden");
+        aoTerminar();
+      }, INTRO_SAIDA);
+    }, INTRO_TEMPO);
+  }
+
   function comecarPartidaTutorial() {
     gameMode = "amistoso";
     campaignActive = false;
@@ -2511,10 +2548,12 @@ var UI = (function () {
     formationOverrides = null;
     coinWinnerTeamId = "A";
     applySlotColors();
-    launchMatch();
-    TUTORIAL.iniciar({
-      painel: els.tutorialPainel, contador: els.tutorialContador,
-      titulo: els.tutorialTitulo, texto: els.tutorialTexto, pular: els.tutorialPular
+    launchMatch();   // monta o tabuleiro atras da cena
+    mostrarAberturaDoLance(function () {
+      TUTORIAL.iniciar({
+        painel: els.tutorialPainel, contador: els.tutorialContador,
+        titulo: els.tutorialTitulo, texto: els.tutorialTexto, pular: els.tutorialPular
+      });
     });
   }
 

@@ -258,6 +258,7 @@ var I18N = (function () {
 
     /* ---------- tutorial da primeira partida ---------- */
     "Pular tutorial": "Skip tutorial",
+    "TUTORIAL": "TUTORIAL",
     "Passo {0} de {1}": "Step {0} of {1}",
     "Toque no seu jogador": "Tap your player",
     "Você comanda o Brasil e ataca para a direita. Este jogador está com a bola — toque nele.":
