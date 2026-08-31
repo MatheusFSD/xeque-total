@@ -2414,7 +2414,7 @@ var UI = (function () {
     var urls = [
       "img/logo.webp", "img/menu-bg.webp",
       "img/vs_ia.webp", "img/vs_ia2.webp",
-      "img/belini1.webp", "img/belini2.webp",
+      "img/copa1.webp", "img/copa2.webp",
       "img/2jogadores.webp", "img/2jogadores2.webp",
       "img/campanha1.webp", "img/campanha2.webp"
     ];
