@@ -662,12 +662,12 @@ I18N.merge("en", {
   "Nasceu em Dubrovnik. Trabalhava carregando caixas no porto e treinava no Lokrum Dubrovnik ao anoitecer.":
     "Born in Dubrovnik. He hauled crates at the port and trained at Lokrum Dubrovnik at dusk.",
 
-  /* ---------------- Corto Maltese ---------------- */
+  /* ---------------- Puerto Malta ---------------- */
   "Milagre Improvável": "Unlikely Miracle",
   "Quando pega, é sorte dobrada.": "When he catches it, that is luck twice over.",
   "Bola que eu pego já é sorte dobrada.": "A ball I catch is already luck twice over.",
-  "Nascido no porto de Corto Maltese. Era zelador do estádio antes de virar goleiro por falta de opção.":
-    "Born in the port of Corto Maltese. He was the stadium caretaker before becoming a keeper for lack of options.",
+  "Nascido no porto de Puerto Malta. Era zelador do estádio antes de virar goleiro por falta de opção.":
+    "Born in Puerto Malta. He was the stadium caretaker before becoming a keeper for lack of options.",
   "Carrinho Desesperado": "Desperate Slide",
   "Não é bonito, mas às vezes funciona.": "It is not pretty, but sometimes it works.",
   "Não é bonito, mas às vezes funciona.": "It is not pretty, but sometimes it works.",

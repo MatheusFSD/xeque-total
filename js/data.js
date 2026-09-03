@@ -87,7 +87,7 @@ var GAME_DATA = (function () {
 
   var TEAMS = [
     {
-      id: "BRA", name: "Brasil", shortName: "BRA", kit: "CBF · Amarelo-Canarinho",
+      id: "BRA", name: "Brasil", shortName: "BRA", kit: "Amarelo-Canarinho",
       colorVar: "brasil", badge: "🇧🇷", assetPrefix: "BRASIL",
       players: [
         player({ id: "bra-1", name: "Zenon Barreto", number: 1, nationality: "Brasil", flag: "🇧🇷", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -137,7 +137,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "ALE", name: "Alemanha", shortName: "ALE", kit: "DFB · Preto & Ouro",
+      id: "ALE", name: "Alemanha", shortName: "ALE", kit: "Preto & Ouro",
       colorVar: "alemanha", badge: "🇩🇪", assetPrefix: "ALEMANHA",
       players: [
         player({ id: "ale-1", name: "Kaspar Lindt", number: 1, nationality: "Alemanha", flag: "🇩🇪", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -187,7 +187,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "FRA", name: "França", shortName: "FRA", kit: "FFF · Azul Blues",
+      id: "FRA", name: "França", shortName: "FRA", kit: "Azul Blues",
       colorVar: "franca", badge: "🇫🇷", assetPrefix: "FRANCA",
       players: [
         player({ id: "fra-1", name: "Anselme Rocard", number: 1, nationality: "França", flag: "🇫🇷", temperament: "Cerebral", position: "GK", ability: "muralha",
@@ -237,7 +237,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "ARG", name: "Argentina", shortName: "ARG", kit: "AFA · Albiceleste",
+      id: "ARG", name: "Argentina", shortName: "ARG", kit: "Albiceleste",
       colorVar: "argentina", badge: "🇦🇷", assetPrefix: "ARGENTINA",
       players: [
         player({ id: "arg-1", name: "Elías Quiroga", number: 1, nationality: "Argentina", flag: "🇦🇷", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -287,7 +287,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "ITA", name: "Itália", shortName: "ITA", kit: "FIGC · Azzurri",
+      id: "ITA", name: "Itália", shortName: "ITA", kit: "Azzurri",
       colorVar: "italia", badge: "🇮🇹", assetPrefix: "ITALIA",
       players: [
         player({ id: "ita-1", name: "Corrado Belluzzi", number: 1, nationality: "Itália", flag: "🇮🇹", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -337,7 +337,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "ESP", name: "Espanha", shortName: "ESP", kit: "RFEF · Fúria Vermelha",
+      id: "ESP", name: "Espanha", shortName: "ESP", kit: "Fúria Vermelha",
       colorVar: "espanha", badge: "🇪🇸", assetPrefix: "ESPANHA",
       players: [
         player({ id: "esp-1", name: "Ezequiel Arrieta", number: 1, nationality: "Espanha", flag: "🇪🇸", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -387,7 +387,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "COL", name: "Colômbia", shortName: "COL", kit: "FCF · Amarela Cafetera",
+      id: "COL", name: "Colômbia", shortName: "COL", kit: "Amarela Cafetera",
       colorVar: "colombia", badge: "🇨🇴", assetPrefix: "COLOMBIA",
       players: [
         player({ id: "col-1", name: "Wílmar Cañón", number: 1, nationality: "Colômbia", flag: "🇨🇴", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -437,7 +437,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "CRO", name: "Croácia", shortName: "CRO", kit: "HNS · Xadrez Vermelho",
+      id: "CRO", name: "Croácia", shortName: "CRO", kit: "Xadrez Vermelho",
       colorVar: "croacia", badge: "🇭🇷", assetPrefix: "CROACIA",
       players: [
         player({ id: "cro-1", name: "Tomislav Grgić", number: 1, nationality: "Croácia", flag: "🇭🇷", temperament: "Cerebral", position: "GK", ability: "muralha",
@@ -487,7 +487,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "HOL", name: "Holanda", shortName: "HOL", kit: "KNVB · Laranja Mecânica",
+      id: "HOL", name: "Holanda", shortName: "HOL", kit: "Laranja Mecânica",
       colorVar: "holanda", badge: "🇳🇱", assetPrefix: "HOLANDA",
       players: [
         player({ id: "hol-1", name: "Wessel Grimbergen", number: 1, nationality: "Holanda", flag: "🇳🇱", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -537,7 +537,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "MEX", name: "México", shortName: "MEX", kit: "FMF · Verde Azteca",
+      id: "MEX", name: "México", shortName: "MEX", kit: "Verde Azteca",
       colorVar: "mexico", badge: "🇲🇽", assetPrefix: "MEXICO",
       players: [
         player({ id: "mex-1", name: "Ismael Quiroz", number: 1, nationality: "México", flag: "🇲🇽", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -587,7 +587,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "NOR", name: "Noruega", shortName: "NOR", kit: "NFF · Vikings do Gelo",
+      id: "NOR", name: "Noruega", shortName: "NOR", kit: "Vikings do Gelo",
       colorVar: "noruega", badge: "🇳🇴", assetPrefix: "NORUEGA",
       players: [
         player({ id: "nor-1", name: "Sindre Aalborg", number: 1, nationality: "Noruega", flag: "🇳🇴", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -637,7 +637,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "POR", name: "Portugal", shortName: "POR", kit: "FPF · Vermelho e Verde",
+      id: "POR", name: "Portugal", shortName: "POR", kit: "Vermelho e Verde",
       colorVar: "portugal", badge: "🇵🇹", assetPrefix: "PORTUGAL",
       players: [
         player({ id: "por-1", name: "Anselmo Freitas", number: 1, nationality: "Portugal", flag: "🇵🇹", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -687,7 +687,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "ENG", name: "Inglaterra", shortName: "ENG", kit: "FA · Três Leões",
+      id: "ENG", name: "Inglaterra", shortName: "ENG", kit: "Três Leões",
       colorVar: "inglaterra", badge: "🇬🇧", assetPrefix: "INGLATERRA",
       players: [
         player({ id: "eng-1", name: "Alfie Renshaw", number: 1, nationality: "Inglaterra", flag: "🇬🇧", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -737,7 +737,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "URU", name: "Uruguai", shortName: "URU", kit: "AUF · Garra Charrúa",
+      id: "URU", name: "Uruguai", shortName: "URU", kit: "Garra Charrúa",
       colorVar: "uruguai", badge: "🇺🇾", assetPrefix: "URUGUAI",
       players: [
         player({ id: "uru-1", name: "Wilson Berrutti", number: 1, nationality: "Uruguai", flag: "🇺🇾", temperament: "Cerebral", position: "GK", ability: "inabalavel",
@@ -787,7 +787,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "KOR", name: "Coreia do Sul", shortName: "KOR", kit: "KFA · Guerreiros Taeguk",
+      id: "KOR", name: "Coreia do Sul", shortName: "KOR", kit: "Guerreiros Taeguk",
       colorVar: "coreia", badge: "🇰🇷", assetPrefix: "COREIA_DO_SUL",
       players: [
         player({ id: "kor-1", name: "Kang Ji-hoon", number: 1, nationality: "Coreia do Sul", flag: "🇰🇷", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -837,7 +837,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "BEL", name: "Bélgica", shortName: "BEL", kit: "URBSFA · Diabos Vermelhos",
+      id: "BEL", name: "Bélgica", shortName: "BEL", kit: "Diabos Vermelhos",
       colorVar: "belgica", badge: "🇧🇪", assetPrefix: "BELGICA",
       players: [
         player({ id: "bel-1", name: "Gilles Vandeputte", number: 1, nationality: "Bélgica", flag: "🇧🇪", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -887,7 +887,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "CHI", name: "Chile", shortName: "CHI", kit: "ANFP · La Roja",
+      id: "CHI", name: "Chile", shortName: "CHI", kit: "La Roja",
       colorVar: "chile", badge: "🇨🇱", assetPrefix: "CHILE",
       players: [
         player({ id: "chi-1", name: "Cristóbal Yáñez", number: 1, nationality: "Chile", flag: "🇨🇱", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -937,7 +937,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "JPN", name: "Japão", shortName: "JPN", kit: "JFA · Samurai Blue",
+      id: "JPN", name: "Japão", shortName: "JPN", kit: "Samurai Blue",
       colorVar: "japao", badge: "🇯🇵", assetPrefix: "JAPAO",
       players: [
         player({ id: "jpn-1", name: "Ryosuke Amagai", number: 1, nationality: "Japão", flag: "🇯🇵", temperament: "Cerebral", position: "GK", ability: "sangueFrio",
@@ -987,7 +987,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "MAR", name: "Marrocos", shortName: "MAR", kit: "FRMF · Leões do Atlas",
+      id: "MAR", name: "Marrocos", shortName: "MAR", kit: "Leões do Atlas",
       colorVar: "marrocos", badge: "🇲🇦", assetPrefix: "MARROCOS",
       players: [
         player({ id: "mar-1", name: "Karim Belhadj", number: 1, nationality: "Marrocos", flag: "🇲🇦", temperament: "Cerebral", position: "GK", ability: "muralha",
@@ -1037,7 +1037,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "CMR", name: "Camarões", shortName: "CMR", kit: "FECAFOOT · Leões da Savana",
+      id: "CMR", name: "Camarões", shortName: "CMR", kit: "Leões da Savana",
       colorVar: "camaroes", badge: "🇨🇲", assetPrefix: "CAMAROES",
       players: [
         player({ id: "cmr-1", name: "Célestin Ateba", number: 1, nationality: "Camarões", flag: "🇨🇲", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1087,7 +1087,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "AUS", name: "Austrália", shortName: "AUS", kit: "FFA · Ouro e Verde",
+      id: "AUS", name: "Austrália", shortName: "AUS", kit: "Ouro e Verde",
       colorVar: "australia", badge: "🇦🇺", assetPrefix: "AUSTRALIA",
       players: [
         player({ id: "aus-1", name: "Wesley Hargreave", number: 1, nationality: "Austrália", flag: "🇦🇺", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1137,7 +1137,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "USA", name: "Estados Unidos", shortName: "USA", kit: "USSF · Estrelas e Barras",
+      id: "USA", name: "Estados Unidos", shortName: "USA", kit: "Estrelas e Barras",
       colorVar: "eua", badge: "🇺🇸", assetPrefix: "EUA",
       players: [
         player({ id: "usa-1", name: "Grady Lindstrom", number: 1, nationality: "Estados Unidos", flag: "🇺🇸", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1187,7 +1187,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "NGA", name: "Nigéria", shortName: "NGA", kit: "NFF · Águias Verdes",
+      id: "NGA", name: "Nigéria", shortName: "NGA", kit: "Águias Verdes",
       colorVar: "nigeria", badge: "🇳🇬", assetPrefix: "NIGERIA",
       players: [
         player({ id: "nga-1", name: "Emeka Obiora", number: 1, nationality: "Nigéria", flag: "🇳🇬", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1237,7 +1237,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "CRC", name: "Costa Rica", shortName: "CRC", kit: "FEDEFUTBOL · Vermelho e Azul",
+      id: "CRC", name: "Costa Rica", shortName: "CRC", kit: "Vermelho e Azul",
       colorVar: "costarica", badge: "🇨🇷", assetPrefix: "COSTA_RICA",
       players: [
         player({ id: "crc-1", name: "Melvin Sandoval", number: 1, nationality: "Costa Rica", flag: "🇨🇷", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1287,7 +1287,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "IRN", name: "Irã", shortName: "IRN", kit: "FFIRI · Leões da Pérsia",
+      id: "IRN", name: "Irã", shortName: "IRN", kit: "Leões da Pérsia",
       colorVar: "ira", badge: "🇮🇷", assetPrefix: "IRAN",
       players: [
         player({ id: "irn-1", name: "Kambiz Shahbazi", number: 1, nationality: "Irã", flag: "🇮🇷", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1337,7 +1337,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "KSA", name: "Arábia Saudita", shortName: "KSA", kit: "SAFF · Falcões Verdes",
+      id: "KSA", name: "Arábia Saudita", shortName: "KSA", kit: "Falcões Verdes",
       colorVar: "arabiasaudita", badge: "🇸🇦", assetPrefix: "ARABIA_SAUDITA",
       players: [
         player({ id: "ksa-1", name: "Fahad Al-Muhaideb", number: 1, nationality: "Arábia Saudita", flag: "🇸🇦", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1387,7 +1387,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "SWE", name: "Suécia", shortName: "SWE", kit: "SvFF · Azul e Amarelo",
+      id: "SWE", name: "Suécia", shortName: "SWE", kit: "Azul e Amarelo",
       colorVar: "suecia", badge: "🇸🇪", assetPrefix: "SUECIA",
       players: [
         player({ id: "swe-1", name: "Åke Wallentin", number: 1, nationality: "Suécia", flag: "🇸🇪", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1437,7 +1437,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "DEN", name: "Dinamarca", shortName: "DEN", kit: "DBU · Dinamite Vermelha",
+      id: "DEN", name: "Dinamarca", shortName: "DEN", kit: "Dinamite Vermelha",
       colorVar: "dinamarca", badge: "🇩🇰", assetPrefix: "DINAMARCA",
       players: [
         player({ id: "den-1", name: "Emil Krogh", number: 1, nationality: "Dinamarca", flag: "🇩🇰", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1487,7 +1487,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "SUI", name: "Suíça", shortName: "SUI", kit: "ASF · Vermelhos dos Alpes",
+      id: "SUI", name: "Suíça", shortName: "SUI", kit: "Vermelhos dos Alpes",
       colorVar: "suica", badge: "🇨🇭", assetPrefix: "SUICA",
       players: [
         player({ id: "sui-1", name: "Bruno Zellweger", number: 1, nationality: "Suíça", flag: "🇨🇭", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1537,7 +1537,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "SEN", name: "Senegal", shortName: "SEN", kit: "FSF · Leões do Oeste",
+      id: "SEN", name: "Senegal", shortName: "SEN", kit: "Leões do Oeste",
       colorVar: "senegal", badge: "🇸🇳", assetPrefix: "SENEGAL",
       players: [
         player({ id: "sen-1", name: "Mamadou Sagna", number: 1, nationality: "Senegal", flag: "🇸🇳", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1587,7 +1587,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "GHA", name: "Gana", shortName: "GHA", kit: "GFA · Estrelas do Golfo",
+      id: "GHA", name: "Gana", shortName: "GHA", kit: "Estrelas do Golfo",
       colorVar: "gana", badge: "🇬🇭", assetPrefix: "GANA",
       players: [
         player({ id: "gha-1", name: "Kwame Ansah", number: 1, nationality: "Gana", flag: "🇬🇭", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1637,7 +1637,7 @@ var GAME_DATA = (function () {
       ]
     },
     {
-      id: "PAR", name: "Paraguai", shortName: "PAR", kit: "APF · Garra Guarani",
+      id: "PAR", name: "Paraguai", shortName: "PAR", kit: "Garra Guarani",
       colorVar: "paraguai", badge: "🇵🇾", assetPrefix: "PARAGUAI",
       players: [
         player({ id: "par-1", name: "Anastasio Yegros", number: 1, nationality: "Paraguai", flag: "🇵🇾", temperament: "Cerebral", position: "GK", ability: "paredao",
@@ -1691,50 +1691,50 @@ var GAME_DATA = (function () {
       // sorteio da Copa normal (ver filtro em js/copa.js) — só existe dentro do modo
       // Campanha, onde js/campaign.js é dono do array `players` abaixo e o
       // sobrescreve em tempo real conforme o jogador treina ou recruta reforços.
-      id: "CTM", name: "Corto Maltese", shortName: "COR", kit: "Clube Corto Maltese · Zebra da Copa",
-      colorVar: "cortomaltese", badge: "⚓", assetPrefix: "CORTO_MALTESE", campaignOnly: true,
+      id: "CTM", name: "Puerto Malta", shortName: "PMA", kit: "Zebra da Copa",
+      colorVar: "puertomalta", badge: "⚓", assetPrefix: "PUERTO_MALTA", campaignOnly: true,
       players: [
-        player({ id: "ctm-1", name: "Timóteo Bragadin", number: 1, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "GK", ability: "zebra",
+        player({ id: "ctm-1", name: "Timóteo Bragadin", number: 1, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "GK", ability: "zebra",
           stats: { velocidade: 46, chute: 10, tecnica: 44, defesa: 66, espirito: 70 },
           power: { name: "Milagre Improvável", desc: "Quando pega, é sorte dobrada.", manaCost: 30, bonus: 7 },
-          start: { row: 4, col: 0 }, assetKey: 1, lore: "Nascido no porto de Corto Maltese. Era zelador do estádio antes de virar goleiro por falta de opção.", quote: "Bola que eu pego já é sorte dobrada." }),
-        player({ id: "ctm-2", name: "Nuno Escaleira", number: 2, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "LAT", ability: "zebra",
+          start: { row: 4, col: 0 }, assetKey: 1, lore: "Nascido em Puerto Malta. Era zelador do estádio antes de virar goleiro por falta de opção.", quote: "Bola que eu pego já é sorte dobrada." }),
+        player({ id: "ctm-2", name: "Nuno Escaleira", number: 2, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "LAT", ability: "zebra",
           stats: { velocidade: 58, chute: 38, tecnica: 42, defesa: 48, espirito: 66 },
           power: { name: "Carrinho Desesperado", desc: "Não é bonito, mas às vezes funciona.", manaCost: 26, bonus: 6 },
           start: { row: 1, col: 2 }, assetKey: 2, lore: "Cresceu no bairro alto da ilha. Jogou nove temporadas no mesmo clube sem nunca receber salário em dia.", quote: "Não é bonito, mas às vezes funciona." }),
-        player({ id: "ctm-3", name: "Osvaldo Pardal", number: 3, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "DF", ability: "zebra",
+        player({ id: "ctm-3", name: "Osvaldo Pardal", number: 3, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "DF", ability: "zebra",
           stats: { velocidade: 50, chute: 34, tecnica: 40, defesa: 56, espirito: 72 },
           power: { name: "Bloqueio de Corpo Inteiro", desc: "Se joga na frente de tudo, com ou sem chance.", manaCost: 28, bonus: 6 },
           start: { row: 3, col: 2 }, assetKey: 3, lore: "De uma vila de pescadores do norte. Perdeu dois dentes num jogo e voltou no segundo tempo.", quote: "Já apanhei tanto que não sinto mais." }),
-        player({ id: "ctm-4", name: "Rufino Bastos", number: 4, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "DF", ability: "zebra",
+        player({ id: "ctm-4", name: "Rufino Bastos", number: 4, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "DF", ability: "zebra",
           stats: { velocidade: 48, chute: 32, tecnica: 38, defesa: 53, espirito: 76 },
           power: { name: "Raça Pura", desc: "Compensa com vontade o que falta em técnica.", manaCost: 28, bonus: 6 },
           start: { row: 5, col: 2 }, assetKey: 4, lore: "Nascido no interior da ilha. Trabalhava na roça de manhã e treinava com botina até os vinte.", quote: "Time pequeno também tem orgulho." }),
-        player({ id: "ctm-5", name: "Zeca Mourão", number: 5, nationality: "Corto Maltese", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "zebra",
+        player({ id: "ctm-5", name: "Zeca Mourão", number: 5, nationality: "Puerto Malta", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "zebra",
           stats: { velocidade: 72, chute: 38, tecnica: 44, defesa: 48, espirito: 60 },
           power: { name: "Correria Sem Destino", desc: "Rápido ele é. O resto se vê depois.", manaCost: 27, bonus: 6 },
           start: { row: 7, col: 2 }, assetKey: 5, lore: "Cresceu correndo atrás de ônibus para não pagar passagem. Diz que foi o único treino que teve.", quote: "Rápido eu sou. O resto a gente vê." }),
-        player({ id: "ctm-6", name: "Adalberto Cruz", number: 6, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "MF", ability: "zebra",
+        player({ id: "ctm-6", name: "Adalberto Cruz", number: 6, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "MF", ability: "zebra",
           stats: { velocidade: 54, chute: 42, tecnica: 46, defesa: 52, espirito: 68 },
           power: { name: "Pulmão do Time", desc: "Enquanto ele correr, o time não desiste.", manaCost: 29, bonus: 6 },
           start: { row: 4, col: 4 }, assetKey: 6, lore: "Da capital da ilha. Foi carteiro por doze anos e nunca faltou a um treino depois do expediente.", quote: "Enquanto eu correr, o time não desiste." }),
-        player({ id: "ctm-7", name: "Jerônimo Pipa", number: 7, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "zebra",
+        player({ id: "ctm-7", name: "Jerônimo Pipa", number: 7, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "zebra",
           stats: { velocidade: 50, chute: 40, tecnica: 50, defesa: 44, espirito: 64 },
           power: { name: "Visão Otimista", desc: "Na cabeça dele, o passe sempre chega.", manaCost: 28, bonus: 6 },
           start: { row: 2, col: 4 }, assetKey: 7, lore: "Nascido perto do farol. Era o único do elenco que assinava autógrafo antes de ser conhecido.", quote: "Na minha cabeça, o passe sempre chega." }),
-        player({ id: "ctm-8", name: "Custódio Neves", number: 8, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "zebra",
+        player({ id: "ctm-8", name: "Custódio Neves", number: 8, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "zebra",
           stats: { velocidade: 48, chute: 38, tecnica: 48, defesa: 48, espirito: 66 },
           power: { name: "Calma no Caos", desc: "Segura a onda quando todo mundo já perdeu.", manaCost: 27, bonus: 6 },
           start: { row: 6, col: 4 }, assetKey: 8, lore: "Cresceu num orfanato da ilha. Diz que barulho não o assusta desde criança.", quote: "Time nervoso perde. Eu tento não deixar." }),
-        player({ id: "ctm-9", name: "Fermino Aguiar", number: 9, nationality: "Corto Maltese", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "zebra",
+        player({ id: "ctm-9", name: "Fermino Aguiar", number: 9, nationality: "Puerto Malta", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "zebra",
           stats: { velocidade: 58, chute: 52, tecnica: 42, defesa: 35, espirito: 56 },
           power: { name: "Quase Lá", desc: "Fica perto do gol. Um dia entra.", manaCost: 30, bonus: 7 },
           start: { row: 2, col: 5 }, assetKey: 9, lore: "De uma aldeia sem campo oficial. Aprendeu a chutar contra a parede da igreja, até o padre proibir.", quote: "Fico perto do gol. Um dia entra." }),
-        player({ id: "ctm-10", name: "Anacleto Lume", number: 10, nationality: "Corto Maltese", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "zebra",
+        player({ id: "ctm-10", name: "Anacleto Lume", number: 10, nationality: "Puerto Malta", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "zebra",
           stats: { velocidade: 60, chute: 50, tecnica: 44, defesa: 34, espirito: 58 },
           power: { name: "Rebote de Milagre", desc: "Vive de sobra, e às vezes a sobra vem.", manaCost: 29, bonus: 6 },
           start: { row: 4, col: 5 }, assetKey: 10, lore: "Nascido no cais. Ganhou as primeiras chuteiras num naufrágio de carga e usou até rasgar.", quote: "Um dia a sorte vira. Hoje pode ser." }),
-        player({ id: "ctm-11", name: "Otávio Sardinha", number: 11, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "FW", ability: "zebra",
+        player({ id: "ctm-11", name: "Otávio Sardinha", number: 11, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "FW", ability: "zebra",
           stats: { velocidade: 56, chute: 48, tecnica: 40, defesa: 37, espirito: 62 },
           power: { name: "Insistência Total", desc: "Não desiste nem quando deveria.", manaCost: 29, bonus: 6 },
           start: { row: 6, col: 5 }, assetKey: 11, lore: "Da encosta sul da ilha. Tentou sete vezes o teste do clube até passar, aos vinte e quatro anos.", quote: "Não desisto nem quando deveria." })
@@ -1744,98 +1744,98 @@ var GAME_DATA = (function () {
 
   // reforços recrutáveis do modo Campanha (js/campaign.js) — não são um squad, são um
   // "banco" de jogadores avulsos que o jogador pode comprar (figurinha) pra substituir
-  // alguém do elenco atual do Corto Maltese. Cada um já nasce com a posição/temperamento
+  // alguém do elenco atual do Puerto Malta. Cada um já nasce com a posição/temperamento
   // fixos (mesmo padrão GK/LAT/DF/DF/LAT/MF/MF/MF/FW/FW/FW de todo squad do jogo), mas o
   // `start`/`number` reais em campo vêm da vaga que ele substituir, não daqui.
   var CAMPAIGN_RECRUITS = {
     medianos: [
-      player({ id: "ctm-12", name: "Renato Varela", number: 12, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "GK", ability: "paredao",
+      player({ id: "ctm-12", name: "Renato Varela", number: 12, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "GK", ability: "paredao",
         stats: { velocidade: 54, chute: 12, tecnica: 56, defesa: 78, espirito: 76 },
         power: { name: "Mão Firme", desc: "Não é espetacular, mas segura o que precisa.", manaCost: 42, bonus: 11 },
         start: { row: 4, col: 0 }, assetKey: 12, lore: "Veio de um clube de barcaça do continente. Goleiro de segunda divisão por onze anos, sem uma expulsão.", quote: "Faço o meu. Sem drama." }),
-      player({ id: "ctm-13", name: "Igor Cordeiro", number: 13, nationality: "Corto Maltese", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
+      player({ id: "ctm-13", name: "Igor Cordeiro", number: 13, nationality: "Puerto Malta", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
         stats: { velocidade: 76, chute: 46, tecnica: 62, defesa: 59, espirito: 68 },
         power: { name: "Ida e Volta", desc: "Sobe quando pode e volta quando deve.", manaCost: 34, bonus: 9 },
         start: { row: 1, col: 2 }, assetKey: 13, lore: "Lateral formado em clube de fábrica. Trocava turno com o irmão para nunca perder um jogo.", quote: "Sei a hora de subir." }),
-      player({ id: "ctm-14", name: "Caio Mendonça", number: 14, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "DF", ability: "inabalavel",
+      player({ id: "ctm-14", name: "Caio Mendonça", number: 14, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "DF", ability: "inabalavel",
         stats: { velocidade: 58, chute: 38, tecnica: 64, defesa: 71, espirito: 72 },
         power: { name: "Firmeza na Área", desc: "Divide sem medo e organiza sem alarde.", manaCost: 33, bonus: 9 },
         start: { row: 3, col: 2 }, assetKey: 14, lore: "Zagueiro de carreira modesta, ficou conhecido por nunca ter sido expulso em quatrocentas partidas.", quote: "Zaga é lugar de gente calma." }),
-      player({ id: "ctm-15", name: "Rui Silveira", number: 15, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "DF", ability: "muralha",
+      player({ id: "ctm-15", name: "Rui Silveira", number: 15, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "DF", ability: "muralha",
         stats: { velocidade: 56, chute: 36, tecnica: 58, defesa: 74, espirito: 74 },
         power: { name: "Antecipação", desc: "Chega antes e resolve limpo.", manaCost: 33, bonus: 9 },
         start: { row: 5, col: 2 }, assetKey: 15, lore: "Descoberto tarde, aos vinte e seis. Era professor de educação física antes de assinar o primeiro contrato.", quote: "Prefiro chegar antes a chegar forte." }),
-      player({ id: "ctm-16", name: "Danilo Reis", number: 16, nationality: "Corto Maltese", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
+      player({ id: "ctm-16", name: "Danilo Reis", number: 16, nationality: "Puerto Malta", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
         stats: { velocidade: 74, chute: 44, tecnica: 60, defesa: 56, espirito: 66 },
         power: { name: "Perna Aberta", desc: "Trava o cruzamento no último instante.", manaCost: 34, bonus: 9 },
         start: { row: 7, col: 2 }, assetKey: 16, lore: "Lateral esquerdo canhoto que jogou a vida toda pela direita, por teimosia do primeiro técnico.", quote: "O cruzamento morre em mim." }),
-      player({ id: "ctm-17", name: "Marcelo Duarte", number: 17, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "capitao",
+      player({ id: "ctm-17", name: "Marcelo Duarte", number: 17, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "capitao",
         stats: { velocidade: 62, chute: 56, tecnica: 72, defesa: 56, espirito: 70 },
         power: { name: "Passe Simples", desc: "Nunca complica, e por isso raramente erra.", manaCost: 36, bonus: 10 },
         start: { row: 4, col: 4 }, assetKey: 17, lore: "Meia de time pequeno que nunca deu uma entrevista. Guarda todas as súmulas em que apareceu.", quote: "O simples é o que ganha jogo." }),
-      player({ id: "ctm-18", name: "Aldo Ventura", number: 18, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "MF", ability: "motor",
+      player({ id: "ctm-18", name: "Aldo Ventura", number: 18, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "MF", ability: "motor",
         stats: { velocidade: 60, chute: 58, tecnica: 64, defesa: 58, espirito: 72 },
         power: { name: "Marcação Constante", desc: "Não brilha, mas não deixa jogar.", manaCost: 35, bonus: 9 },
         start: { row: 2, col: 4 }, assetKey: 18, lore: "Volante que rodou por sete clubes em nove anos e fez amigos em todos eles.", quote: "Não preciso brilhar. Preciso atrapalhar." }),
-      player({ id: "ctm-19", name: "Nelson Salgado", number: 19, nationality: "Corto Maltese", flag: "⚓", temperament: "Oportunista", position: "MF", ability: "canhao",
+      player({ id: "ctm-19", name: "Nelson Salgado", number: 19, nationality: "Puerto Malta", flag: "⚓", temperament: "Oportunista", position: "MF", ability: "canhao",
         stats: { velocidade: 64, chute: 60, tecnica: 68, defesa: 50, espirito: 68 },
         power: { name: "Chegada de Trás", desc: "Aparece na área quando ninguém está contando.", manaCost: 36, bonus: 10 },
         start: { row: 6, col: 4 }, assetKey: 19, lore: "Meia que virou profissional aos vinte e oito, depois de anos jogando por diversão nos fins de semana.", quote: "Chego atrasado de propósito." }),
-      player({ id: "ctm-20", name: "Iuri Neves", number: 20, nationality: "Corto Maltese", flag: "⚓", temperament: "Rápido", position: "FW", ability: "faro",
+      player({ id: "ctm-20", name: "Iuri Neves", number: 20, nationality: "Puerto Malta", flag: "⚓", temperament: "Rápido", position: "FW", ability: "faro",
         stats: { velocidade: 72, chute: 68, tecnica: 62, defesa: 47, espirito: 64 },
         power: { name: "Faro Modesto", desc: "Não faz muitos, mas faz os necessários.", manaCost: 39, bonus: 11 },
         start: { row: 2, col: 5 }, assetKey: 20, lore: "Atacante que marcou em quatro divisões diferentes, sempre em clubes que ninguém acompanhava.", quote: "Um gol por jogo já está bom." }),
-      player({ id: "ctm-21", name: "Bruno Azevedo", number: 21, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "FW", ability: "ginga",
+      player({ id: "ctm-21", name: "Bruno Azevedo", number: 21, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "FW", ability: "ginga",
         stats: { velocidade: 66, chute: 70, tecnica: 66, defesa: 45, espirito: 66 },
         power: { name: "Corpo de Aço", desc: "Segura a bola de costas até chegar ajuda.", manaCost: 39, bonus: 11 },
         start: { row: 4, col: 5 }, assetKey: 21, lore: "Centroavante de porte grande que treinou levantamento de peso a vida inteira, por vaidade.", quote: "Eu seguro. Vocês chegam." }),
-      player({ id: "ctm-22", name: "Caetano Fontes", number: 22, nationality: "Corto Maltese", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "canhao",
+      player({ id: "ctm-22", name: "Caetano Fontes", number: 22, nationality: "Puerto Malta", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "canhao",
         stats: { velocidade: 68, chute: 66, tecnica: 64, defesa: 45, espirito: 62 },
         power: { name: "Chute Torto", desc: "Bate feio, mas entra do mesmo jeito.", manaCost: 38, bonus: 10 },
         start: { row: 6, col: 5 }, assetKey: 22, lore: "Atacante conhecido por um gol de perna direita sendo canhoto, que ele mesmo chama de acidente.", quote: "Feio também vale um." })
     ],
     elite: [
-      player({ id: "ctm-23", name: "Otávio Montano", number: 23, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "GK", ability: "paredao",
+      player({ id: "ctm-23", name: "Otávio Montano", number: 23, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "GK", ability: "paredao",
         stats: { velocidade: 64, chute: 14, tecnica: 68, defesa: 92, espirito: 86 },
         power: { name: "Muralha Serena", desc: "Defende difícil com uma tranquilidade que irrita.", manaCost: 47, bonus: 13 },
         start: { row: 4, col: 0 }, assetKey: 23, lore: "Goleiro consagrado que recusou grandes clubes para ficar perto da família. Ninguém entendeu.", quote: "Bola no gol é falha minha. Só minha." }),
-      player({ id: "ctm-24", name: "Rodrigo Valente", number: 24, nationality: "Corto Maltese", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
+      player({ id: "ctm-24", name: "Rodrigo Valente", number: 24, nationality: "Puerto Malta", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
         stats: { velocidade: 86, chute: 56, tecnica: 74, defesa: 71, espirito: 78 },
         power: { name: "Ala Completo", desc: "Ataca e defende no mesmo nível.", manaCost: 38, bonus: 11 },
         start: { row: 1, col: 2 }, assetKey: 24, lore: "Lateral que jogou em quatro países e aprendeu a se comunicar em todos sem falar as línguas.", quote: "Faço os dois. Escolha qual quer ver." }),
-      player({ id: "ctm-25", name: "Hugo Bastos", number: 25, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "DF", ability: "inabalavel",
+      player({ id: "ctm-25", name: "Hugo Bastos", number: 25, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "DF", ability: "inabalavel",
         stats: { velocidade: 64, chute: 46, tecnica: 78, defesa: 86, espirito: 82 },
         power: { name: "Rocha", desc: "Um zagueiro que não é ultrapassado no um contra um.", manaCost: 36, bonus: 10 },
         start: { row: 3, col: 2 }, assetKey: 25, lore: "Zagueiro que ficou seis anos invicto em duelos aéreos, segundo o estatístico do próprio clube.", quote: "Comigo é sempre no um contra um." }),
-      player({ id: "ctm-26", name: "Nuno Serpa", number: 26, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "DF", ability: "muralha",
+      player({ id: "ctm-26", name: "Nuno Serpa", number: 26, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "DF", ability: "muralha",
         stats: { velocidade: 62, chute: 44, tecnica: 72, defesa: 88, espirito: 84 },
         power: { name: "Saída Limpa", desc: "Sai jogando de dentro da área sem tremer.", manaCost: 36, bonus: 10 },
         start: { row: 5, col: 2 }, assetKey: 26, lore: "Zagueiro que estudou análise de desempenho e virou o primeiro do elenco a usar vídeo no treino.", quote: "Chutar pra frente é desistir." }),
-      player({ id: "ctm-27", name: "Diego Lacerda", number: 27, nationality: "Corto Maltese", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
+      player({ id: "ctm-27", name: "Diego Lacerda", number: 27, nationality: "Puerto Malta", flag: "⚓", temperament: "Rápido", position: "LAT", ability: "motor",
         stats: { velocidade: 84, chute: 54, tecnica: 76, defesa: 68, espirito: 76 },
         power: { name: "Foguete pela Ponta", desc: "Percorre a lateral inteira em poucos segundos.", manaCost: 38, bonus: 11 },
         start: { row: 7, col: 2 }, assetKey: 27, lore: "Lateral velocista que já venceu corrida de rua contra o elenco inteiro, duas vezes.", quote: "A ponta é uma pista. Eu corro nela." }),
-      player({ id: "ctm-28", name: "Vasco Barreto", number: 28, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "capitao",
+      player({ id: "ctm-28", name: "Vasco Barreto", number: 28, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "MF", ability: "capitao",
         stats: { velocidade: 68, chute: 72, tecnica: 88, defesa: 58, espirito: 80 },
         power: { name: "Maestro Discreto", desc: "Comanda o jogo sem que a torcida perceba.", manaCost: 41, bonus: 11 },
         start: { row: 4, col: 4 }, assetKey: 28, lore: "Meia que só foi reconhecido depois de aposentado, quando os companheiros passaram a citá-lo.", quote: "Ninguém percebe. O time percebe." }),
-      player({ id: "ctm-29", name: "Bento Noronha", number: 29, nationality: "Corto Maltese", flag: "⚓", temperament: "Bruto", position: "MF", ability: "motor",
+      player({ id: "ctm-29", name: "Bento Noronha", number: 29, nationality: "Puerto Malta", flag: "⚓", temperament: "Bruto", position: "MF", ability: "motor",
         stats: { velocidade: 72, chute: 68, tecnica: 80, defesa: 62, espirito: 82 },
         power: { name: "Passe de Ruptura", desc: "Um passe e a defesa adversária deixa de existir.", manaCost: 40, bonus: 11 },
         start: { row: 2, col: 4 }, assetKey: 29, lore: "Meia criativo que colecionava mapas antigos e dizia que era o mesmo raciocínio do futebol.", quote: "Basta uma linha certa." }),
-      player({ id: "ctm-30", name: "Ricardo Vidal", number: 30, nationality: "Corto Maltese", flag: "⚓", temperament: "Oportunista", position: "MF", ability: "canhao",
+      player({ id: "ctm-30", name: "Ricardo Vidal", number: 30, nationality: "Puerto Malta", flag: "⚓", temperament: "Oportunista", position: "MF", ability: "canhao",
         stats: { velocidade: 70, chute: 74, tecnica: 82, defesa: 54, espirito: 78 },
         power: { name: "Pulmão de Elite", desc: "Corre por dois e ainda pensa por três.", manaCost: 40, bonus: 11 },
         start: { row: 6, col: 4 }, assetKey: 30, lore: "Volante que corria em média treze quilômetros por partida e nunca reclamou de substituição.", quote: "Correr é fácil. Correr pensando, não." }),
-      player({ id: "ctm-31", name: "Kadu Paiva", number: 31, nationality: "Corto Maltese", flag: "⚓", temperament: "Rápido", position: "FW", ability: "faro",
+      player({ id: "ctm-31", name: "Kadu Paiva", number: 31, nationality: "Puerto Malta", flag: "⚓", temperament: "Rápido", position: "FW", ability: "faro",
         stats: { velocidade: 86, chute: 86, tecnica: 80, defesa: 49, espirito: 76 },
         power: { name: "Finalizador Frio", desc: "Não erra quando fica cara a cara.", manaCost: 46, bonus: 13 },
         start: { row: 2, col: 5 }, assetKey: 31, lore: "Atacante que converteu quase todas as chances claras da carreira e é chamado de calculista.", quote: "Cara a cara é conta fechada." }),
-      player({ id: "ctm-32", name: "Léo Moniz", number: 32, nationality: "Corto Maltese", flag: "⚓", temperament: "Cerebral", position: "FW", ability: "ginga",
+      player({ id: "ctm-32", name: "Léo Moniz", number: 32, nationality: "Puerto Malta", flag: "⚓", temperament: "Cerebral", position: "FW", ability: "ginga",
         stats: { velocidade: 80, chute: 88, tecnica: 82, defesa: 50, espirito: 78 },
         power: { name: "Drible Curto", desc: "Passa por dois num espaço de um metro.", manaCost: 46, bonus: 13 },
         start: { row: 4, col: 5 }, assetKey: 32, lore: "Ponta baixinho que treinou anos em quadra de futsal e diz que campo grande é luxo.", quote: "Um metro me basta." }),
-      player({ id: "ctm-33", name: "Toni Sequeira", number: 33, nationality: "Corto Maltese", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "canhao",
+      player({ id: "ctm-33", name: "Toni Sequeira", number: 33, nationality: "Puerto Malta", flag: "⚓", temperament: "Oportunista", position: "FW", ability: "canhao",
         stats: { velocidade: 82, chute: 84, tecnica: 78, defesa: 49, espirito: 74 },
         power: { name: "Peixinho", desc: "Se joga no cruzamento e cabeceia rente ao chão.", manaCost: 45, bonus: 12 },
         start: { row: 6, col: 5 }, assetKey: 33, lore: "Centroavante que marcou a maioria dos gols de cabeça mesmo sendo o mais baixo do ataque.", quote: "Se der pra chegar de cabeça, eu chego." })

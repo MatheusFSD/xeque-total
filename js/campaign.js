@@ -1,7 +1,7 @@
 /* =========================================================
    QUADRADO MÁGICO — modo Campanha (roguelike)
 
-   O jogador sempre controla o Corto Maltese (squad campaignOnly em
+   O jogador sempre controla o Puerto Malta (squad campaignOnly em
    js/data.js), que começa como a pior seleção do jogo. A campanha é
    uma única Copa (reaproveitando 100% o motor de js/copa.js: sorteio,
    4 grupos de 4, quartas -> semis -> final) na qual, depois de cada
@@ -16,17 +16,17 @@
    na hora, então o resto do jogo (COPA, GAME) sempre lê o elenco
    atualizado sem precisar saber que existe um modo Campanha.
 
-   Salva localmente (localStorage, chave única com todas as campanhas
-   num só JSON, indexado pela "senha" escolhida pelo jogador) — não
-   existe backend, então isso é um save local deste navegador, não
-   uma conta entre dispositivos.
+   Salva localmente (localStorage) num save ÚNICO — não existe backend,
+   então isso é um save local deste navegador, não uma conta entre
+   dispositivos. Até 2026-09-02 havia várias campanhas indexadas por uma
+   "senha" digitada pelo jogador; a senha saiu e o que existia é migrado
+   na primeira leitura (ver lerSave).
 ========================================================= */
 
 var CAMPAIGN = (function () {
 
-  // mantém o nome antigo do jogo de propósito: renomear a chave apagaria a
-  // campanha de quem já jogou (o localStorage é indexado por ela)
-  var SAVE_KEY = "xequeTotalCampaignSaves";
+  var SAVE_KEY = "xequeTotalCampanha";              // save único (atual)
+  var SAVE_KEY_SENHAS = "xequeTotalCampaignSaves";  // várias campanhas por senha (até 2026-09-02)
   var CTM_ID = "CTM";
 
   var UPGRADE_BASE_COST = 40, UPGRADE_COST_STEP = 15, UPGRADE_MIN_GAIN = 2, UPGRADE_MAX_GAIN = 4;
@@ -57,31 +57,89 @@ var CAMPAIGN = (function () {
     findCtmTeam().players = current.roster;
   }
 
-  function readAllSaves() {
+  /* Quanto uma campanha antiga andou. Só serve pra escolher UMA quando o
+     jogador tinha várias senhas: sem data de gravação no formato velho, o
+     critério possível é o progresso. */
+  function progressoDe(sv) {
+    if (!sv) return -1;
+    var treinos = 0;
+    for (var k in (sv.upgradeCounts || {})) {
+      if (Object.prototype.hasOwnProperty.call(sv.upgradeCounts, k)) treinos += sv.upgradeCounts[k];
+    }
+    return (sv.fichas || 0) + treinos * 40 + ((sv.recruitedIds || []).length) * 60;
+  }
+
+  // migra o formato antigo (um objeto de campanhas indexado por senha) pro save
+  // único, adotando a campanha mais adiantada. Só roda uma vez: depois de gravar
+  // no formato novo, a chave velha é apagada.
+  function migrarDasSenhas() {
+    var raw;
+    try { raw = STORAGE.getItem(SAVE_KEY_SENHAS); } catch (e) { return null; }
+    if (!raw) return null;
+
+    var melhor = null;
     try {
-      var raw = STORAGE.getItem(SAVE_KEY);
-      return raw ? JSON.parse(raw) : {};
+      var todas = JSON.parse(raw) || {};
+      for (var senha in todas) {
+        if (!Object.prototype.hasOwnProperty.call(todas, senha)) continue;
+        if (progressoDe(todas[senha]) > progressoDe(melhor)) melhor = todas[senha];
+      }
+    } catch (e) { melhor = null; }
+
+    try { STORAGE.removeItem(SAVE_KEY_SENHAS); } catch (e) { /* ignora */ }
+    if (!melhor) return null;
+    delete melhor.password;
+    corrigirNomeAntigo(melhor);
+    escreverSave(melhor);
+    return melhor;
+  }
+
+  /* O elenco salvo guarda uma COPIA de cada jogador, e a nacionalidade e um
+     texto dentro dela — o resto (arte, cores, nome do time) e lido do data.js
+     na hora e ja acompanha a troca sozinho. Sem isto, quem tem campanha antiga
+     veria "Corto Maltese" na ficha dos proprios jogadores. */
+  function corrigirNomeAntigo(sv) {
+    if (!sv || !sv.roster) return sv;
+    sv.roster.forEach(function (p) {
+      if (p && p.nationality === "Corto Maltese") p.nationality = "Puerto Malta";
+    });
+    return sv;
+  }
+
+  function lerSave() {
+    var raw;
+    try { raw = STORAGE.getItem(SAVE_KEY); } catch (e) { return null; }
+    if (!raw) return migrarDasSenhas();
+    try {
+      var sv = JSON.parse(raw);
+      return (sv && sv.roster) ? corrigirNomeAntigo(sv) : null;
     } catch (e) {
-      return {};
+      return null;
     }
   }
 
-  function writeAllSaves(all) {
-    try { STORAGE.setItem(SAVE_KEY, JSON.stringify(all)); } catch (e) { /* sem storage, segue sem persistir */ }
+  function escreverSave(sv) {
+    try { STORAGE.setItem(SAVE_KEY, JSON.stringify(sv)); } catch (e) { /* sem storage, segue sem persistir */ }
   }
+
+  function apagarSave() {
+    current = null;
+    try { STORAGE.removeItem(SAVE_KEY); } catch (e) { /* ignora */ }
+  }
+
+  // há campanha gravada pra retomar? (também dispara a migração, de propósito:
+  // o menu pergunta isso antes de qualquer outra coisa)
+  function temSave() { return !!lerSave(); }
 
   function save() {
     if (!current) return;
     if (COPA.isActive()) current.copaState = COPA.getState();
-    var all = readAllSaves();
-    all[current.password] = current;
-    writeAllSaves(all);
+    escreverSave(current);
   }
 
-  // true = já existia save com essa senha (retomando); false = campanha nova
-  function startOrLoad(password) {
-    var all = readAllSaves();
-    var existing = all[password];
+  // true = campanha nova; false = retomando a que estava salva
+  function startOrLoad() {
+    var existing = lerSave();
     if (existing) {
       current = existing;
       applyRosterToGameData();
@@ -89,7 +147,6 @@ var CAMPAIGN = (function () {
       return { isNew: false, state: current };
     }
     current = {
-      password: password,
       fichas: 0,
       roster: baseRoster(),
       recruitedIds: [],
@@ -218,6 +275,8 @@ var CAMPAIGN = (function () {
 
   return {
     startOrLoad: startOrLoad,
+    temSave: temSave,
+    apagarSave: apagarSave,
     startNextCopa: startNextCopa,
     markCopaStarted: markCopaStarted,
     finishRun: finishRun,

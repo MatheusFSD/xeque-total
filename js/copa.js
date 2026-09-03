@@ -266,7 +266,7 @@ var COPA = (function () {
   }
 
   function startTournament(humanSquadId) {
-    // squads marcados campaignOnly (o Corto Maltese do modo Campanha) nunca entram
+    // squads marcados campaignOnly (o Puerto Malta do modo Campanha) nunca entram
     // no sorteio de adversários de uma Copa normal — só participam quando são eles
     // mesmos o squad do jogador (o próprio modo Campanha usa essa mesma função)
     var allIds = GAME_DATA.TEAMS.filter(function (t) { return !t.campaignOnly || t.id === humanSquadId; })

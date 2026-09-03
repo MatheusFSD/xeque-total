@@ -106,7 +106,7 @@ var UI = (function () {
       "settings-gear-btn", "settings-menu",
       "mode-select-amistoso", "mode-select-copa", "mode-select-duo", "mode-select-campanha", "sound-checkbox", "lang-select",
       "squad-select-screen", "squad-select-back-btn", "squad-select-kicker",
-      "campaign-password-modal", "campaign-password-back-btn", "campaign-password-input", "campaign-password-continue-btn",
+      "campaign-intro-modal", "campaign-intro-back-btn", "campaign-intro-start-btn", "campaign-intro-restart-btn",
       "campaign-shop-modal", "campaign-shop-fichas", "campaign-shop-award", "campaign-shop-roster",
       "campaign-pack-medianos", "campaign-pack-medianos-cost", "campaign-pack-elite", "campaign-pack-elite-cost", "campaign-shop-continue-btn",
       "campaign-recruit-modal", "campaign-recruit-name", "campaign-recruit-sub", "campaign-recruit-slots",
@@ -330,24 +330,31 @@ var UI = (function () {
 
   /* ---------------- modo Campanha ---------------- */
 
-  function goToCampaignPassword() {
+  /* A campanha tem UM save por navegador (a senha saiu em 2026-09-02). Esta
+     tela muda de cara conforme exista ou nao algo salvo: com save, o botao
+     principal retoma e aparece um segundo pra recomecar do zero. */
+  function goToCampaignIntro() {
+    var tem = CAMPAIGN.temSave();
+    if (els.campaignIntroStartBtn) {
+      els.campaignIntroStartBtn.textContent = T(tem ? "Continuar campanha" : "Começar campanha");
+    }
+    if (els.campaignIntroRestartBtn) {
+      els.campaignIntroRestartBtn.classList.toggle("hidden", !tem);
+    }
     if (els.startScreen) els.startScreen.classList.add("hidden");
-    if (els.campaignPasswordInput) els.campaignPasswordInput.value = "";
-    if (els.campaignPasswordContinueBtn) els.campaignPasswordContinueBtn.disabled = true;
-    if (els.campaignPasswordModal) els.campaignPasswordModal.classList.remove("hidden");
-    if (els.campaignPasswordInput) els.campaignPasswordInput.focus();
+    if (els.campaignIntroModal) els.campaignIntroModal.classList.remove("hidden");
   }
 
-  function startOrResumeCampaign(password) {
+  function startOrResumeCampaign() {
     campaignActive = true;
     gameMode = "copa";
     chosenHomeSquadId = "CTM";
     chosenAwaySquadId = null;
     COPA.reset();
 
-    var result = CAMPAIGN.startOrLoad(password);
+    var result = CAMPAIGN.startOrLoad();
     var st = result.state;
-    if (els.campaignPasswordModal) els.campaignPasswordModal.classList.add("hidden");
+    if (els.campaignIntroModal) els.campaignIntroModal.classList.add("hidden");
 
     if (st.stage === "finished") {
       CAMPAIGN.startNextCopa(); // mantém elenco/fichas/reforços — só sorteia uma Copa nova
@@ -428,7 +435,7 @@ var UI = (function () {
     if (!pack) { renderCampaignShop(); return; }
     if (pack.candidateSlots.length === 1) {
       CAMPAIGN.signRecruit(pack.recruit, pack.candidateSlots[0].index);
-      renderCampaignShop(T("{0} assinou com o Corto Maltese!", pack.recruit.name));
+      renderCampaignShop(T("{0} assinou com o Puerto Malta!", pack.recruit.name));
     } else {
       showCampaignRecruitChoice(pack);
     }
@@ -448,7 +455,7 @@ var UI = (function () {
         SOUND.playClick();
         CAMPAIGN.signRecruit(pack.recruit, slot.index);
         els.campaignRecruitModal.classList.add("hidden");
-        renderCampaignShop(T("{0} assinou com o Corto Maltese!", pack.recruit.name));
+        renderCampaignShop(T("{0} assinou com o Puerto Malta!", pack.recruit.name));
       });
       els.campaignRecruitSlots.appendChild(btn);
     });
@@ -702,7 +709,17 @@ var UI = (function () {
       els.ballEl.style.transitionDuration = flightMs + "ms";
     }
     lastBallPos = { row: row, col: col };
-    els.ballEl.style.transform = "translate(" + (col * 100) + "%, " + (row * 100) + "%)" + PITCH_UPRIGHT;
+    // `avanco` (fracao de casa) so e usado no chute que vira gol: leva a bola
+    // um pouco alem da casa do goleiro, pra ela morrer na linha de fundo
+    var avanco = state.ball.carrierId ? 0 : (state.ball.avanco || 0);
+
+    /* Durante o voo a bola sobe no eixo Z. Nao basta z-index: #pitch e
+       preserve-3d, entao quem manda e a posiçao no espaço — e o cartao do
+       goleiro, que fica "em pe" por causa do contra-giro, tapava a bola
+       justamente na casa do gol, que e onde ela precisa ser vista. */
+    var noAr = state.phase === "chute-no-ar" ? " translateZ(60px)" : "";
+    els.ballEl.style.transform =
+      "translate(" + ((col + avanco) * 100) + "%, " + (row * 100) + "%)" + PITCH_UPRIGHT + noAr;
   }
 
   /* ---------------- eventos de clique ---------------- */
@@ -1470,26 +1487,26 @@ var UI = (function () {
       goToSquadSelect("copa");
     });
     if (els.modeSelectDuo) els.modeSelectDuo.addEventListener("click", function () { SOUND.playClick(); goToSquadSelect("2players"); });
-    if (els.modeSelectCampanha) els.modeSelectCampanha.addEventListener("click", function () { SOUND.playClick(); goToCampaignPassword(); });
+    if (els.modeSelectCampanha) els.modeSelectCampanha.addEventListener("click", function () { SOUND.playClick(); goToCampaignIntro(); });
 
-    if (els.campaignPasswordBackBtn) els.campaignPasswordBackBtn.addEventListener("click", function () {
+    if (els.campaignIntroBackBtn) els.campaignIntroBackBtn.addEventListener("click", function () {
       SOUND.playClick();
-      if (els.campaignPasswordModal) els.campaignPasswordModal.classList.add("hidden");
+      if (els.campaignIntroModal) els.campaignIntroModal.classList.add("hidden");
       if (els.startScreen) els.startScreen.classList.remove("hidden");
     });
-    if (els.campaignPasswordInput) els.campaignPasswordInput.addEventListener("input", function () {
-      if (els.campaignPasswordContinueBtn) els.campaignPasswordContinueBtn.disabled = els.campaignPasswordInput.value.trim().length === 0;
-    });
-    if (els.campaignPasswordContinueBtn) els.campaignPasswordContinueBtn.addEventListener("click", function () {
-      var password = els.campaignPasswordInput ? els.campaignPasswordInput.value.trim() : "";
-      if (!password) return;
+    if (els.campaignIntroStartBtn) els.campaignIntroStartBtn.addEventListener("click", function () {
       SOUND.playClick();
-      startOrResumeCampaign(password);
+      startOrResumeCampaign();
     });
-    if (els.campaignPasswordInput) els.campaignPasswordInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && els.campaignPasswordContinueBtn && !els.campaignPasswordContinueBtn.disabled) {
-        els.campaignPasswordContinueBtn.click();
-      }
+    if (els.campaignIntroRestartBtn) els.campaignIntroRestartBtn.addEventListener("click", function () {
+      SOUND.playClick();
+      // apagar aqui e definitivo: nao ha outro save pra voltar
+      confirmar(T("Isso apaga a campanha salva, com elenco, fichas e reforços. Começar de novo?")).then(function (sim) {
+        if (!sim) return;
+        CAMPAIGN.apagarSave();
+        COPA.reset();
+        startOrResumeCampaign();
+      });
     });
 
     if (els.campaignPackMedianos) els.campaignPackMedianos.addEventListener("click", function () { handleBuyFigurinha("medianos"); });

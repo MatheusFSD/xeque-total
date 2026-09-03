@@ -455,6 +455,7 @@ var TUTORIAL = (function () {
     for (var i = 0; i < marcados.length; i++) marcados[i].classList.remove("tutorial-alvo");
     if (GAME.pausarIA) GAME.pausarIA(false);
     if (GAME.semInterceptacao) GAME.semInterceptacao(false);
+    if (GAME.garantirGol) GAME.garantirGol(false);
   }
 
   function concluir() {
@@ -494,6 +495,8 @@ var TUTORIAL = (function () {
     roteiro = true;
     if (GAME.pausarIA) GAME.pausarIA(true);
     if (GAME.semInterceptacao) GAME.semInterceptacao(true);
+    // o roteiro termina no gol: uma defesa deixaria a licao do poder sem desfecho
+    if (GAME.garantirGol) GAME.garantirGol(true);
     var s0 = GAME.getState();
     if (s0) { montarCena(s0); UI.render(s0); }
     els.painel.classList.remove("hidden", "saindo", "concluido", "solto");

@@ -77,7 +77,8 @@ var GAME = (function () {
       legalMoves: [], passTargets: [], canShoot: false, shootInfo: null,
       log: [], duelContext: null,
       aiPausada: false,          // tutorial roteirizado segura a IA (ver js/tutorial.js)
-      semInterceptacao: false    // e desliga o azar do passe enquanto ensina
+      semInterceptacao: false,   // e desliga o azar do passe enquanto ensina
+      golGarantido: false        // e o chute do roteiro tem que terminar em gol
     };
   }
 
@@ -306,14 +307,16 @@ var GAME = (function () {
     // o goleiro só defende plantado NA casa do gol. Antes valia a grande área
     // inteira (6 casas), então ele defendia de fora da meta — era o bug.
     var gkNoGol = gk && BOARD.isOnGoalSpot(gk.row, gk.col, defTeam);
+    // gol de placa nao abre duelo, mas a bola voa igual: seria estranho justo
+    // o gol mais bonito ser o unico em que ela nao sai do lugar
     if (!gkNoGol) {
       addLog(T("GOL DE PLACA! O goleiro saiu do gol e {0}", T("{0} encontra a meta vazia!", shooter.name)), "ev-goal");
-      scoreGoal(shooter.team, shooter);
+      voarChute(shooter, gk || shooter, true, function () { scoreGoal(shooter.team, shooter); });
       return;
     }
     if (gk.stunned) {
       addLog(T("GOL DE PLACA!") + " " + T("{0} está atordoado e não consegue reagir ao chute de {1}.", gk.name, shooter.name), "ev-goal");
-      scoreGoal(shooter.team, shooter);
+      voarChute(shooter, gk, true, function () { scoreGoal(shooter.team, shooter); });
       return;
     }
     beginDuel(shooter, gk, true, shotPenaltyWithAbilities(shooter, gk, info), false, info.blockerCount);
@@ -420,10 +423,34 @@ var GAME = (function () {
     };
   }
 
+  /* No tutorial o chute PRECISA virar gol: o roteiro termina nele, e uma defesa
+     deixaria a licao do poder sem desfecho. Nao da pra so trocar o vencedor —
+     o modal mostra as duas pontuacoes, e um vencedor com menos pontos pareceria
+     bug. Entao a rolagem e repetida ate o atacante ganhar de verdade.
+
+     `resolveDuel` DESCONTA MANA a cada chamada, entao a mana dos dois volta ao
+     valor original antes de cada nova tentativa; sem isso o goleiro terminaria
+     o roteiro zerado por poderes que ninguem viu. */
+  var TENTATIVAS_ATE_O_GOL = 60;
+
+  function rolarAteSerGol(params, ctx) {
+    var manaC = ctx.challenger.mana, manaH = ctx.holder.mana;
+    var result = null;
+    for (var i = 0; i < TENTATIVAS_ATE_O_GOL; i++) {
+      if (i > 0) { ctx.challenger.mana = manaC; ctx.holder.mana = manaH; }
+      result = DUEL.resolveDuel(params);
+      if (result.winnerSide === "challenger") return result;
+    }
+    // rede de seguranca (chute muito dificil): o placar acompanha o desfecho
+    result.winnerSide = "challenger";
+    result.challengerScore = result.holderScore + 1;
+    return result;
+  }
+
   function resolveDuelNow() {
     var ctx = state.duelContext;
     var extra = duelAbilityContext(ctx.challenger, ctx.holder);
-    var result = DUEL.resolveDuel({
+    var params = {
       challenger: ctx.challenger, holder: ctx.holder,
       challengerChoice: ctx.challengerChoice, holderChoice: ctx.holderChoice,
       isShoot: ctx.isShoot, isDribble: ctx.isDribble,
@@ -434,7 +461,17 @@ var GAME = (function () {
       losingByTeam: extra.losingByTeam,
       challengerNeighbors: extra.challengerNeighbors,
       holderNeighbors: extra.holderNeighbors
-    });
+    };
+    var result;
+    if (state.golGarantido && ctx.isShoot) {
+      // vale uma vez so: o tutorial solta as travas 900ms depois de o jogador
+      // escolher no duelo, entao amarrar a garantia ao fim do roteiro deixaria
+      // o gol dependendo de qual dos dois relogios chega primeiro
+      state.golGarantido = false;
+      result = rolarAteSerGol(params, ctx);
+    } else {
+      result = DUEL.resolveDuel(params);
+    }
     ctx.result = result;
     ctx.revealed = true;
     narrateDuel(ctx, result);
@@ -473,22 +510,61 @@ var GAME = (function () {
     }
   }
 
+  /* A bola viaja entre o fim do duelo e o texto do gol. Antes o lance pulava
+     do modal direto pro "GOL!", e o chute nunca aparecia em campo.
+
+     Solta a bola do pe de quem chutou (carrierId nulo, senao renderBallToken
+     a gruda no jogador) e joga a posicao pro destino — a transicao de #ball-el
+     no css faz o voo sozinha. A fase propria trava o clique e fecha o modal,
+     que so aparece enquanto phase === "duel". */
+  var PAUSA_APOS_O_VOO_MS = 260;   // respiro pra bola "chegar" antes do texto
+
+  /* Quanto a bola avanca ALEM do centro da casa do gol, em fracao de casa: e o
+     que a faz morrer NA LINHA em vez de parar em cima do goleiro.
+
+     O teto foi MEDIDO na tela, nao calculado. Duas coisas enganam aqui: a
+     perspectiva do campo estreita as linhas do fundo (na linha 4 a casa do gol
+     acaba a ~95,7% da largura do #pitch, nao a 100%), e `getBoundingClientRect`
+     ignora o `overflow: hidden` — a bola continua "medindo" certo depois de ja
+     ter sido cortada. Passando de ~0.28 ela some atras do painel lateral. */
+  var AVANCO_NA_REDE = 0.24;
+
+  function voarChute(atacante, gk, foiGol, aoChegar) {
+    var origem = { row: state.ball.row, col: state.ball.col };
+    state.ball.carrierId = null;
+    if (foiGol) {
+      var golCol = state.teams[atacante.team].opponentGoalCol;
+      // pelo MEIO do gol, por cima do goleiro, e morre na linha de fundo.
+      // Mirar num canto livre parecia bola pra fora — foi a primeira tentativa.
+      state.ball.row = BOARD.GOAL_ROWS[Math.floor(BOARD.GOAL_ROWS.length / 2)];
+      state.ball.col = golCol;
+      state.ball.avanco = golCol === 0 ? -AVANCO_NA_REDE : AVANCO_NA_REDE;
+    } else {
+      state.ball.row = gk.row; state.ball.col = gk.col;
+      state.ball.avanco = 0;
+    }
+    state.phase = "chute-no-ar";
+    render();
+    var voo = BOARD.ballFlightMs(origem.row, origem.col, state.ball.row, state.ball.col);
+    setTimeout(aoChegar, voo + PAUSA_APOS_O_VOO_MS);
+  }
+
   function continueAfterDuel() {
     var ctx = state.duelContext;
     if (!ctx || !ctx.revealed) return;
 
     if (ctx.isShoot) {
-      if (ctx.result.winnerSide === "challenger") {
-        state.duelContext = null;
-        scoreGoal(ctx.challenger.team, ctx.challenger);
-      } else {
-        state.ball.carrierId = ctx.holder.id;
-        state.ball.row = ctx.holder.row; state.ball.col = ctx.holder.col;
-        state.duelContext = null;
+      var foiGol = ctx.result.winnerSide === "challenger";
+      var atacante = ctx.challenger, gk = ctx.holder;
+      state.duelContext = null;
+      voarChute(atacante, gk, foiGol, function () {
+        if (foiGol) { scoreGoal(atacante.team, atacante); return; }
+        state.ball.carrierId = gk.id;
+        state.ball.row = gk.row; state.ball.col = gk.col;
         state.phase = "playing";
         render();
         endTurn();
-      }
+      });
       return;
     }
 
@@ -698,11 +774,17 @@ var GAME = (function () {
     if (state) state.semInterceptacao = !!desligar;
   }
 
+  /* Faz o chute terminar em gol. So o tutorial roteirizado usa. */
+  function garantirGol(garantir) {
+    if (state) state.golGarantido = !!garantir;
+  }
+
   return {
     start: start,
     getState: getState,
     pausarIA: pausarIA,
     semInterceptacao: semInterceptacao,
+    garantirGol: garantirGol,
     selectPiece: selectPiece,
     clearSelection: clearSelection,
     attemptMove: attemptMove,

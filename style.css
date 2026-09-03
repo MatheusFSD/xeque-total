@@ -131,9 +131,9 @@
   --marrocos-2: #4c9a5b;
   --marrocos-3: #006233;   /* verde da estrela */
 
-  --cortomaltese: #5c6b47;
-  --cortomaltese-2: #cbb994;
-  --cortomaltese-3: #6b4d8f;   /* roxo do uniforme */
+  --puertomalta: #5c6b47;
+  --puertomalta-2: #cbb994;
+  --puertomalta-3: #6b4d8f;   /* roxo do uniforme */
 
   /* roxo decorativo do logo — não tem relação com nenhum squad (era var(--raptor) antes de Tecos/Raptors sair do jogo) */
   --logo-accent: #7b2fb0;
@@ -2012,28 +2012,36 @@ button{ font-family: inherit; }
 
 .lineup-editor-card{
   width: 100%; max-width: 980px;
-  max-height: 92vh;
+  max-height: 96vh;
   overflow-y: auto;
   background: var(--panel);
   border: 3px solid var(--panel-border);
   border-radius: var(--radius-lg);
-  padding: 32px 36px;
+  padding: 24px 28px;
   text-align: center;
   box-shadow: var(--shadow-deep);
   animation: popIn 0.3s cubic-bezier(.2,.9,.25,1.2);
 }
 .lineup-editor-title{ font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 6px; }
-.lineup-editor-hint{ color: var(--ink-dim); font-size: 0.88rem; margin: 0 0 20px; }
+.lineup-editor-hint{ color: var(--ink-dim); font-size: 0.88rem; margin: 0 0 14px; }
 
-.lineup-editor-body{ display: grid; grid-template-columns: 1fr 300px; gap: 18px; text-align: left; }
+.lineup-editor-body{ display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; text-align: left; }
 
 .lineup-grid{
   display: grid;
   position: relative;
   gap: 2px;
   aspect-ratio: 6 / 9;
-  max-width: 420px;
-  max-height: 62vh;
+  /* A ALTURA manda aqui e a largura sai da proporcao. Sem altura propria o
+     campo esticava ate a altura da FICHA ao lado (align-items: stretch, o
+     padrao do grid) e o aspect-ratio derivava a largura dessa altura — dava
+     um campo de 243px encolhido ao lado de uma ficha de 300px. */
+  /* 236px = o que o cartao gasta fora do campo (titulo, dica, botoes, moldura),
+     medido. Descontar isso evita que o cartao ganhe barra de rolagem em telas
+     baixas, tipo 1280x720. */
+  height: min(calc(96vh - 236px), 700px);
+  width: auto;
+  max-width: 100%;
   margin: 0 auto;
   background: repeating-linear-gradient(0deg, #1a7a3e 0, #1a7a3e 11.1%, #1c8544 11.1%, #1c8544 22.2%);
   border-radius: var(--radius-md);
@@ -2115,7 +2123,7 @@ button{ font-family: inherit; }
 .lineup-detail-name{ font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
 .lineup-detail-pos{ font-size: 0.78rem; color: var(--ink-dim); }
 
-.lineup-editor-actions{ display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
+.lineup-editor-actions{ display: flex; justify-content: center; gap: 12px; margin-top: 14px; }
 
 .coin-wrap{
   perspective: 700px; display: flex; justify-content: center; margin: 10px 0 18px;
@@ -2301,21 +2309,13 @@ button{ font-family: inherit; }
   margin: 0 auto 22px; letter-spacing: 0.03em;
 }
 
-/* ---------------- modo Campanha: senha / loja / figurinha ---------------- */
+/* ---------------- modo Campanha: abertura / loja / figurinha ---------------- */
 
-.campaign-password-tagline{ max-width: 420px; }
-.campaign-password-input{
-  display: block; width: 100%; max-width: 320px; margin: 4px auto 18px;
-  background: var(--panel-soft);
-  border: 2px solid var(--panel-border);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 1rem;
-  text-align: center;
-  padding: 10px 12px;
+.campaign-intro-tagline{ max-width: 420px; }
+.campaign-intro-actions{
+  display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px;
 }
-.campaign-password-input:focus{ outline: none; border-color: var(--gold); }
+.campaign-intro-actions .btn-start{ margin: 0; }
 
 .campaign-shop-card{ max-width: 560px; }
 .campaign-shop-fichas{ font-size: 1.7rem; margin-bottom: 4px; }
@@ -2391,7 +2391,8 @@ button{ font-family: inherit; }
   .detail-card{ flex-direction: column; }
   .detail-hero-wrap{ width: 100%; max-width: 220px; margin: 0 auto; }
   .lineup-editor-body{ grid-template-columns: 1fr; }
-  .lineup-grid{ max-width: 320px; margin: 0 auto; }
+  /* no celular quem manda e a largura: com altura fixa o campo estouraria a tela */
+  .lineup-grid{ height: auto; width: 100%; max-width: 340px; margin: 0 auto; }
 }
 
 @media (max-width: 700px){
